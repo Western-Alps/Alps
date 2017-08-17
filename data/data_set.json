@@ -1,0 +1,17 @@
+{
+    "inputs":{
+	"images":[["/home/cobigo/devel/CPP/Alps/data/tempo1.nii.gz",
+		   "/home/cobigo/devel/CPP/Alps/data/tempo1.nii.gz",
+		   "/home/cobigo/devel/CPP/Alps/data/tempo1.nii.gz"],
+		  ["/home/cobigo/devel/CPP/Alps/data/tempo2.nii.gz",
+		   "/home/cobigo/devel/CPP/Alps/data/tempo2.nii.gz",
+		   "/home/cobigo/devel/CPP/Alps/data/tempo2.nii.gz"]],
+	"labels":[1,2,3]
+    },
+    "strategy":{
+	"status":"train",
+	"learning_rate":0.01,
+	"weights":"weights_strategy.nii.gz"
+    },
+    "output":{}
+}

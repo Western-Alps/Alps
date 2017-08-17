@@ -46,11 +46,16 @@ namespace MAC
 
       //
       // If we don't have label images: it is a use (train_ = 0); otherwise: train (train_ = 1)
-      int number_of_labels = 0;
-      if ( !data_["inputs"]["labels"].size() )
-	train_ = false;
+      int number_of_labels = number_of_labels = data_["inputs"]["labels"].size();
+      if ( data_["strategy"]["status"] == "train" )
+	if ( number_of_labels )
+	  train_ = true;
+	else
+	  throw MAC::MACException( __FILE__, __LINE__,
+				   "Training labels are missing.",
+				   ITK_LOCATION );
       else
-	number_of_labels = data_["inputs"]["labels"].size();
+	train_ = false;
 
       //
       // If we have more than one set of images, all sets needs to have the same number 

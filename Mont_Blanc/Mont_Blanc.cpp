@@ -86,17 +86,6 @@ main( const int argc, const char **argv )
 	      MAC::Singleton::instance( filename );
 	      // print the data set
 	      MAC::Singleton::instance()->print_data_set();
-	      // load the mask
-	      std::string mask = MAC::Singleton::instance()->get_data()["inputs"]["mask"].get< std::string >();
-	      //
-	      if ( mask.empty() )
-		{
-		  std::string mess = "No mask loaded. A mask must be loaded.\n";
-		  mess += "./WMH_classification -c data_set.json ";
-		  throw MAC::MACException( __FILE__, __LINE__,
-					   mess.c_str(),
-					   ITK_LOCATION );
-		}
 
 	      ////////////////////////////
 	      ///////              ///////
