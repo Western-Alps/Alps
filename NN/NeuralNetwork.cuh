@@ -7,6 +7,7 @@
 #include <fstream>
 #include <math.h>  
 #include <map>
+#include <memory>
 #include <list>
 //
 // CUDA
@@ -52,7 +53,7 @@ namespace MAC
       //
       //
       __host__
-      virtual void add( NeuralNetwork* ){};
+      virtual void add( std::shared_ptr< NeuralNetwork > ){};
     };
 }
 #endif

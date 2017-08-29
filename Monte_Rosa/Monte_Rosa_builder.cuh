@@ -8,6 +8,7 @@
 #include <math.h>  
 #include <map>
 #include <list>
+#include <memory>
 //
 // CUDA
 //
@@ -52,12 +53,12 @@ namespace MAC
       //
       //
       __host__
-      virtual void add( NeuralNetwork* ){};
+      virtual void add( std::shared_ptr< NeuralNetwork > ){};
 
     private:
       //
       //
-      //MAC::NeuralNetworkComposite mr_nn_;
+      NeuralNetworkComposite mr_nn_;
     };
 }
 #endif
