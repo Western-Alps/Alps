@@ -3,23 +3,43 @@ cmake_minimum_required(VERSION 2.8)
 project(Alps)
 
 #
-# Compilation
+# CUDA
+find_package(CUDA QUIET REQUIRED)
+include(FindCUDA)
+#
+set(CUDA_SEPARABLE_COMPILATION ON)
+#
+LIST(APPEND CUDA_NVCC_FLAGS --compiler-options -O3 -lineinfo -use_fast_math -Xptxas -dlcm=cg)
+LIST(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_30,code=sm_30)
+LIST(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_35,code=sm_35)
+LIST(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_37,code=sm_37)
+LIST(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_50,code=sm_50)
+LIST(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_52,code=sm_52)
 
+
+
+#
+# Compilation
+SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+SET(BUILD_SHARED_LIBRARIES OFF)
+#SET(CMAKE_EXE_LINKER_FLAGS "-static")
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_definitions(/DYOURDEFINITION)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)
   add_definitions(-std=c++11)
-  set(CMAKE_CXX_FLAGS "-O3")
+  set(CMAKE_CXX_FLAGS "-O3 -ffast-math -Wall")
 endif()
 
 #
-# Eigen
+# Eigen and JSON
 set( EIGEN /mnt/neuroimaging/Eigen-3/install/include/eigen3/ /mnt/neuroimaging/Eigen-3/install/include/eigen3/unsupported/ )
 set( JSON /mnt/neuroimaging/json/src/ )
+
 #
-include_directories( ${EIGEN}/ ${JSON}/ ${ITK_INC})
+# include directories
+include_directories( /usr/local/cuda/include ${EIGEN}/ ${JSON}/ ${ITK_INC} )
 list( APPEND SOURCES ${DLIB_ALL_SOURCES} )
 
 
@@ -35,37 +55,41 @@ include_directories( ${Alps_SOURCE_DIR}  )
 #
 
 #
-file( GLOB SOURCES_ *.cxx )
+file( GLOB SOURCES_ *.cxx  )
 list( APPEND SOURCES ${SOURCES_} )
 #message(STATUS ${SOURCES})
 
 #
 # Glbal
-file( GLOB HEADERS_ utils/*.h )
-file( GLOB SOURCES_ utils/*.cxx )
+file( GLOB HEADERS_ utils/*.h NN/*.cuh)
+file( GLOB SOURCES_ utils/*.cxx NN/*.cu )
 #
 list( APPEND HEADERS ${HEADERS_}  )
 list( APPEND SOURCES ${SOURCES_} )
-include_directories( ${Alps_SOURCE_DIR}/utils  )
+include_directories( ${Alps_SOURCE_DIR}/utils ${Alps_SOURCE_DIR}/NN )
 
 #
 # CNN
 #
 # Monte Rosa
-file( GLOB Monte_Rosa_HEADERS_ Monte_Rosa/*.h )
-file( GLOB Monte_Rosa_SOURCES_ Monte_Rosa/*.cxx )
+include_directories( ${Alps_SOURCE_DIR}/Monte_Rosa )
+#
+file( GLOB Monte_Rosa_HEADERS_ Monte_Rosa/*.h Monte_Rosa/*.cuh )
+file( GLOB Monte_Rosa_SOURCES_ Monte_Rosa/*.cxx Monte_Rosa/*.cu )
 #
 list( APPEND HEADERS ${Monte_Rosa_HEADERS_} )
 list( APPEND SOURCES ${Monte_Rosa_SOURCES_} )
 #
-add_executable( Monte_Rosa MACOSX_BUNDLE Monte_Rosa/Monte_Rosa.cpp ${SOURCES} )
+cuda_add_executable( Monte_Rosa MACOSX_BUNDLE Monte_Rosa/Monte_Rosa.cpp ${SOURCES} )
 # cmake 3.1 target_compile_features(Monte_Rosa PRIVATE cxx_range_for)
-target_link_libraries( Monte_Rosa -lX11 ${ITK_LIBRARIES} ${HEADER_FILES} )
+target_link_libraries( Monte_Rosa ${ITK_LIBRARIES} ${HEADER_FILES} )
 
 #
 # ???
 #
 # Mont Blanc
+include_directories( ${Alps_SOURCE_DIR}/Mont_Blanc )
+#
 file( GLOB Mont_Blanc_HEADERS_ Mont_Blanc/*.h )
 file( GLOB Mont_Blanc_SOURCES_ Mont_Blanc/*.cxx )
 #
@@ -74,7 +98,7 @@ list( APPEND SOURCES ${Mont_Blanc_SOURCES_} )
 #
 add_executable( Mont_Blanc MACOSX_BUNDLE Mont_Blanc/Mont_Blanc.cpp ${SOURCES} )
 # cmake 3.1 target_compile_features(Mont_Blanc PRIVATE cxx_range_for)
-target_link_libraries( Mont_Blanc -lX11 ${ITK_LIBRARIES} ${HEADER_FILES} )
+target_link_libraries( Mont_Blanc  ${ITK_LIBRARIES} ${HEADER_FILES} )
 
 
 #

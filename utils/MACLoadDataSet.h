@@ -46,9 +46,9 @@ namespace MAC
 
       //
       // If we don't have label images: it is a use (train_ = 0); otherwise: train (train_ = 1)
-      int number_of_labels = number_of_labels = data_["inputs"]["labels"].size();
+      std::size_t number_of_labels = data_["inputs"]["labels"].size();
       if ( data_["strategy"]["status"] == "train" )
-	if ( number_of_labels )
+	if ( number_of_labels > 0 )
 	  train_ = true;
 	else
 	  throw MAC::MACException( __FILE__, __LINE__,
@@ -60,7 +60,7 @@ namespace MAC
       //
       // If we have more than one set of images, all sets needs to have the same number 
       // of images.
-      int modality_dim = data_["inputs"]["images"][0].size();
+      std::size_t modality_dim = data_["inputs"]["images"][0].size();
       if ( data_["inputs"]["images"].size() > 1 )
 	{
 	  for ( auto modality : data_["inputs"]["images"] )

@@ -23,6 +23,7 @@ using MaskReaderType = itk::ImageFileReader< MaskType >;
 //
 #include "MACException.h"
 #include "MACLoadDataSet.h"
+#include "Monte_Rosa_builder.cuh"
 //
 //
 //
@@ -99,7 +100,10 @@ main( const int argc, const char **argv )
 	      using ms           = std::chrono::milliseconds;
 	      using get_time     = std::chrono::steady_clock ;
 	      auto  start_timing = get_time::now();
-	      
+
+	      //
+	      // Main object
+	      MAC::Monte_Rosa_builder network;
 
 	      //
 	      // Task progress
