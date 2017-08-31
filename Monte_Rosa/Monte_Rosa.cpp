@@ -104,6 +104,7 @@ main( const int argc, const char **argv )
 	      //
 	      // Main object
 	      MAC::Monte_Rosa_builder network;
+	      network.forward();
 
 	      //
 	      // Task progress

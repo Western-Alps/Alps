@@ -45,7 +45,7 @@ namespace MAC
       //
       // Forward propagation
       __host__
-      virtual void forward(){};
+      virtual void forward();
       //
       //
       __host__ __device__
