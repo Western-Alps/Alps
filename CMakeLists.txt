@@ -61,8 +61,8 @@ list( APPEND SOURCES ${SOURCES_} )
 
 #
 # Glbal
-file( GLOB HEADERS_ utils/*.h NN/*.cuh)
-file( GLOB SOURCES_ utils/*.cxx NN/*.cu )
+file( GLOB HEADERS_ utils/*.h NN/*.cuh NN/*.h)
+file( GLOB SOURCES_ utils/*.cxx NN/*.cu  NN/*.cxx )
 #
 list( APPEND HEADERS ${HEADERS_}  )
 list( APPEND SOURCES ${SOURCES_} )

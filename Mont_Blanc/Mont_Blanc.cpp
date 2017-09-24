@@ -82,10 +82,10 @@ main( const int argc, const char **argv )
 	  if ( !filename.empty() )
 	    {
 	      //
-	      // Load the data set
-	      MAC::Singleton::instance( filename );
-	      // print the data set
-	      MAC::Singleton::instance()->print_data_set();
+//	      // Load the data set
+//	      MAC::Singleton::instance( filename );
+//	      // print the data set
+//	      MAC::Singleton::instance()->print_data_set();
 
 	      ////////////////////////////
 	      ///////              ///////

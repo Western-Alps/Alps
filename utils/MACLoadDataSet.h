@@ -15,6 +15,7 @@ using json = nlohmann::json;
 // 
 //
 #include "MACException.h"
+#include "Subject.h"
 //
 //
 //
@@ -33,59 +34,7 @@ namespace MAC
   {
     //
     // Constructor
-    explicit Singleton( const std::string JSon_file ):json_file_{ JSon_file }
-    {
-      //
-      // load the JSon file
-      std::ifstream file_in( JSon_file.c_str() );
-      file_in >> data_;
-
-      //
-      // Conditions
-      //
-
-      //
-      // If we don't have label images: it is a use (train_ = 0); otherwise: train (train_ = 1)
-      std::size_t number_of_labels = data_["inputs"]["labels"].size();
-      if ( data_["strategy"]["status"] == "train" )
-	if ( number_of_labels > 0 )
-	  train_ = true;
-	else
-	  throw MAC::MACException( __FILE__, __LINE__,
-				   "Training labels are missing.",
-				   ITK_LOCATION );
-      else
-	train_ = false;
-
-      //
-      // If we have more than one set of images, all sets needs to have the same number 
-      // of images.
-      std::size_t modality_dim = data_["inputs"]["images"][0].size();
-      if ( data_["inputs"]["images"].size() > 1 )
-	{
-	  for ( auto modality : data_["inputs"]["images"] )
-	    if ( modality_dim != modality.size() )
-	    {
-	      std::string mess = "The number of images must be the same for each modalities.\n";
-	      mess += "The first modality has " + std::to_string( modality_dim );
-	      mess += " images and another has: " + std::to_string( modality.size() );
-	      throw MAC::MACException( __FILE__, __LINE__,
-				       mess.c_str(),
-				       ITK_LOCATION );
-	    }
-	}
-
-      //
-      // The number of labels should be the same as the number of images
-      if ( train_ )
-	if ( number_of_labels != modality_dim )
-	  {
-	    std::string mess = "Number of images and labels must be the same.\n";
-	    throw MAC::MACException( __FILE__, __LINE__,
-				     mess.c_str(),
-				     ITK_LOCATION );
-	  }
-    }
+    explicit Singleton( const std::string JSon_file );
     
 
   public:
@@ -98,6 +47,18 @@ namespace MAC
     const json& get_data() const
       {
 	return data_;
+      }
+    std::vector< Subject >& get_subjects()
+      {
+	return subjects_;
+      }
+    const std::size_t get_number_of_madalities() const
+      {
+	return number_of_madalities_;
+      }
+    const std::size_t get_modality_dim() const
+      {
+	return modality_dim_;
       }
     //
     std::string get_data_set() const
@@ -139,10 +100,13 @@ namespace MAC
     // Status for trainning or using the algorithms
     // if the label is empty, the status should be automaticly "false".
     bool train_{true};
+    // number of modalities
+    std::size_t number_of_madalities_{0};
+    // Number of images per modality
+    std::size_t modality_dim_{0};
+    //
+    // Subjects
+    std::vector< Subject > subjects_;
   };
-
-//
-// Allocating and initializing Singleton's static data member.
-Singleton* Singleton::instance_ = nullptr;
 }
 #endif

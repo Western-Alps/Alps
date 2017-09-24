@@ -1,12 +1,18 @@
 {
     "inputs":{
-	"images":[["/home/cobigo/devel/CPP/Alps/data/tempo1.nii.gz",
-		   "/home/cobigo/devel/CPP/Alps/data/tempo1.nii.gz",
-		   "/home/cobigo/devel/CPP/Alps/data/tempo1.nii.gz"],
-		  ["/home/cobigo/devel/CPP/Alps/data/tempo2.nii.gz",
-		   "/home/cobigo/devel/CPP/Alps/data/tempo2.nii.gz",
-		   "/home/cobigo/devel/CPP/Alps/data/tempo2.nii.gz"]],
-	"labels":[1,2,3]
+	"images":[["/home/cobigo/devel/CPP/Alps/data/tempo11.nii.gz",
+		   "/home/cobigo/devel/CPP/Alps/data/tempo12.nii.gz",
+		   "/home/cobigo/devel/CPP/Alps/data/tempo13.nii.gz",
+		   "/home/cobigo/devel/CPP/Alps/data/tempo14.nii.gz"],
+		  ["/home/cobigo/devel/CPP/Alps/data/tempo21.nii.gz",
+		   "/home/cobigo/devel/CPP/Alps/data/tempo22.nii.gz",
+		   "/home/cobigo/devel/CPP/Alps/data/tempo23.nii.gz",
+		   "/home/cobigo/devel/CPP/Alps/data/tempo24.nii.gz"],
+		  ["/home/cobigo/devel/CPP/Alps/data/tempo31.nii.gz",
+		   "/home/cobigo/devel/CPP/Alps/data/tempo32.nii.gz",
+		   "/home/cobigo/devel/CPP/Alps/data/tempo33.nii.gz",
+		   "/home/cobigo/devel/CPP/Alps/data/tempo34.nii.gz"]],
+	"labels":[1,2,3,2]
     },
     "strategy":{
 	"status":"train",

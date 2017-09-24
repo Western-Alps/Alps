@@ -1,4 +1,4 @@
-#include<iostream>
+#include <iostream>
 #include <cstdlib>
 #include <algorithm>
 #include <string>
@@ -23,7 +23,7 @@ using MaskReaderType = itk::ImageFileReader< MaskType >;
 //
 #include "MACException.h"
 #include "MACLoadDataSet.h"
-#include "Monte_Rosa_builder.cuh"
+#include "Monte_Rosa_builder.h"
 //
 //
 //
@@ -101,10 +101,20 @@ main( const int argc, const char **argv )
 	      using get_time     = std::chrono::steady_clock ;
 	      auto  start_timing = get_time::now();
 
+	      ///////////
+	      // Start //
+	      ///////////
+
 	      //
 	      // Main object
 	      MAC::Monte_Rosa_builder network;
-	      network.forward();
+
+	      network.initialization();
+	      network.forward( MAC::Singleton::instance()->get_subjects()[0] );
+
+	      /////////
+	      // End //
+	      /////////
 
 	      //
 	      // Task progress

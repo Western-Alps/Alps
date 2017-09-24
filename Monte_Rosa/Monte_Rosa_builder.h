@@ -1,5 +1,5 @@
-#ifndef MONTE_ROSA_BUILDER_CUH
-#define MONTE_ROSA_BUILDER_CUH
+#ifndef MONTE_ROSA_BUILDER_H
+#define MONTE_ROSA_BUILDER_H
 //
 //
 //
@@ -17,8 +17,9 @@
 //
 //
 #include "MACException.h"
-#include "NeuralNetwork.cuh"
-#include "NeuralNetworkComposite.cuh"
+#include "Subject.h"
+#include "NeuralNetwork.h"
+#include "NeuralNetworkComposite.h"
 //
 //
 //
@@ -43,17 +44,26 @@ namespace MAC
       virtual ~Monte_Rosa_builder(){};
 
       //
+      // Initialization
+      virtual void initialization();
+      //
+      // get the layer name
+      virtual std::string get_layer_name(){ return std::string("Monte Rosa neural network.");};
+      //
+      // get the layer name
+      virtual Layer get_layer_type(){ return Monte_rosa_layer;};
+      //
       // Forward propagation
-      __host__
-      virtual void forward();
+      virtual void forward( Subject&, const Weights& W = Weights() );
       //
       //
-      __host__ __device__
       virtual void backward(){};
       //
       //
-      __host__
       virtual void add( std::shared_ptr< NeuralNetwork > ){};
+      //
+      //
+      virtual int get_number_weights() const { return 1;};
 
     private:
       //
