@@ -150,7 +150,6 @@ namespace MAC
       std::vector< Image3DType::Pointer > convolution_images_;
       // Pulling image: vector for each modality
       std::vector< Image3DType::Pointer > pull_images_;
-
   };
 }
 #endif

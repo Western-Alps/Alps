@@ -118,12 +118,16 @@ MAC::NeuralNetworkComposite::initialization()
 	    {
 	    case convolutional_layer:
 	      {
-		std::cout << nn_elem->get_layer_name() << std::endl;
 		weight_indexes_.push_back( number_of_weights_ );
 		number_of_weights_ += nn_elem->get_number_weights();
 		break;
 	      }
 	    case fully_connected_layer:
+	      {
+		weight_indexes_.push_back( number_of_weights_ );
+		number_of_weights_ += nn_elem->get_number_weights();
+		break;
+	      }
 	    default:
 	      throw MAC::MACException( __FILE__, __LINE__,
 				       "Layer type unknown.",

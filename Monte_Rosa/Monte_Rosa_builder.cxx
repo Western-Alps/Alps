@@ -45,25 +45,53 @@ MAC::Monte_Rosa_builder::Monte_Rosa_builder():
 						  window_2 );
 
   //
+  // Fully connected layers
+  // First we have to know how many input we will have
+  // Next we can build the layers
+  //
+  
+  //
+  // 1. Inputs of the fully connected layers neural network
+  int number_of_inputs = 0;
   // We have three convolutional layers. At the end of the three pulling image
   // we will have:
   std::vector< Image3DType::SizeType > fully_connected_input =
     MAC::Singleton::instance()->get_subjects()[0].get_modality_images_size();
   //
-  for ( int mod = 0 ; mod < fully_connected_input.size() ; mod++ )
+  for ( int mod = 0 ; mod < static_cast< int >( fully_connected_input.size() ) ; mod++ )
     for ( int dim = 0 ; dim < 3 ; dim++ )
       for ( int i = 0 ; i < 3 /* num conv layers*/ ; i++ )
 	fully_connected_input[mod][dim] = static_cast< int >( fully_connected_input[mod][dim] / 2 );
   //
-  for ( auto s : fully_connected_input )
-    std::cout << s << std::endl;
+  for ( auto mod : fully_connected_input )
+    {
+      int mod_num_weights = 1;
+      for ( int dim = 0 ; dim < 3 ; dim++ )
+	mod_num_weights *= mod[dim];
+      //
+      number_of_inputs += mod_num_weights;
+    }
+  std::cout << number_of_inputs << std::endl;
+  //
+  // 2. Create the fully connected layer
+  // the +1 is for the bias weights
+  const int num_fc_layers      = 6;
+  int fc_layers[num_fc_layers] = {number_of_inputs+1,1000+1,500+1,100+1,50+1,3};
+  //
+  std::shared_ptr< NeuralNetwork > nn_3 =
+    std::make_shared< MAC::FullyConnected_layer >( "layer_3", 3,
+						   num_fc_layers,
+						   fc_layers );
+  
 
   //
   // Anatomy
+  //
+  
   mr_nn_.add( nn_0 );
   mr_nn_.add( nn_1 );
   mr_nn_.add( nn_2 );
-
+  mr_nn_.add( nn_3 );
 
   //MAC::Singleton::instance()->get_subjects()[0].write_clone();
 };
