@@ -30,9 +30,11 @@ MAC::Convolutional_layer::Convolutional_layer( const std::string Layer_name,
 					       const int         Layer_number,
 					       const int*        Window_size ):
   MAC::NeuralNetwork::NeuralNetwork(),
-  layer_name_{Layer_name}, layer_number_{Layer_number}, 
-  convolution_window_size_{Window_size}
+  layer_name_{Layer_name}, layer_number_{Layer_number}
 {
+  //
+  //
+  memcpy ( convolution_window_size_, Window_size, 3*sizeof(int) );
   //
   // The window size is a 3 dimensions, the dimension must be odd!
   // because we are taking in account the center

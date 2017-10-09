@@ -136,7 +136,7 @@ namespace MAC
       
       //
       // Size of the convolution window
-      const int* convolution_window_size_;
+      int* convolution_window_size_{new int[3]};
       int* convolution_half_window_size_;
       
 

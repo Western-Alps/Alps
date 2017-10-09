@@ -17,8 +17,10 @@
 //
 //
 #include "MACException.h"
+#include "MACLoadDataSet.h"
 #include "Subject.h"
 #include "NeuralNetwork.h"
+#include "Weights.h"
 //
 //
 //
@@ -68,7 +70,7 @@ namespace MAC
       virtual void add( std::shared_ptr< NeuralNetwork > ){};
       //
       //
-      virtual int get_number_weights() const { return 1;};
+      virtual int get_number_weights() const { return number_of_weights_;};
 
     private:
       //
@@ -81,7 +83,7 @@ namespace MAC
       // number of fully connected layers
       const int  number_fc_layers_;
       // 
-      const int* fc_layers_;
+      int* fc_layers_;
       int        number_of_weights_{0};
 
       //
@@ -89,6 +91,8 @@ namespace MAC
       int     number_of_neurons_{0};
       double* activation_;
       double* neurons_;
+      //
+      int num_of_modalities_{0};
       
       //
       //

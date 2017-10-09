@@ -138,7 +138,7 @@ MAC::NeuralNetworkComposite::initialization()
       //
       // Init the weights
       weights_ = Weights( number_of_weights_, weight_indexes_ );
-      // weights_.print();
+      //weights_.print();
     }
   catch( itk::ExceptionObject & err )
     {
