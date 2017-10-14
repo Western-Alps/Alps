@@ -43,10 +43,11 @@ MAC::FullyConnected_layer::FullyConnected_layer( const std::string Layer_name,
   // number of weights
   for ( int w = 0 ; w < Number_fc_layers - 1 ; w++ )
     {
-      number_of_weights_ += Fc_layers[w] * Fc_layers[w+1];
+      number_of_weights_ += Fc_layers[w] * (Fc_layers[w+1]-1);
       number_of_neurons_ += Fc_layers[w];
     }
   // last layer
+  number_of_weights_ += 1;
   number_of_neurons_ += Fc_layers[Number_fc_layers-1];
 
   //
@@ -111,28 +112,68 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
   neurons_[ fc_layers_[0] - 1 ] = 1.;
 
   //
-  // 3. Forward
+  // 3. Forward On all layers except the last one
   std::vector< int > weight_indexes = W.get_weight_indexes();
   const double*      weights        = W.get_weights();
   //
   int
-    weight_idx = 0,
+    weight_idx         = 0,
+    neuron_offset      = 0,
     prev_layer_weights = 0;
-  
+  double Z = 0; // partition function for the last layer
   //
-  for ( int layer = 1 ; layer < number_fc_layers_ ; layer++ )
+  for ( int layer = 1 ; layer < number_fc_layers_; layer++ )
     {
-      for ( int a = 0 ; a < fc_layers_[layer] ; a++ )
+      neuron_offset += fc_layers_[layer-1];
+      if ( layer < number_fc_layers_ - 1 )
 	{
-	  for ( int n = 0 ; n < fc_layers_[layer-1] ; n++ )
-	    activation_[fc_layers_[layer-1] + a] +=
-	      weights[ weight_indexes[layer_number_]+weight_idx++ ] * neurons_[prev_layer_weights+n];
+	  for ( int a = 0 ; a < fc_layers_[layer] - 1 /*no need to compute for the bias*/ ; a++ )
+	    {
+	      for ( int n = 0 ; n < fc_layers_[layer-1] ; n++ )
+		activation_[neuron_offset + a] +=
+		  weights[ weight_indexes[layer_number_]+weight_idx++ ] * neurons_[prev_layer_weights+n];
+	      //
+	      neurons_[neuron_offset + a] = tanh( activation_[neuron_offset + a] );
+	    }
+	  // The last neuron is a bias
+	  neurons_[neuron_offset + fc_layers_[layer] - 1] = 1.;
 	  //
-	  neurons_[fc_layers_[layer-1] + a] = tanh( activation_[fc_layers_[layer-1] + a] );
+	  prev_layer_weights += fc_layers_[layer-1];
 	}
-      //
-      prev_layer_weights += fc_layers_[layer-1];
+      else
+	for ( int a = 0 ; a < fc_layers_[layer] ; a++ )
+	  {
+	    for ( int n = 0 ; n < fc_layers_[layer-1] ; n++ )
+	      activation_[neuron_offset + a] +=
+		weights[ weight_indexes[layer_number_]+weight_idx++ ] * neurons_[prev_layer_weights+n];
+	    //
+	    Z += neurons_[neuron_offset + a] = exp( activation_[neuron_offset + a] );
+	  }
     }
+
+  //
+  // 4. Normalize the last layer
+  for ( int a = 0 ; a < fc_layers_[number_fc_layers_-1] ; a++ )
+    neurons_[neuron_offset + a] /= Z;
+
+  
+  int count = 0;
+  neuron_offset      = 0;
+  for ( int layer = 0 ; layer < number_fc_layers_ ; layer++ )
+    {
+      std::cout << "layer " << layer << std::endl;
+      neuron_offset += fc_layers_[layer-1];
+      for ( int a = 0 ; a < fc_layers_[layer]  ; a++ )
+	{
+	  std::cout << "neurons_[" << neuron_offset + a << "] = ";
+	  std::cout << neurons_[neuron_offset + a] << " ";
+	  count++;
+	}
+      std::cout << std::endl;
+    }
+  std::cout << "count " << count << std::endl;
+  std::cout << "number_of_neurons_ " << number_of_neurons_<< std::endl;
+  
 
   for (int i = 0 ; i < number_of_neurons_ ; i++)
     std::cout << neurons_[i] << " ";
