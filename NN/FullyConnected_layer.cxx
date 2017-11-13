@@ -57,7 +57,7 @@ MAC::FullyConnected_layer::FullyConnected_layer( const std::string Layer_name,
 
   //
   // Number of modalities to build the input vector
-  num_of_modalities_ = static_cast< int >( MAC::Singleton::instance()->get_number_of_madalities() );
+  num_of_modalities_ = static_cast< int >( MAC::Singleton::instance()->get_number_of_features() );
 };
 //
 //

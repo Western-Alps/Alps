@@ -66,12 +66,14 @@ namespace MAC
       /** Constructor. */
       Convolutional_layer( const std::string,
 			   const int, 
+			   const int,
+			   const bool,
 			   const int* );
       //
       //explicit Subject( const int, const int );
 
       /** Destructor */
-      virtual ~Convolutional_layer(){};
+      virtual ~Convolutional_layer();
 
       //
       // Initialization
@@ -132,24 +134,33 @@ namespace MAC
       //
       // Weights
       const int  layer_number_;
+      // Shrinkage for the pooling layer
+      int        shrink_;
+      bool       pooling_operation_{true};
       int        number_of_weights_{1};
+      double*    weights_{nullptr};
       
       //
       // Size of the convolution window
-      int* convolution_window_size_{new int[3]};
+      int* convolution_window_size_{new int[4]};
       int* convolution_half_window_size_;
       
 
       //
       //
-      int num_of_modalities_{0};
-      // Take the dimension of the first subject image:
-      Reader3D::Pointer image_reader_;
+      int num_of_previous_features_{0};
       // Measures grouped in vector of 3D image
       // Convolution image: vector for each modality
       std::vector< Image3DType::Pointer > convolution_images_;
       // Pulling image: vector for each modality
       std::vector< Image3DType::Pointer > pull_images_;
-  };
+
+      //
+      // Neurons, activations and delta
+      std::map< std::string, std::tuple<
+	std::vector< std::shared_ptr<double> > /* activations */,
+	std::vector< std::shared_ptr<double> > /* neurons */,
+	std::vector< std::shared_ptr<double> > /* deltas */ > > neurons_;
+    };
 }
 #endif

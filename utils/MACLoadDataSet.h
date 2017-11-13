@@ -52,9 +52,9 @@ namespace MAC
       {
 	return subjects_;
       }
-    const std::size_t get_number_of_madalities() const
+    const std::size_t get_number_of_features() const
       {
-	return number_of_madalities_;
+	return number_of_features_;
       }
     const std::size_t get_modality_dim() const
       {
@@ -66,10 +66,16 @@ namespace MAC
 	return json_file_;
       }
     //
+    //
+    void set_number_of_features( const int Features )
+      {
+	number_of_features_ = static_cast< std::size_t >( Features );
+      }
     void set_data_set( const std::string JSon_file )
     {
       json_file_ = JSon_file;
     }
+    //
     //
     void print_data_set()
     {
@@ -100,8 +106,8 @@ namespace MAC
     // Status for trainning or using the algorithms
     // if the label is empty, the status should be automaticly "false".
     bool train_{true};
-    // number of modalities
-    std::size_t number_of_madalities_{0};
+    // number of features maps
+    std::size_t number_of_features_{0};
     // Number of images per modality
     std::size_t modality_dim_{0};
     //

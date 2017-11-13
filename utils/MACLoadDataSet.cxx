@@ -35,8 +35,8 @@ MAC::Singleton::Singleton( const std::string JSon_file ):
   //
   // If we have more than one set of images, all sets needs to have the same number 
   // of images.
-  number_of_madalities_ = data_["inputs"]["images"].size();
-  modality_dim_         = data_["inputs"]["images"][0].size();
+  number_of_features_ = data_["inputs"]["images"].size();
+  modality_dim_       = data_["inputs"]["images"][0].size();
   if ( data_["inputs"]["images"].size() > 1 )
     {
       for ( auto modality : data_["inputs"]["images"] )
@@ -83,5 +83,7 @@ MAC::Singleton::Singleton( const std::string JSon_file ):
     {
       subjects_[img_mod].add_label( data_["inputs"]["labels"][img_mod] );
       subjects_[img_mod].update();
+      // update subject name
+      subjects_[img_mod].set_subject_name( "subject_" + std::to_string( img_mod ) );
     }
 }

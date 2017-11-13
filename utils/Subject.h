@@ -69,6 +69,16 @@ namespace MAC
       {
 	return clone_modalities_images_;
       }
+      std::string get_subject_name() const
+	{
+	  return name_;
+	}
+      //
+      //
+      void set_subject_name( std::string Name )
+      {
+	name_ = Name;
+      }
 
       //
       // 
@@ -180,7 +190,9 @@ namespace MAC
       //
       // Subject parameters
       //
-    
+
+      // subject name
+      std::string name_;
       // vector of modalities
       std::vector< Image3DType::Pointer > modalities_ITK_images_;
       // Current read images
