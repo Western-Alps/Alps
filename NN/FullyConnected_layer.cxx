@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <random>
 //
 //
 //
@@ -40,24 +41,35 @@ MAC::FullyConnected_layer::FullyConnected_layer( const std::string Layer_name,
   memcpy( fc_layers_, Fc_layers, Number_fc_layers*sizeof(int) );
   
   //
-  // number of weights
-  for ( int w = 0 ; w < Number_fc_layers - 1 ; w++ )
+  // If we know all layers' number of actication we can start the initialization
+  // otherwise it will be done in the first pass of the forward calculation
+  if ( Fc_layers[0] != -1 )
     {
-      number_of_weights_ += Fc_layers[w] * (Fc_layers[w+1]-1);
-      number_of_neurons_ += Fc_layers[w];
+      init_();
+      initializarion_done_ = true;
     }
-  // last layer
-  number_of_weights_ += 1;
-  number_of_neurons_ += Fc_layers[Number_fc_layers-1];
-
+};
+//
+//
+//
+void
+MAC::FullyConnected_layer::init_()
+{
   //
-  // Neurons
-  activation_ = new double[number_of_neurons_];
-  neurons_    = new double[number_of_neurons_];
-
-  //
-  // Number of modalities to build the input vector
-  num_of_modalities_ = static_cast< int >( MAC::Singleton::instance()->get_number_of_features() );
+  // number of weights
+  for ( int w = 0 ; w < number_fc_layers_ -1 ; w++ )
+    {
+      number_of_weights_ += (fc_layers_[w] + 1) * fc_layers_[w+1];
+      //number_of_neurons_ += fc_layers_[w];
+    }
+  // Create the random weights
+  std::default_random_engine generator;
+  std::uniform_real_distribution<double> distribution( -1.0, 1.0 );
+  // initialization
+  std::cout << "number_of_weights_ " << number_of_weights_ << std::endl;
+  weights_ = new double[ number_of_weights_ ];
+  for ( int w = 0 ; w < number_of_weights_ ; w++ )
+    weights_[w] = distribution(generator);
 };
 //
 //
@@ -71,123 +83,184 @@ void
 MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
 {
   //
-  // 1. Reinitialize the activation function and the neurons
-  for ( int i = 0 ; i <  number_of_neurons_ ; i++ )
-    activation_[i] = neurons_[i] = 0.;
-  
-  //
-  // 2. get the inputs, and concaten the modality one bellow the other
+  // 1. get the inputs, and concaten the modality one bellow the other
   const std::vector< Image3DType::Pointer > curr_images = Sub.get_clone_modalities_images();
   //
-  int voxel = 0;
-  for ( int mod = 0 ; mod < num_of_modalities_ ; mod++ )
-    {
-      //
-      // Duplicate the image
-      Image3DType::Pointer records = Image3DType::New();
-      //
-      Image3DType::RegionType region;
-      Image3DType::IndexType  start = { 0, 0, 0 };
-      Image3DType::Pointer    raw_subject_image_ptr = curr_images[mod];
-      Image3DType::SizeType   size = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
-      //
-      region.SetSize( size );
-      region.SetIndex( start );
-      //
-      itk::ImageRegionIterator< Image3DType > imageIterator( raw_subject_image_ptr,
-							     region );
-      // resize the input vector
-      std::cout << "Image mod(" << mod << ") size: " << size[0]*size[1]*size[2] << std::endl;
-      std::cout << "fc_layers " << fc_layers_[0] << std::endl;
-      std::cout << "layer_name_ " <<  layer_name_<< std::endl;
-      std::cout << "number_fc_layers_ " << number_fc_layers_ << std::endl;
-      //
-      while( !imageIterator.IsAtEnd() )
-	{
-	  neurons_[ voxel++ ] = imageIterator.Value();
-	  ++imageIterator;
-	}
-    }
-  // Add the bias
-  neurons_[ fc_layers_[0] - 1 ] = 1.;
+  int num_of_modalities = static_cast< int >( curr_images.size() );
+  std::string subject_name = Sub.get_subject_name();
+  // Images information
+  Image3DType::IndexType  start = { 0, 0, 0 };
+  Image3DType::Pointer    raw_subject_image_ptr = curr_images[0];
+  Image3DType::SizeType   size = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
+  //
+  Image3DType::PointType     orig_3d      = raw_subject_image_ptr->GetOrigin();
+  Image3DType::SpacingType   spacing_3d   = raw_subject_image_ptr->GetSpacing();
+  Image3DType::DirectionType direction_3d = raw_subject_image_ptr->GetDirection();
+  //
+  Image3DType::RegionType region;
+  region.SetSize( size );
+  region.SetIndex( start );
 
   //
-  // 3. Forward On all layers except the last one
-  std::vector< int > weight_indexes = W.get_weight_indexes();
-  const double*      weights        = W.get_weights();
+  // 2. initialize the weights if no yet done
+  if ( !initializarion_done_ )
+    {
+      initializarion_done_ = true;
+      // Number of input in the first layer:
+      fc_layers_[0] = num_of_modalities * size[0] * size[1] * size[2];
+      // Initialization:
+      init_();
+    }
+  
   //
+  // 3. Initialize the neurons, activation and delta
+  if ( neurons_.find( subject_name ) == neurons_.end() )
+    {
+      std::vector< std::shared_ptr<double> >
+	activations(  number_fc_layers_ ),
+	neurons( number_fc_layers_ ),
+	deltas( number_fc_layers_ );
+      //
+      for ( int mod = 0 ; mod < number_fc_layers_ ; mod++ )
+	{
+	  int size_map = fc_layers_[mod] + ( mod == number_fc_layers_ - 1 ? 0 : 1 );
+	  activations[mod] = std::shared_ptr<double>( new double[size_map], std::default_delete< double[] >() );
+	  neurons[mod]     = std::shared_ptr<double>( new double[size_map], std::default_delete< double[] >() );
+	  deltas[mod]      = std::shared_ptr<double>( new double[size_map], std::default_delete< double[] >() );
+	}
+      //
+      neurons_[subject_name] = std::make_tuple(activations,neurons,deltas);
+    }
+
+  //
+  // 4. copy the inputs in the first layer
+  int voxel = 0;
+  std::shared_ptr<double> inputs =
+    std::get< 1/*neurons*/>(neurons_[subject_name])[0];
+  //
+  for ( int mod = 0 ; mod < num_of_modalities ; mod++ )
+    {
+      Image3DType::Pointer    raw_subject_image_ptr = curr_images[mod];
+      itk::ImageRegionIterator< Image3DType > imageIterator( raw_subject_image_ptr,
+							     region );
+      // reset the input vector
+      while( !imageIterator.IsAtEnd() )
+	{
+	  std::cout << imageIterator.Value() << " ";
+	  inputs.get()[ voxel++ ] = imageIterator.Value();
+	  ++imageIterator;
+	}
+      //std::cout << std::endl;
+    }
+  // Add the bias
+  inputs.get()[ fc_layers_[0] ] = 1.;
+
+  //
+  // 5. Forward On all layers except the last one
+  //
+  //std::cout << " step 5 \n";
   int
-    weight_idx         = 0,
-    neuron_offset      = 0,
-    prev_layer_weights = 0;
-  double Z = 0; // partition function for the last layer
+    weights_offset = 0;
+  double
+    activation = 0.,
+    neuron     = 0.,
+    Z = 0; // partition function for the last layer
   //
   for ( int layer = 1 ; layer < number_fc_layers_; layer++ )
     {
-      neuron_offset += fc_layers_[layer-1];
       if ( layer < number_fc_layers_ - 1 )
 	{
-	  for ( int a = 0 ; a < fc_layers_[layer] - 1 /*no need to compute for the bias*/ ; a++ )
+	  for ( int a = 0 ; a < fc_layers_[layer] ; a++ )
 	    {
-	      for ( int n = 0 ; n < fc_layers_[layer-1] ; n++ )
-		activation_[neuron_offset + a] +=
-		  weights[ weight_indexes[layer_number_]+weight_idx++ ] * neurons_[prev_layer_weights+n];
+	      activation = 0.;
+	      std::shared_ptr<double> prev_neurons =
+		std::get< 1/*neurons*/>(neurons_[subject_name])[layer-1];
+	      for ( int n = 0 ; n < fc_layers_[layer-1]+1 ; n++ )
+		{
+		  int w_position = weights_offset + a*(fc_layers_[layer-1]+1) + n;
+		  activation += weights_[ w_position ] * prev_neurons.get()[n];
+		  //std::cout
+		  //  << "layer " << layer
+		  //  << " -- weights_offset " << weights_offset
+		  //  << " -- n " << n
+		  //  << " -- weights_ " << weights_[ weights_offset + n ]
+		  //  << " -- prev_neurons " << prev_neurons.get()[n]
+		  //  << " -- activation " << activation;
+		}
 	      //
-	      neurons_[neuron_offset + a] = tanh( activation_[neuron_offset + a] );
+	      std::get< 0/*activations*/>(neurons_[subject_name])[layer].get()[a] = activation;
+	      std::get< 1/*neurons*/    >(neurons_[subject_name])[layer].get()[a] = tanh( activation );
+	      std::cout << std::endl;
+	      std::cout << "activations " << activation
+			<< " ++ neurons" << tanh( activation )
+			<< " ++ activations" << std::get< 0/*activations*/>(neurons_[subject_name])[layer].get()[a]
+			<< " -- neurons" << std::get< 1/*neurons*/    >(neurons_[subject_name])[layer].get()[a]
+			<< std::endl;	      
 	    }
 	  // The last neuron is a bias
-	  neurons_[neuron_offset + fc_layers_[layer] - 1] = 1.;
-	  //
-	  prev_layer_weights += fc_layers_[layer-1];
+	  std::get< 0/*activations*/>(neurons_[subject_name])[layer].get()[fc_layers_[layer]] = 1.;
+	  std::get< 1/*neurons*/    >(neurons_[subject_name])[layer].get()[fc_layers_[layer]] = 1.;
 	}
       else
 	for ( int a = 0 ; a < fc_layers_[layer] ; a++ )
 	  {
-	    for ( int n = 0 ; n < fc_layers_[layer-1] ; n++ )
-	      activation_[neuron_offset + a] +=
-		weights[ weight_indexes[layer_number_]+weight_idx++ ] * neurons_[prev_layer_weights+n];
+	    activation = 0.;
+	    std::shared_ptr<double> prev_neurons =
+	      std::get< 1/*neurons*/>(neurons_[subject_name])[layer-1];
+	    for ( int n = 0 ; n < fc_layers_[layer-1]+1 ; n++ )
+	      {
+		int w_position = weights_offset + a*(fc_layers_[layer-1]+1) + n;
+		activation += weights_[ w_position ] * prev_neurons.get()[n];
+	      }
 	    //
-	    Z += neurons_[neuron_offset + a] = exp( activation_[neuron_offset + a] );
+	    std::get< 0/*activations*/>(neurons_[subject_name])[layer].get()[a] = activation;
+	    std::get< 1/*neurons*/    >(neurons_[subject_name])[layer].get()[a] = exp( activation );
+	    //
+	    Z += exp( activation );
 	  }
+      //
+      //
+      weights_offset += (fc_layers_[layer-1]+1)*fc_layers_[layer];
     }
 
   //
   // 4. Normalize the last layer
   for ( int a = 0 ; a < fc_layers_[number_fc_layers_-1] ; a++ )
-    neurons_[neuron_offset + a] /= Z;
+    std::get< 1/*neurons*/ >(neurons_[subject_name])[number_fc_layers_-1].get()[a] /= Z;
 
   
   int count = 0;
-  neuron_offset      = 0;
   for ( int layer = 0 ; layer < number_fc_layers_ ; layer++ )
     {
       std::cout << "layer " << layer << std::endl;
-      neuron_offset += fc_layers_[layer-1];
-      for ( int a = 0 ; a < fc_layers_[layer]  ; a++ )
+      std::shared_ptr<double> neurons =
+	std::get< 1/*neurons*/>(neurons_[subject_name])[layer];
+      
+      for ( int a = 0 ; a < fc_layers_[layer]+1  ; a++ )
 	{
-	  std::cout << "neurons_[" << neuron_offset + a << "] = ";
-	  std::cout << neurons_[neuron_offset + a] << " ";
+	  std::cout << "neurons_[" << a << "] = ";
+	  std::cout << neurons.get()[a] << " ";
 	  count++;
 	}
       std::cout << std::endl;
     }
   std::cout << "count " << count << std::endl;
-  std::cout << "number_of_neurons_ " << number_of_neurons_<< std::endl;
+  //std::cout << "number_of_neurons_ " << number_of_neurons_<< std::endl;
   
 
-  for (int i = 0 ; i < number_of_neurons_ ; i++)
-    std::cout << neurons_[i] << " ";
-  std::cout << std::endl;
+//  for (int i = 0 ; i < number_of_neurons_ ; i++)
+//    std::cout << neurons_[i] << " ";
+//  std::cout << std::endl;
 };
 //
 //
 //
 MAC::FullyConnected_layer::~FullyConnected_layer()
 {
-  //
-  delete[] activation_;
-  activation_ = nullptr;
-  //
-  delete[] neurons_;
-  neurons_    = nullptr;
+//  //
+//  delete[] activation_;
+//  activation_ = nullptr;
+//  //
+//  delete[] neurons_;
+//  neurons_    = nullptr;
 };

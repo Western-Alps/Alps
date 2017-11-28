@@ -58,9 +58,10 @@ MAC::Monte_Rosa_builder::Monte_Rosa_builder():
   //
   // Fully connected layers
   // the +1 is for the bias weights
-  const int num_fc_layers      = 6;
+  const int num_fc_layers = 6;
   // "-1" for the input layer, when we don't know yet how many inputs we will have
-  int fc_layers[num_fc_layers] = { -1, 1000+1, 500+1, 100+1, 50+1, 3 };
+  // The bias is not included
+  int fc_layers[num_fc_layers] = { -1, 1000, 500, 100, 50, 3 };
   //
   std::shared_ptr< NeuralNetwork > nn_3 =
     std::make_shared< MAC::FullyConnected_layer >( "layer_3", 3,
@@ -75,7 +76,7 @@ MAC::Monte_Rosa_builder::Monte_Rosa_builder():
   mr_nn_.add( nn_0 );
   mr_nn_.add( nn_1 );
   mr_nn_.add( nn_2 );
-  //mr_nn_.add( nn_3 );
+  mr_nn_.add( nn_3 );
 
   //MAC::Singleton::instance()->get_subjects()[0].write_clone();
 };

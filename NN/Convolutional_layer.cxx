@@ -76,6 +76,7 @@ MAC::Convolutional_layer::Convolutional_layer( const std::string Layer_name,
   number_of_weights_ += Window_size[0];
   // reset the number of feature map for the next round
   MAC::Singleton::instance()->set_number_of_features( Window_size[0] );
+  //
   // Create the random weights
   std::default_random_engine generator;
   std::uniform_real_distribution<double> distribution( -1.0, 1.0 );

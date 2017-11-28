@@ -74,6 +74,10 @@ namespace MAC
 
     private:
       //
+      // Private constructor
+      void init_();
+      
+      //
       // Convolutional layer's name
       std::string layer_name_;
       
@@ -84,23 +88,20 @@ namespace MAC
       const int  number_fc_layers_;
       // 
       int* fc_layers_;
-      int        number_of_weights_{0};
+      bool initializarion_done_{false};
+      int  number_of_weights_{0};
+      //
+      double* weights_{nullptr};
 
       //
-      // Neurons
-      int     number_of_neurons_{0};
-      double* activation_;
-      double* neurons_;
-      //
-      int num_of_modalities_{0};
+      // Neurons, activations and delta
+      std::map< std::string, std::tuple<
+	std::vector< std::shared_ptr<double> > /* activations */,
+	std::vector< std::shared_ptr<double> > /* neurons */,
+	std::vector< std::shared_ptr<double> > /* deltas */ > > neurons_;
       
       //
       //
-      // Measures grouped in vector of 3D image
-      // Convolution image: vector for each modality
-      std::vector< Image3DType::Pointer > convolution_images_;
-      // Pulling image: vector for each modality
-      std::vector< Image3DType::Pointer > pull_images_;
     };
 }
 #endif
