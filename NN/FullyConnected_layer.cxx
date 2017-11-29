@@ -58,10 +58,7 @@ MAC::FullyConnected_layer::init_()
   //
   // number of weights
   for ( int w = 0 ; w < number_fc_layers_ -1 ; w++ )
-    {
-      number_of_weights_ += (fc_layers_[w] + 1) * fc_layers_[w+1];
-      //number_of_neurons_ += fc_layers_[w];
-    }
+    number_of_weights_ += (fc_layers_[w] + 1) * fc_layers_[w+1];
   // Create the random weights
   std::default_random_engine generator;
   std::uniform_real_distribution<double> distribution( -1.0, 1.0 );
@@ -146,7 +143,7 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
       // reset the input vector
       while( !imageIterator.IsAtEnd() )
 	{
-	  std::cout << imageIterator.Value() << " ";
+	  //std::cout << imageIterator.Value() << " ";
 	  inputs.get()[ voxel++ ] = imageIterator.Value();
 	  ++imageIterator;
 	}
@@ -163,7 +160,6 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
     weights_offset = 0;
   double
     activation = 0.,
-    neuron     = 0.,
     Z = 0; // partition function for the last layer
   //
   for ( int layer = 1 ; layer < number_fc_layers_; layer++ )
@@ -183,19 +179,19 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
 		  //  << "layer " << layer
 		  //  << " -- weights_offset " << weights_offset
 		  //  << " -- n " << n
-		  //  << " -- weights_ " << weights_[ weights_offset + n ]
+		  //  << " -- weights_ " << std::setw(9) << weights_[ w_position ]
 		  //  << " -- prev_neurons " << prev_neurons.get()[n]
 		  //  << " -- activation " << activation;
 		}
 	      //
 	      std::get< 0/*activations*/>(neurons_[subject_name])[layer].get()[a] = activation;
 	      std::get< 1/*neurons*/    >(neurons_[subject_name])[layer].get()[a] = tanh( activation );
-	      std::cout << std::endl;
-	      std::cout << "activations " << activation
-			<< " ++ neurons" << tanh( activation )
-			<< " ++ activations" << std::get< 0/*activations*/>(neurons_[subject_name])[layer].get()[a]
-			<< " -- neurons" << std::get< 1/*neurons*/    >(neurons_[subject_name])[layer].get()[a]
-			<< std::endl;	      
+	      //std::cout << std::endl;
+	      //std::cout << "activations " << activation
+	      //		<< " ++ neurons" << tanh( activation )
+	      //		<< " ++ activations" << std::get< 0/*activations*/>(neurons_[subject_name])[layer].get()[a]
+	      //		<< " -- neurons" << std::get< 1/*neurons*/    >(neurons_[subject_name])[layer].get()[a]
+	      //		<< std::endl;	      
 	    }
 	  // The last neuron is a bias
 	  std::get< 0/*activations*/>(neurons_[subject_name])[layer].get()[fc_layers_[layer]] = 1.;
@@ -211,6 +207,13 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
 	      {
 		int w_position = weights_offset + a*(fc_layers_[layer-1]+1) + n;
 		activation += weights_[ w_position ] * prev_neurons.get()[n];
+		//std::cout
+		//  << "layer " << layer
+		//  << " -- weights_offset " << weights_offset
+		//  << " -- n " << n
+		//  << " -- weights_ " << std::setw(9) << weights_[ w_position ]
+		//  << " -- prev_neurons " << prev_neurons.get()[n]
+		//  << " -- activation " << activation;
 	      }
 	    //
 	    std::get< 0/*activations*/>(neurons_[subject_name])[layer].get()[a] = activation;
@@ -229,38 +232,26 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
     std::get< 1/*neurons*/ >(neurons_[subject_name])[number_fc_layers_-1].get()[a] /= Z;
 
   
-  int count = 0;
-  for ( int layer = 0 ; layer < number_fc_layers_ ; layer++ )
-    {
-      std::cout << "layer " << layer << std::endl;
-      std::shared_ptr<double> neurons =
-	std::get< 1/*neurons*/>(neurons_[subject_name])[layer];
-      
-      for ( int a = 0 ; a < fc_layers_[layer]+1  ; a++ )
-	{
-	  std::cout << "neurons_[" << a << "] = ";
-	  std::cout << neurons.get()[a] << " ";
-	  count++;
-	}
-      std::cout << std::endl;
-    }
-  std::cout << "count " << count << std::endl;
-  //std::cout << "number_of_neurons_ " << number_of_neurons_<< std::endl;
-  
-
-//  for (int i = 0 ; i < number_of_neurons_ ; i++)
-//    std::cout << neurons_[i] << " ";
-//  std::cout << std::endl;
+//  int count = 0;
+//  for ( int layer = 0 ; layer < number_fc_layers_ ; layer++ )
+//    {
+//      std::cout << "layer " << layer << std::endl;
+//      std::shared_ptr<double> neurons =
+//	std::get< 1/*neurons*/>(neurons_[subject_name])[layer];
+//      
+//      for ( int a = 0 ; a < fc_layers_[layer]+1  ; a++ )
+//	{
+//	  std::cout << "neurons_[" << a << "] = ";
+//	  std::cout << neurons.get()[a] << " ";
+//	  count++;
+//	}
+//      std::cout << std::endl;
+//    }
+//  std::cout << "count " << count << std::endl;
 };
 //
 //
 //
 MAC::FullyConnected_layer::~FullyConnected_layer()
 {
-//  //
-//  delete[] activation_;
-//  activation_ = nullptr;
-//  //
-//  delete[] neurons_;
-//  neurons_    = nullptr;
 };
