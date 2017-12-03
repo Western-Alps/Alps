@@ -73,6 +73,10 @@ namespace MAC
 	{
 	  return name_;
 	}
+      int get_subject_label() const
+	{
+	  return label_;
+	}
       //
       //
       void set_subject_name( std::string Name )

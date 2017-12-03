@@ -12,7 +12,7 @@
 		   "/home/cobigo/devel/CPP/Alps/data/tempo32.nii.gz",
 		   "/home/cobigo/devel/CPP/Alps/data/tempo33.nii.gz",
 		   "/home/cobigo/devel/CPP/Alps/data/tempo34.nii.gz"]],
-	"labels":[1,2,3,2]
+	"labels":[0,1,2,1]
     },
     "strategy":{
 	"status":"train",

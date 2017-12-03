@@ -154,8 +154,6 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
 
   //
   // 5. Forward On all layers except the last one
-  //
-  //std::cout << " step 5 \n";
   int
     weights_offset = 0;
   double
@@ -186,6 +184,7 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
 	      //
 	      std::get< 0/*activations*/>(neurons_[subject_name])[layer].get()[a] = activation;
 	      std::get< 1/*neurons*/    >(neurons_[subject_name])[layer].get()[a] = tanh( activation );
+	      std::get< 2/*deltas*/     >(neurons_[subject_name])[layer].get()[a] = 0.;
 	      //std::cout << std::endl;
 	      //std::cout << "activations " << activation
 	      //		<< " ++ neurons" << tanh( activation )
@@ -196,6 +195,7 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
 	  // The last neuron is a bias
 	  std::get< 0/*activations*/>(neurons_[subject_name])[layer].get()[fc_layers_[layer]] = 1.;
 	  std::get< 1/*neurons*/    >(neurons_[subject_name])[layer].get()[fc_layers_[layer]] = 1.;
+	  std::get< 2/*deltas*/     >(neurons_[subject_name])[layer].get()[fc_layers_[layer]] = 0.;
 	}
       else
 	for ( int a = 0 ; a < fc_layers_[layer] ; a++ )
@@ -227,9 +227,26 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
     }
 
   //
-  // 4. Normalize the last layer
+  // 4. Normalize the last layer and calculation of 
+  // Label of the image
+  std::vector< double > image_label( fc_layers_[number_fc_layers_-1], 0. );
+  image_label[ Sub.get_subject_label() ] = 1.;
   for ( int a = 0 ; a < fc_layers_[number_fc_layers_-1] ; a++ )
-    std::get< 1/*neurons*/ >(neurons_[subject_name])[number_fc_layers_-1].get()[a] /= Z;
+    {
+      //
+      double activation_lk = 
+	std::get< 1/*neurons*/ >(neurons_[subject_name])[number_fc_layers_-1].get()[a] /= Z;
+      // Claculation of deltas on the las layer
+      std::get< 2/*deltas*/ >(neurons_[subject_name])[number_fc_layers_-1].get()[a] = activation_lk - image_label[a];
+      std::cout
+      	<< "activation_lk[" << a << "] = "
+      	<<  activation_lk
+      	<< " -- image_label[" << a << "] = "
+      	<<  image_label[a]
+      	<< " -- delta[" << a << "] = "
+      	<<  activation_lk - image_label[a]
+      	<< std::endl;
+    }
 
   
 //  int count = 0;

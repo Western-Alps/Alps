@@ -111,6 +111,7 @@ main( const int argc, const char **argv )
 
 	      network.initialization();
 	      network.forward( MAC::Singleton::instance()->get_subjects()[0] );
+	      network.forward( MAC::Singleton::instance()->get_subjects()[1] );
 
 	      /////////
 	      // End //
