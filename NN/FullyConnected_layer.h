@@ -10,10 +10,6 @@
 #include <list>
 #include <memory>
 //
-// CUDA
-//
-#include <cuda_runtime.h>
-//
 //
 //
 #include "MACException.h"
@@ -22,6 +18,11 @@
 #include "NeuralNetwork.h"
 #include "Weights.h"
 //
+// CUDA
+//
+#include <cuda_runtime.h>
+#include "FullyConnected_layer_CUDA.cuh"
+///
 //
 //
 namespace MAC
@@ -64,7 +65,7 @@ namespace MAC
       virtual void forward( Subject&, const Weights& W = Weights() );
       //
       //
-      virtual void backward(){};
+      virtual void backward();
       //
       //
       virtual void add( std::shared_ptr< NeuralNetwork > ){};
@@ -101,7 +102,8 @@ namespace MAC
 	std::vector< std::shared_ptr<double> > /* deltas */ > > neurons_;
       
       //
-      //
+      // Cuda treatment
+      FullyConnected_layer_CUDA cuda_bwd_{ FullyConnected_layer_CUDA() };
     };
 }
 #endif

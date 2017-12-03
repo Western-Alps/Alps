@@ -108,10 +108,11 @@ main( const int argc, const char **argv )
 	      //
 	      // Main object
 	      MAC::Monte_Rosa_builder network;
-
-	      network.initialization();
+	      // Forward
 	      network.forward( MAC::Singleton::instance()->get_subjects()[0] );
 	      network.forward( MAC::Singleton::instance()->get_subjects()[1] );
+	      // Backward
+	      network.backward();
 
 	      /////////
 	      // End //

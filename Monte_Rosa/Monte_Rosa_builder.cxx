@@ -96,3 +96,11 @@ MAC::Monte_Rosa_builder::forward( Subject& Sub, const Weights& W )
 {
   mr_nn_.forward( Sub, W );
 };
+//
+//
+//
+void
+MAC::Monte_Rosa_builder::backward()
+{
+  mr_nn_.backward();
+};

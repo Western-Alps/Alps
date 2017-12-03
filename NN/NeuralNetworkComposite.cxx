@@ -104,69 +104,14 @@ MAC::NeuralNetworkComposite::NeuralNetworkComposite():
 //
 void
 MAC::NeuralNetworkComposite::initialization()
-{
-  try
-    {
-      //
-      // Go through elements
-      for ( auto nn_elem : nn_composite_ )
-	{
-	  std::cout << "Initialization elem: " << nn_elem->get_layer_name()
-		    << std::endl;
-	  // record the number of weights
-	  switch( nn_elem->get_layer_type() )
-	    {
-	    case convolutional_layer:
-	      {
-		weight_indexes_.push_back( number_of_weights_ );
-		number_of_weights_ += nn_elem->get_number_weights();
-		break;
-	      }
-	    case fully_connected_layer:
-	      {
-		weight_indexes_.push_back( number_of_weights_ );
-		number_of_weights_ += nn_elem->get_number_weights();
-		break;
-	      }
-	    default:
-	      throw MAC::MACException( __FILE__, __LINE__,
-				       "Layer type unknown.",
-				       ITK_LOCATION );
-	    }
-	}
-
-      //
-      // Init the weights
-      weights_ = Weights( number_of_weights_, weight_indexes_ );
-      //weights_.print();
-    }
-  catch( itk::ExceptionObject & err )
-    {
-      std::cerr << err << std::endl;
-      exit(EXIT_FAILURE);
-    }
-}
+{}
 //
 //
 //
 MAC::NeuralNetworkComposite::~NeuralNetworkComposite()
 {
   try
-    {
-//      // free malloc
-//      free( weights_ );
-//      // free Cuda malloc
-//      cuda_err_ = cudaFree( d_weights_ );
-//      if ( cuda_err_ != cudaSuccess )
-//	{
-//	  std::string mess  = "Failed to allocate device; error code:\n";
-//	  mess += cudaGetErrorString( cuda_err_ );
-//	  //
-//	  throw MAC::MACException( __FILE__, __LINE__,
-//				   mess.c_str(),
-//				   ITK_LOCATION );
-//	}
-    }
+    {}
   catch( itk::ExceptionObject & err )
     {
       std::cerr << err << std::endl;

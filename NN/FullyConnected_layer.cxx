@@ -248,7 +248,6 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
       	<< std::endl;
     }
 
-  
 //  int count = 0;
 //  for ( int layer = 0 ; layer < number_fc_layers_ ; layer++ )
 //    {
@@ -265,6 +264,15 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
 //      std::cout << std::endl;
 //    }
 //  std::cout << "count " << count << std::endl;
+};
+//
+//
+//
+void
+MAC::FullyConnected_layer::backward()
+{
+  std::cout << "Fully connected" << std::endl;
+  cuda_bwd_.forward();
 };
 //
 //

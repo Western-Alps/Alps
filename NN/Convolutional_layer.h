@@ -33,11 +33,6 @@ using MaskType       = itk::Image< unsigned char, 3 >;
 using FilterType     = itk::ChangeInformationImageFilter< Image3DType >;
 using DuplicatorType = itk::ImageDuplicator< Image3DType > ;
 using ShrinkImageFilterType = itk::ShrinkImageFilter < Image3DType, Image3DType >;
-
-//
-// CUDA
-//
-#include <cuda_runtime.h>
 //
 //
 //
@@ -47,6 +42,10 @@ using ShrinkImageFilterType = itk::ShrinkImageFilter < Image3DType, Image3DType 
 #include "NeuralNetwork.h"
 #include "Weights.h"
 //
+// CUDA
+//
+#include <cuda_runtime.h>
+
 //
 //
 namespace MAC
@@ -144,7 +143,7 @@ namespace MAC
       // Size of the convolution window
       int* convolution_window_size_{new int[4]};
       int* convolution_half_window_size_;
-      
+
 
       //
       //

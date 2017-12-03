@@ -84,21 +84,21 @@ cuda_add_executable( Monte_Rosa MACOSX_BUNDLE Monte_Rosa/Monte_Rosa.cpp ${SOURCE
 # cmake 3.1 target_compile_features(Monte_Rosa PRIVATE cxx_range_for)
 target_link_libraries( Monte_Rosa ${ITK_LIBRARIES} ${HEADER_FILES} )
 
-#
-# ???
-#
-# Mont Blanc
-include_directories( ${Alps_SOURCE_DIR}/Mont_Blanc )
-#
-file( GLOB Mont_Blanc_HEADERS_ Mont_Blanc/*.h )
-file( GLOB Mont_Blanc_SOURCES_ Mont_Blanc/*.cxx )
-#
-list( APPEND HEADERS ${Mont_Blanc_HEADERS_} )
-list( APPEND SOURCES ${Mont_Blanc_SOURCES_} )
-#
-add_executable( Mont_Blanc MACOSX_BUNDLE Mont_Blanc/Mont_Blanc.cpp ${SOURCES} )
-# cmake 3.1 target_compile_features(Mont_Blanc PRIVATE cxx_range_for)
-target_link_libraries( Mont_Blanc  ${ITK_LIBRARIES} ${HEADER_FILES} )
+##
+## ???
+##
+## Mont Blanc
+#include_directories( ${Alps_SOURCE_DIR}/Mont_Blanc )
+##
+#file( GLOB Mont_Blanc_HEADERS_ Mont_Blanc/*.h  Mont_Blanc/*.cuh )
+#file( GLOB Mont_Blanc_SOURCES_ Mont_Blanc/*.cxx  Mont_Blanc/*.cxx )
+##
+#list( APPEND HEADERS ${Mont_Blanc_HEADERS_} )
+#list( APPEND SOURCES ${Mont_Blanc_SOURCES_} )
+##
+#add_executable( Mont_Blanc MACOSX_BUNDLE Mont_Blanc/Mont_Blanc.cpp ${SOURCES} )
+## cmake 3.1 target_compile_features(Mont_Blanc PRIVATE cxx_range_for)
+#target_link_libraries( Mont_Blanc  ${ITK_LIBRARIES} ${HEADER_FILES} )
 
 
 #

@@ -57,7 +57,7 @@ namespace MAC
       virtual void forward( Subject&, const Weights& W = Weights() );
       //
       //
-      virtual void backward(){};
+      virtual void backward();
       //
       //
       virtual void add( std::shared_ptr< NeuralNetwork > ){};
