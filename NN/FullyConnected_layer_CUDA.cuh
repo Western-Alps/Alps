@@ -1,5 +1,5 @@
-#ifndef NN_TEST_CUH
-#define NN_TEST_CUH
+#ifndef FULLYCONNECTED_LAYER_CUDA_CUH
+#define FULLYCONNECTED_LAYER_CUDA_CUH
 //
 //
 //

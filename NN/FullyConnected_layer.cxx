@@ -6,25 +6,6 @@
 #include "MACException.h"
 #include "FullyConnected_layer.h"
 
-/**
- * CUDA Kernel Device code
- *
- * Computes ...
- */
-//__global__ void
-//sqrt_cuda( double *A, int numElements)
-//{
-//    int i = blockDim.x * blockIdx.x + threadIdx.x;
-//
-//    if (i < numElements)
-//    {
-//      
-//        A[i] = A[i] * A[i];
-//	/*printf("lalla %f", A[i]);*/
-//    }
-//}
-
-
 //
 //
 //
