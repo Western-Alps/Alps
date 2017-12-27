@@ -46,8 +46,12 @@ MAC::FullyConnected_layer::init_()
   // initialization
   std::cout << "number_of_weights_ " << number_of_weights_ << std::endl;
   weights_ = new double[ number_of_weights_ ];
+  E_       = new double[ number_of_weights_ ];
   for ( int w = 0 ; w < number_of_weights_ ; w++ )
-    weights_[w] = distribution(generator);
+    {
+      weights_[w] = distribution(generator);
+      E_[w]       = 0.;
+    }
 };
 //
 //
@@ -130,11 +134,11 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
 	}
       //std::cout << std::endl;
     }
-  // Add the bias
+  // Add the bias in the last element
   inputs.get()[ fc_layers_[0] ] = 1.;
 
   //
-  // 5. Forward On all layers except the last one
+  // 5. Forward on all layers except the last one
   int
     weights_offset = 0;
   double
@@ -179,6 +183,7 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
 	  std::get< 2/*deltas*/     >(neurons_[subject_name])[layer].get()[fc_layers_[layer]] = 0.;
 	}
       else
+	// last layer
 	for ( int a = 0 ; a < fc_layers_[layer] ; a++ )
 	  {
 	    activation = 0.;
@@ -212,21 +217,38 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
   // Label of the image
   std::vector< double > image_label( fc_layers_[number_fc_layers_-1], 0. );
   image_label[ Sub.get_subject_label() ] = 1.;
+  //
+  weights_offset -= (fc_layers_[number_fc_layers_-2]+1)*fc_layers_[number_fc_layers_-1];
   for ( int a = 0 ; a < fc_layers_[number_fc_layers_-1] ; a++ )
     {
       //
       double activation_lk = 
 	std::get< 1/*neurons*/ >(neurons_[subject_name])[number_fc_layers_-1].get()[a] /= Z;
       // Claculation of deltas on the las layer
-      std::get< 2/*deltas*/ >(neurons_[subject_name])[number_fc_layers_-1].get()[a] = activation_lk - image_label[a];
+      double delta_lk =
+	std::get< 2/*deltas*/ >(neurons_[subject_name])[number_fc_layers_-1].get()[a] = activation_lk - image_label[a];
       std::cout
       	<< "activation_lk[" << a << "] = "
       	<<  activation_lk
       	<< " -- image_label[" << a << "] = "
       	<<  image_label[a]
       	<< " -- delta[" << a << "] = "
-      	<<  activation_lk - image_label[a]
+      	<<  delta_lk
       	<< std::endl;
+      // gradiant energy
+      std::cout << "weights_offset " << weights_offset << std::endl;
+      std::shared_ptr<double> prev_neurons =
+	std::get< 1/*neurons*/>(neurons_[subject_name])[number_fc_layers_-2];
+      for ( int n = 0 ; n < fc_layers_[number_fc_layers_-2]+1 ; n++ )
+	{
+	  int w_position = weights_offset + a*(fc_layers_[number_fc_layers_-2]+1) + n;
+	  E_[w_position] += delta_lk * prev_neurons.get()[n];
+	  //std::cout 
+	  //  << "w_position: " << w_position
+	  //  << "  prev_neurons: " << prev_neurons.get()[n] 
+	  //  << "  grad E_: " << E_[w_position]
+	  //  << std::endl;
+	}
     }
 
 //  int count = 0;

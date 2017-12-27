@@ -93,13 +93,14 @@ namespace MAC
       int  number_of_weights_{0};
       //
       double* weights_{nullptr};
+      double* E_{nullptr};
 
       //
       // Neurons, activations and delta
       std::map< std::string, std::tuple<
 	std::vector< std::shared_ptr<double> > /* activations */,
 	std::vector< std::shared_ptr<double> > /* neurons */,
-	std::vector< std::shared_ptr<double> > /* deltas */ > > neurons_;
+	std::vector< std::shared_ptr<double> > /* deltas */  > > neurons_;
       
       //
       // Cuda treatment

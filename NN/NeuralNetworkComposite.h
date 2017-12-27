@@ -63,7 +63,7 @@ namespace MAC
 	for ( auto nn_elem : nn_composite_ )
 	  {
 	    std::cout << "New elem" << std::endl;
-	    //nn_elem->forward( Sub, weights_ );
+	    nn_elem->forward( Sub, weights_ );
 	  }
       };
       //
