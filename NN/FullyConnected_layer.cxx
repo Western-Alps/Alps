@@ -156,6 +156,7 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
 		std::get< 1/*neurons*/>(neurons_[subject_name])[layer-1];
 	      for ( int n = 0 ; n < fc_layers_[layer-1]+1 ; n++ )
 		{
+		  // W_a,n
 		  int w_position = weights_offset + a*(fc_layers_[layer-1]+1) + n;
 		  activation += weights_[ w_position ] * prev_neurons.get()[n];
 		  //std::cout
@@ -275,7 +276,8 @@ void
 MAC::FullyConnected_layer::backward()
 {
   std::cout << "Fully connected" << std::endl;
-  cuda_bwd_.forward();
+  cuda_bwd_.init();
+  cuda_bwd_.backward();
 };
 //
 //

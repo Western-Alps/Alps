@@ -43,21 +43,24 @@ namespace MAC
       //
       // Forward propagation
       __host__
-      void forward();
-      //
-      //
-      __host__ __device__
-      void backward(){};
+      void forward(){};
       //
       //
       __host__
-      void add( ){};
+      void backward();
+      //
+      //
+      __host__
+      void init();
 
     private:
       //
-      // Weights
-      double* weights_;
+      // CUDA layers initialized
+      bool CUDA_init_{false};
+      //
+      // Weights and transposed weights
       double* d_weights_{NULL};
+      double* d_weights_T_{NULL};
     };
 }
 #endif
