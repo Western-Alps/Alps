@@ -27,15 +27,14 @@ delta_cuda( const double *Weights_T, double *Delta,
     {
       //Delta[l2] = 1 - tanh( A[l2] ) * tanh( A[l2] );
       Delta[l2] = A[l2] ;
-      printf("Delta_(%d) = %f ", l2, Delta[l2]);
-     // layer l_{u+1}
+      // layer l_{u+1}
       double delta_omega = 0.;
-      int w_position = Weights_offset + postion * d_fc_layers_[Layer2];
-      for ( int i = 0 ; i < d_fc_layers_[Layer3] + ( last_layer ? 0 : 1 ); i++ )
+      int w_position = Weights_offset + postion * d_fc_layers_[Layer3];
+      for ( int i = 0 ; i < d_fc_layers_[Layer3] ; i++ )
 	{
-	  delta_omega += Delta[OffSet3 + i];
-	  printf("Delta(%d) = %f ", OffSet3 + i, Delta[OffSet3 + i]);
-	  printf("Weights_T(%d) = %f ", w_position+i, Weights_T[w_position+i]);
+	  delta_omega += Delta[OffSet3 + i] * Weights_T[w_position + i];
+	  printf("Delta(%d) = %f \n", OffSet3 + i, Delta[OffSet3 + i]);
+	  printf("Weights_T(%d) = %f \n", w_position+i, Weights_T[w_position+i]);
 	}
     }
 }
@@ -278,7 +277,7 @@ MAC::FullyConnected_layer_CUDA::backward()
   //
   // 3. Launch the kernel
   int threadsPerBlock = 32;
-  for ( int i = Num_fc_layers - 1 ; i > 1 ; i-- )
+  for ( int i = Num_fc_layers - 1 ; i > 0 ; i-- )
     {
       //
       // neurons and weights offset
@@ -293,11 +292,11 @@ MAC::FullyConnected_layer_CUDA::backward()
 	  offset_3 += FC_layers[j] + 1;
 	  if ( j < i-1 )
 	    offset_2 += FC_layers[j] + 1;
-	  if ( j < i-2 )
-	    offset_1 += FC_layers[j] + 1;
+	  //if ( j < i-2 )
+	  //  offset_1 += FC_layers[j] + 1;
 	}
       // weights
-      for ( int j = 0 ; j < i ; j++ )
+      for ( int j = 1 ; j < i ; j++ )
 	weights_offset += (FC_layers[j-1]+1)*FC_layers[j];
       
       //
@@ -306,6 +305,7 @@ MAC::FullyConnected_layer_CUDA::backward()
 	L1 = ((offset_2 - offset_1) + threadsPerBlock - 1) / threadsPerBlock,
 	L2 = ((offset_3 - offset_2) + threadsPerBlock - 1) / threadsPerBlock;
       //
+      std::cout << "weights_offset: " << weights_offset << std::endl;
       delta_cuda<<< L2, threadsPerBlock >>>( d_weights_T_, d_delta, 
 					     d_z_l, d_a_l,
 					     weights_offset,
