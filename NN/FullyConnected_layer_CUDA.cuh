@@ -7,6 +7,7 @@
 #include <fstream>
 #include <math.h>  
 #include <map>
+#include <vector>
 #include <list>
 #include <memory>
 //
@@ -46,12 +47,20 @@ namespace MAC
       void forward(){};
       //
       //
+      using  Neurons_type = std::tuple< std::vector< std::shared_ptr<double> > /* activations */,
+	                                std::vector< std::shared_ptr<double> > /* neurons */,
+	                                std::vector< std::shared_ptr<double> > /* deltas */  >;
       __host__
-      void backward();
+      void backward( std::map< std::string, Neurons_type >& );
       //
       //
       __host__
-      void init();
+      void init( const int, const int*, const int, 
+		 const double * );
+      //
+      //
+      __host__
+      void transpose_weight_matrices();
 
     private:
       //
@@ -59,8 +68,17 @@ namespace MAC
       bool CUDA_init_{false};
       //
       // Weights and transposed weights
+      double*   weights_{NULL};
+      double*   E_{NULL};
       double* d_weights_{NULL};
       double* d_weights_T_{NULL};
+
+      //
+      //
+      int  number_fc_layers_{0};
+      int* fc_layers_{NULL};
+      int  number_of_weights_{0};
+      int  number_of_neurons_{0};
     };
 }
 #endif

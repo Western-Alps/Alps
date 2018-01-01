@@ -52,6 +52,10 @@ MAC::FullyConnected_layer::init_()
       weights_[w] = distribution(generator);
       E_[w]       = 0.;
     }
+  //
+  //
+  cuda_bwd_.init( number_fc_layers_, fc_layers_, number_of_weights_, 
+		  weights_ );
 };
 //
 //
@@ -87,11 +91,13 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
   // 2. initialize the weights if no yet done
   if ( !initializarion_done_ )
     {
-      initializarion_done_ = true;
       // Number of input in the first layer:
       fc_layers_[0] = num_of_modalities * size[0] * size[1] * size[2];
       // Initialization:
       init_();
+      //
+      //
+      initializarion_done_ = true;
     }
   
   //
@@ -276,8 +282,8 @@ void
 MAC::FullyConnected_layer::backward()
 {
   std::cout << "Fully connected" << std::endl;
-  cuda_bwd_.init();
-  cuda_bwd_.backward();
+  cuda_bwd_.transpose_weight_matrices();
+  cuda_bwd_.backward( neurons_ );
 };
 //
 //
