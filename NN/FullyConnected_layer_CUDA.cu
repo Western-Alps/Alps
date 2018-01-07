@@ -34,7 +34,6 @@ delta_cuda( const double *Weights_T, double *Delta, const double *A,
       for ( int i = 0 ; i < d_fc_layers_[Layer3] ; i++ )
 	{
 	  delta_omega += Delta[OffSet3 + i] * Weights_T[w_position + i];
-	  //printf("Delta(%d) = %f \n", OffSet3 + i, Delta[OffSet3 + i]);
 	  //printf("Weights_T(%d) = %f \n", w_position+i, Weights_T[w_position+i]);
 	}
       // 
@@ -61,6 +60,25 @@ grad_E_cuda( double *grad_E , const double *Delta, const double *Z,
     {
       int w_position = Weights_offset + l3*(d_fc_layers_[Layer2]+1) + l2;
       grad_E[w_position] += Delta[OffSet3 + l3] * Z[OffSet2 + l2];
+    }
+}
+/**
+ * CUDA Kernel Device code
+ *
+ * Computes the delta element of the backward processing
+ */
+__global__ void
+gradient_descent_cuda( double *Weights, double *grad_E,
+		       const double Eta, const int Size )
+{
+  //
+  //
+  int position = blockDim.x * blockIdx.x + threadIdx.x;
+  //
+  if ( position < Size )
+    {
+      Weights[position] -= Eta * grad_E[position];
+      grad_E[position]   = 0.0;
     }
 }
 /**
@@ -325,8 +343,7 @@ MAC::FullyConnected_layer_CUDA::backward( std::map< std::string, Neurons_type >&
 	}
 
       //
-      // 3. Launch the kernel
-      // compute delta
+      // 3. Launch the kernels to compute delta and the energy gradient
       int threadsPerBlock = 32;
       for ( int i = number_fc_layers_ - 1 ; i > 0 ; i-- )
 	{
@@ -357,6 +374,8 @@ MAC::FullyConnected_layer_CUDA::backward( std::map< std::string, Neurons_type >&
 	  //
 	  std::cout
 	    << " offset_1 :" << offset_1
+	    << " weights_offset_1: " << weights_offset_1
+	    << " weights_offset_2: " << weights_offset_2
 	    << " offset_2 :" << offset_2
 	    << " offset_3 :" << offset_3
 	    << " num per layer (u-1): " << offset_2 - offset_1
@@ -371,15 +390,7 @@ MAC::FullyConnected_layer_CUDA::backward( std::map< std::string, Neurons_type >&
 	    L2 = ((fc_layers_[i-1] + 1) + threadsPerBlock - 1) / threadsPerBlock,
 	    L3 = ((fc_layers_[i] ) + threadsPerBlock - 1) / threadsPerBlock;
 	  //
-	  std::cout
-	    << "weights_offset_1: " << weights_offset_1
-	    << " weights_offset_2: " << weights_offset_2
-	    << " offset_2: " << offset_2
-	    << " i-1: " << i-1
-	    << " offset_3: " << offset_3
-	    << " i: " << i
-	    << std::endl;
-	  // Compute delta
+	  // 3.1. Compute delta
 	  delta_cuda<<< L2, threadsPerBlock >>>( d_weights_T_, d_delta, d_a_l,
 						 weights_offset_2,
 						 offset_2, i-1,
@@ -390,6 +401,22 @@ MAC::FullyConnected_layer_CUDA::backward( std::map< std::string, Neurons_type >&
 	      fprintf(stderr, "Failed to launch kernel (error code %s)!\n", cudaGetErrorString(err));
 	      exit(EXIT_FAILURE);
 	    }
+	  //
+	  // 3.2. Compute gradient E_
+	  dim3 dim_Block(threadsPerBlock, threadsPerBlock);
+	  dim3 dim_Grid(L2, L3);
+	  //
+	  grad_E_cuda<<< dim_Grid, dim_Block >>>( d_E_, d_delta, d_z_l, 
+						  weights_offset_2,
+						  offset_2, i-1,
+						  offset_3, i );
+	  //
+	  if (err != cudaSuccess)
+	    {
+	      fprintf(stderr, "Failed to launch kernel (error code %s)!\n", cudaGetErrorString(err));
+	      exit(EXIT_FAILURE);
+	    }
+
 	  ////
 	  //// test
 	  //double *delta = new double[number_of_neurons_];
@@ -407,30 +434,24 @@ MAC::FullyConnected_layer_CUDA::backward( std::map< std::string, Neurons_type >&
 	  //	std::cout << delta[ii] << " ";
 	  //std::cout << std::endl;
 	  //std::cout << "Backward step -- end" << std::endl;
-
-	  //
-	  // Compute gradient E_
-	  dim3 dim_Block(threadsPerBlock, threadsPerBlock);
-	  dim3 dim_Grid(L2, L3);
-	  //
-	  grad_E_cuda<<< dim_Grid, dim_Block >>>( d_E_, d_delta, d_z_l, 
-						  weights_offset_2,
-						  offset_2, i-1,
-						  offset_3, i );
-	  //
-	  if (err != cudaSuccess)
-	    {
-	      fprintf(stderr, "Failed to launch kernel (error code %s)!\n", cudaGetErrorString(err));
-	      exit(EXIT_FAILURE);
-	    }
 	}
     }
   
 
   //
-  // test
+  // 4. Update the weights with the gradient descent
+  std::cout << "Compute the new weights." << std::endl;
+  // and re-initialise the energy to 0
+  int threadsPerBlock = 1024;
+  int numBlocks = (( number_of_weights_ ) + threadsPerBlock - 1) / threadsPerBlock;
+  // 3.1. Compute delta
+  gradient_descent_cuda<<< numBlocks, threadsPerBlock >>>( d_weights_, d_E_,
+							   learning_rate_, number_of_weights_ );
+
+  //
+  // 
   double *E_test = new double[number_of_weights_];
-  err = cudaMemcpy(E_test, d_E_, number_of_weights_ * sizeof(double),
+  err = cudaMemcpy(E_test, d_weights_, number_of_weights_ * sizeof(double),
   		   cudaMemcpyDeviceToHost);
   if (err != cudaSuccess)
     {
@@ -438,12 +459,12 @@ MAC::FullyConnected_layer_CUDA::backward( std::map< std::string, Neurons_type >&
   	      cudaGetErrorString(err));
       exit(EXIT_FAILURE);
     }
-  //
-  std::cout << "Energy -- start" << std::endl;
-  for ( int ii = 0 ; ii < number_of_weights_ ; ii++ )
-    std::cout << std::fixed << E_test[ii] << " ";
-  std::cout << std::endl;
-  std::cout << "Energy -- end" << std::endl;
+//  //
+//  std::cout << "Energy -- start" << std::endl;
+//  for ( int ii = 0 ; ii < number_of_weights_ ; ii++ )
+//    std::cout << std::fixed << E_test[ii] << " ";
+//  std::cout << std::endl;
+//  std::cout << "Energy -- end" << std::endl;
 };
 //
 //

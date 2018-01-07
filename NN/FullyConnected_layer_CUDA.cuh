@@ -80,6 +80,10 @@ namespace MAC
       int* fc_layers_{NULL};
       int  number_of_weights_{0};
       int  number_of_neurons_{0};
+
+      //
+      // Gradient descent
+      double learning_rate_{0.01};
     };
 }
 #endif
