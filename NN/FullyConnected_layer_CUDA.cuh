@@ -51,7 +51,7 @@ namespace MAC
 	                                std::vector< std::shared_ptr<double> > /* neurons */,
 	                                std::vector< std::shared_ptr<double> > /* deltas */  >;
       __host__
-      void backward( std::map< std::string, Neurons_type >& );
+      void backward( std::map< std::string, Neurons_type >&, double* );
       //
       //
       __host__
@@ -72,6 +72,7 @@ namespace MAC
       double*   E_{NULL};
       double* d_weights_{NULL};
       double* d_weights_T_{NULL};
+      double* d_E_{NULL};
 
       //
       //

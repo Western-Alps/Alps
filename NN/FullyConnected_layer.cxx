@@ -242,20 +242,20 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
       	<< " -- delta[" << a << "] = "
       	<<  delta_lk
       	<< std::endl;
-      // gradiant energy
-      std::cout << "weights_offset " << weights_offset << std::endl;
-      std::shared_ptr<double> prev_neurons =
-	std::get< 1/*neurons*/>(neurons_[subject_name])[number_fc_layers_-2];
-      for ( int n = 0 ; n < fc_layers_[number_fc_layers_-2]+1 ; n++ )
-	{
-	  int w_position = weights_offset + a*(fc_layers_[number_fc_layers_-2]+1) + n;
-	  E_[w_position] += delta_lk * prev_neurons.get()[n];
-	  //std::cout 
-	  //  << "w_position: " << w_position
-	  //  << "  prev_neurons: " << prev_neurons.get()[n] 
-	  //  << "  grad E_: " << E_[w_position]
-	  //  << std::endl;
-	}
+//to_rm      // gradient energy
+//to_rm      std::cout << "weights_offset " << weights_offset << std::endl;
+//to_rm      std::shared_ptr<double> prev_neurons =
+//to_rm	std::get< 1/*neurons*/>(neurons_[subject_name])[number_fc_layers_-2];
+//to_rm      for ( int n = 0 ; n < fc_layers_[number_fc_layers_-2]+1 ; n++ )
+//to_rm	{
+//to_rm	  int w_position = weights_offset + a*(fc_layers_[number_fc_layers_-2]+1) + n;
+//to_rm	  E_[w_position] += delta_lk * prev_neurons.get()[n];
+//to_rm	  //std::cout 
+//to_rm	  //  << "w_position: " << w_position
+//to_rm	  //  << "  prev_neurons: " << prev_neurons.get()[n] 
+//to_rm	  //  << "  grad E_: " << E_[w_position]
+//to_rm	  //  << std::endl;
+//to_rm	}
     }
 
 //  int count = 0;
@@ -283,7 +283,7 @@ MAC::FullyConnected_layer::backward()
 {
   std::cout << "Fully connected" << std::endl;
   cuda_bwd_.transpose_weight_matrices();
-  cuda_bwd_.backward( neurons_ );
+  cuda_bwd_.backward( neurons_, E_ );
 };
 //
 //

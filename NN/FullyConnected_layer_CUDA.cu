@@ -14,8 +14,7 @@ __constant__ int d_fc_layers_[20];
  * Computes the delta element of the backward processing
  */
 __global__ void
-delta_cuda( const double *Weights_T, double *Delta,
-	    const double *Z, const double *A,
+delta_cuda( const double *Weights_T, double *Delta, const double *A,
 	    const int Weights_offset,
 	    const int OffSet2, const int Layer2,
 	    const int OffSet3, const int Layer3 )
@@ -48,21 +47,20 @@ delta_cuda( const double *Weights_T, double *Delta,
  * Computes the gradient of the costfunction
  */
 __global__ void
-grad_E_cuda( const double *grad_E, double *Delta,
-	     const double *Z, const double *A,
+grad_E_cuda( double *grad_E , const double *Delta, const double *Z, 
 	     const int Weights_offset,
 	     const int OffSet2, const int Layer2,
-	     const int OffSet3, const int Layer3 )
+	     const int OffSet3, const int Layer3  )
 {
   //
   //
-  int l2 = OffSet2 + blockDim.x * blockIdx.x + threadIdx.x;
-  int l3 = OffSet3 + blockDim.y * blockIdx.y + threadIdx.y;
+  int l2 = blockDim.x * blockIdx.x + threadIdx.x;
+  int l3 = blockDim.y * blockIdx.y + threadIdx.y;
   //
-  if ( l2 < OffSet3 &&  l3 < OffSet3 + d_fc_layers_[Layer3] )
+  if ( l2 < d_fc_layers_[Layer2]+1 && l3 < d_fc_layers_[Layer3] )
     {
-      //grad_E[] += Delta[l2] * Z[l3];
-      //      printf("(%d,%d,%d) ", d_fc_layers_[Layer1],d_fc_layers_[Layer2],d_fc_layers_[Layer3]);
+      int w_position = Weights_offset + l3*(d_fc_layers_[Layer2]+1) + l2;
+      grad_E[w_position] += Delta[OffSet3 + l3] * Z[OffSet2 + l2];
     }
 }
 /**
@@ -92,8 +90,7 @@ transpose_weights( double *Weights, double *Weights_T,
 //
 //
 MAC::FullyConnected_layer_CUDA::FullyConnected_layer_CUDA()
-{
-};
+{};
 //
 //
 //
@@ -218,7 +215,8 @@ MAC::FullyConnected_layer_CUDA::transpose_weight_matrices()
 //
 //
 __host__ void
-MAC::FullyConnected_layer_CUDA::backward( std::map< std::string, Neurons_type >& Neurons )
+MAC::FullyConnected_layer_CUDA::backward( std::map< std::string, Neurons_type >& Neurons,
+					  double* E )
 {
   //
   //
@@ -230,6 +228,41 @@ MAC::FullyConnected_layer_CUDA::backward( std::map< std::string, Neurons_type >&
       fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
       exit(EXIT_FAILURE);
     }
+
+  //
+  // Allocate memory on the device for Energy
+  err = cudaMalloc((void **)&d_E_, number_of_weights_* sizeof(double) );
+  // Check everythong went well
+  if (err != cudaSuccess)
+    {
+      fprintf(stderr, "Failed to allocate mem on device (error code %s)!\n",
+	      cudaGetErrorString(err));
+      exit(EXIT_FAILURE);
+    }
+  // Copy the Energy on the device
+  err = cudaMemcpy( d_E_, E,
+		    number_of_weights_ * sizeof(double), cudaMemcpyHostToDevice );
+  // Check everythong went well
+  if (err != cudaSuccess)
+    {
+      fprintf(stderr, "Failed to copy host to device (error code %s)!\n", cudaGetErrorString(err));
+      exit(EXIT_FAILURE);
+    }
+  ////
+  //// test
+  //double *E_test = new double[number_of_weights_];
+  //err = cudaMemcpy(E_test, d_E_, number_of_weights_ * sizeof(double), cudaMemcpyDeviceToHost);
+  //if (err != cudaSuccess)
+  //  {
+  //    fprintf(stderr, "Failed to copy from device to host (error code %s)!\n", cudaGetErrorString(err));
+  //    exit(EXIT_FAILURE);
+  //  }
+  ////
+  //std::cout << "Energy -- start" << std::endl;
+  //for ( int i = 0 ; i < number_of_weights_ ; i++ )
+  //  std::cout << E_test[i] << " ";
+  //std::cout << std::endl;
+  //std::cout << "Energy -- end" << std::endl;
 
 
   //
@@ -254,7 +287,8 @@ MAC::FullyConnected_layer_CUDA::backward( std::map< std::string, Neurons_type >&
       // Check everythong went well
       if (err != cudaSuccess)
 	{
-	  fprintf(stderr, "Failed to copy host to device (error code %s)!\n", cudaGetErrorString(err));
+	  fprintf(stderr, "Failed to allocate mem on device (error code %s)!\n",
+		  cudaGetErrorString(err));
 	  exit(EXIT_FAILURE);
 	}
 
@@ -320,65 +354,96 @@ MAC::FullyConnected_layer_CUDA::backward( std::map< std::string, Neurons_type >&
 	      if ( j < i-1 )
 		weights_offset_1 += (fc_layers_[j-1]+1)*fc_layers_[j];
 	    }
-	      
 	  //
-	  //
-	  int 
-	    //L1 = ((offset_2 - offset_1) + threadsPerBlock - 1) / threadsPerBlock,
-	    L2 = ((offset_3 - offset_2) + threadsPerBlock - 1) / threadsPerBlock;
-	  //
-	  std::cout << "weights_offset_@: " << weights_offset_2 << std::endl;
-	  delta_cuda<<< L2, threadsPerBlock >>>( d_weights_T_, d_delta, 
-						 d_z_l, d_a_l,
-						 weights_offset_2,
-						 offset_2, i-1,
-						 offset_3, i );
-	  //
-	  if (err != cudaSuccess)
-	    {
-	      fprintf(stderr, "Failed to launch  kernel (error code %s)!\n", cudaGetErrorString(err));
-	      exit(EXIT_FAILURE);
-	    }
-	  //
-	  std::cout << std::endl;
 	  std::cout
 	    << " offset_1 :" << offset_1
 	    << " offset_2 :" << offset_2
 	    << " offset_3 :" << offset_3
 	    << " num per layer (u-1): " << offset_2 - offset_1
 	    << " num per layer (u): " << offset_3 - offset_2
+	    << " num per layer (u-1): " << fc_layers_[i-1]+1
+	    << " num per layer (u): " << fc_layers_[i]
 	    <<  std::endl;
+	      
 	  //
-	  // test
-	  double *delta = new double[number_of_neurons_];
-	  err = cudaMemcpy(delta, d_delta, number_of_neurons_ * sizeof(double), cudaMemcpyDeviceToHost);
+	  //
+	  int 
+	    L2 = ((fc_layers_[i-1] + 1) + threadsPerBlock - 1) / threadsPerBlock,
+	    L3 = ((fc_layers_[i] ) + threadsPerBlock - 1) / threadsPerBlock;
+	  //
+	  std::cout
+	    << "weights_offset_1: " << weights_offset_1
+	    << " weights_offset_2: " << weights_offset_2
+	    << " offset_2: " << offset_2
+	    << " i-1: " << i-1
+	    << " offset_3: " << offset_3
+	    << " i: " << i
+	    << std::endl;
+	  // Compute delta
+	  delta_cuda<<< L2, threadsPerBlock >>>( d_weights_T_, d_delta, d_a_l,
+						 weights_offset_2,
+						 offset_2, i-1,
+						 offset_3, i );
+	  //
 	  if (err != cudaSuccess)
 	    {
-	      fprintf(stderr, "Failed to copy from device to host (error code %s)!\n", cudaGetErrorString(err));
+	      fprintf(stderr, "Failed to launch kernel (error code %s)!\n", cudaGetErrorString(err));
 	      exit(EXIT_FAILURE);
 	    }
-	  //
-	  std::cout << "Step Backward -- start" << std::endl;
-	  for ( int i = 0 ; i < number_of_neurons_ ; i++ )
-	    std::cout << delta[i] << " ";
-	  std::cout << std::endl;
-	  std::cout << "Step Backward -- end" << std::endl;
-	}
+	  ////
+	  //// test
+	  //double *delta = new double[number_of_neurons_];
+	  //err = cudaMemcpy(delta, d_delta, number_of_neurons_ * sizeof(double),
+	  //		   cudaMemcpyDeviceToHost);
+	  //if (err != cudaSuccess)
+	  //	{
+	  //	  fprintf(stderr, "Failed to copy from device to host (error code %s)!\n",
+	  //		  cudaGetErrorString(err));
+	  //	  exit(EXIT_FAILURE);
+	  //	}
+	  ////
+	  //std::cout << "Backward step -- start" << std::endl;
+	  //for ( int ii = 0 ; ii < number_of_neurons_ ; ii++ )
+	  //	std::cout << delta[ii] << " ";
+	  //std::cout << std::endl;
+	  //std::cout << "Backward step -- end" << std::endl;
 
-      ////
-      //// test
-      //double *delta = new double[number_of_neurons_];
-      //err = cudaMemcpy(delta, d_delta, number_of_neurons_ * sizeof(double), cudaMemcpyDeviceToHost);
-      //if (err != cudaSuccess)
-      //	{
-      //	  fprintf(stderr, "Failed to copy from device to host (error code %s)!\n", cudaGetErrorString(err));
-      //	  exit(EXIT_FAILURE);
-      //	}
-      ////
-      //for ( int i = 0 ; i < number_of_neurons_ ; i++ )
-      //	std::cout << delta[i] << " ";
-      //std::cout << std::endl;
+	  //
+	  // Compute gradient E_
+	  dim3 dim_Block(threadsPerBlock, threadsPerBlock);
+	  dim3 dim_Grid(L2, L3);
+	  //
+	  grad_E_cuda<<< dim_Grid, dim_Block >>>( d_E_, d_delta, d_z_l, 
+						  weights_offset_2,
+						  offset_2, i-1,
+						  offset_3, i );
+	  //
+	  if (err != cudaSuccess)
+	    {
+	      fprintf(stderr, "Failed to launch kernel (error code %s)!\n", cudaGetErrorString(err));
+	      exit(EXIT_FAILURE);
+	    }
+	}
     }
+  
+
+  //
+  // test
+  double *E_test = new double[number_of_weights_];
+  err = cudaMemcpy(E_test, d_E_, number_of_weights_ * sizeof(double),
+  		   cudaMemcpyDeviceToHost);
+  if (err != cudaSuccess)
+    {
+      fprintf(stderr, "Failed to copy from device to host (error code %s)!\n",
+  	      cudaGetErrorString(err));
+      exit(EXIT_FAILURE);
+    }
+  //
+  std::cout << "Energy -- start" << std::endl;
+  for ( int ii = 0 ; ii < number_of_weights_ ; ii++ )
+    std::cout << std::fixed << E_test[ii] << " ";
+  std::cout << std::endl;
+  std::cout << "Energy -- end" << std::endl;
 };
 //
 //
