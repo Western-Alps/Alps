@@ -17,6 +17,7 @@
 //
 //
 #include "MACException.h"
+#include "MACLoadDataSet.h"
 #include "Subject.h"
 #include "Weights.h"
 //
@@ -72,8 +73,11 @@ namespace MAC
       // Forward propagation
       virtual void forward( Subject&, const Weights& W = Weights() ){};
       //
-      //
+      // Backward propagation
       virtual void backward(){};
+      //
+      // Backward error propagation
+      virtual void backward_error_propagation(){};
       //
       //
       virtual void add( std::shared_ptr< NeuralNetwork > ){};

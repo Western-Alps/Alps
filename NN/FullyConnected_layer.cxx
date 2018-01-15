@@ -46,12 +46,9 @@ MAC::FullyConnected_layer::init_()
   // initialization
   std::cout << "number_of_weights_ " << number_of_weights_ << std::endl;
   weights_ = new double[ number_of_weights_ ];
-  E_       = new double[ number_of_weights_ ];
   for ( int w = 0 ; w < number_of_weights_ ; w++ )
-    {
-      weights_[w] = distribution(generator);
-      E_[w]       = 0.;
-    }
+    weights_[w] = distribution(generator);
+
   //
   //
   cuda_bwd_.init( number_fc_layers_, fc_layers_, number_of_weights_, 
@@ -78,10 +75,6 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
   Image3DType::IndexType  start = { 0, 0, 0 };
   Image3DType::Pointer    raw_subject_image_ptr = curr_images[0];
   Image3DType::SizeType   size = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
-  //
-  Image3DType::PointType     orig_3d      = raw_subject_image_ptr->GetOrigin();
-  Image3DType::SpacingType   spacing_3d   = raw_subject_image_ptr->GetSpacing();
-  Image3DType::DirectionType direction_3d = raw_subject_image_ptr->GetDirection();
   //
   Image3DType::RegionType region;
   region.SetSize( size );
@@ -117,12 +110,13 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
 	  deltas[mod]      = std::shared_ptr<double>( new double[size_map], std::default_delete< double[] >() );
 	}
       //
-      neurons_[subject_name] = std::make_tuple(activations,neurons,deltas);
+      neurons_[subject_name] = std::make_tuple( activations, neurons, deltas );
     }
 
   //
   // 4. copy the inputs in the first layer
   int voxel = 0;
+  // we take the inputs from the first layer [0]
   std::shared_ptr<double> inputs =
     std::get< 1/*neurons*/>(neurons_[subject_name])[0];
   //
@@ -242,20 +236,6 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
       	<< " -- delta[" << a << "] = "
       	<<  delta_lk
       	<< std::endl;
-//to_rm      // gradient energy
-//to_rm      std::cout << "weights_offset " << weights_offset << std::endl;
-//to_rm      std::shared_ptr<double> prev_neurons =
-//to_rm	std::get< 1/*neurons*/>(neurons_[subject_name])[number_fc_layers_-2];
-//to_rm      for ( int n = 0 ; n < fc_layers_[number_fc_layers_-2]+1 ; n++ )
-//to_rm	{
-//to_rm	  int w_position = weights_offset + a*(fc_layers_[number_fc_layers_-2]+1) + n;
-//to_rm	  E_[w_position] += delta_lk * prev_neurons.get()[n];
-//to_rm	  //std::cout 
-//to_rm	  //  << "w_position: " << w_position
-//to_rm	  //  << "  prev_neurons: " << prev_neurons.get()[n] 
-//to_rm	  //  << "  grad E_: " << E_[w_position]
-//to_rm	  //  << std::endl;
-//to_rm	}
     }
 
 //  int count = 0;
@@ -281,9 +261,94 @@ MAC::FullyConnected_layer::forward( Subject& Sub, const Weights& W )
 void
 MAC::FullyConnected_layer::backward()
 {
-  std::cout << "Fully connected" << std::endl;
+  //
+  // 1. Process the backward propagation and update the weights
+  std::cout << "Fully connected Backward propagation." << std::endl;
   cuda_bwd_.transpose_weight_matrices();
-  cuda_bwd_.backward( neurons_, E_ );
+  cuda_bwd_.backward( neurons_ );
+};
+//
+//
+//
+void
+MAC::FullyConnected_layer::backward_error_propagation()
+{
+  std::cout << "Propagation of deltas from fully connected layers." << std::endl;
+  //
+  // 1. Save the error in images to propagate into the convolutional network
+  for ( std::map< std::string, Neurons_type >::iterator image = neurons_.begin() ;
+	image != neurons_.end() ; image++ )
+    {
+      //
+      //
+      std::string subject_name = (*image).first;
+      
+      //
+      // 1.1. we will replace the images clones values with the delta
+      std::vector< Image3DType::Pointer > curr_images =
+	( MAC::Singleton::instance()->get_subjects(subject_name) ).get_clone_modalities_images();
+      //
+      int num_of_modalities = static_cast< int >( curr_images.size() );
+      // Images information
+      Image3DType::IndexType  start = { 0, 0, 0 };
+      Image3DType::Pointer    raw_subject_image_ptr = curr_images[0];
+      Image3DType::SizeType   size = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
+      //
+      Image3DType::RegionType region;
+      region.SetSize( size );
+      region.SetIndex( start );
+      //
+      //
+      int voxel = 0;
+      std::shared_ptr<double> deltas =
+	std::get< 2/*deltas*/>( (*image).second )[0];
+      //
+      for ( int mod = 0 ; mod < num_of_modalities ; mod++ )
+	{
+	  raw_subject_image_ptr = curr_images[mod];
+	  itk::ImageRegionIterator< Image3DType > imageIterator( raw_subject_image_ptr,
+								 region );
+	  //
+	  // Test.
+	  // save images before
+	  itk::NiftiImageIO::Pointer nifti_io = itk::NiftiImageIO::New();
+	  //
+	  itk::ImageFileWriter< Image3DType >::Pointer writer =
+	    itk::ImageFileWriter< Image3DType >::New();
+	  //
+	  std::string name = "fc_inputs_" + subject_name + "_"+ std::to_string(mod) + ".nii.gz";
+	  writer->SetFileName( name );
+	  writer->SetInput( raw_subject_image_ptr );
+	  writer->SetImageIO( nifti_io );
+	  writer->Update();
+	  //
+	  // reset the input vector
+	  while( !imageIterator.IsAtEnd() )
+	    {
+	      Image3DType::IndexType idx = imageIterator.GetIndex();
+	      //
+	      curr_images[mod]->SetPixel( idx, deltas.get()[ voxel ] );
+	      ++imageIterator; ++voxel;
+	    }
+	  //
+	  curr_images[mod]->Update();
+	  //
+	  // Test.
+	  // save images after
+	  itk::ImageFileWriter< Image3DType >::Pointer writer_af =
+	    itk::ImageFileWriter< Image3DType >::New();
+	  //
+	  std::string name_af = "fc_delta_" + subject_name + "_"+ std::to_string(mod) + ".nii.gz";
+	  writer_af->SetFileName( name_af );
+	  writer_af->SetInput( raw_subject_image_ptr );
+	  writer_af->SetImageIO( nifti_io );
+	  writer_af->Update();
+	}
+
+      //
+      // 1.2. Update the clone images with the delta values in the subject memory.
+      ( MAC::Singleton::instance()->get_subjects(subject_name) ).update( curr_images );
+    }
 };
 //
 //

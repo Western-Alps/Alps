@@ -90,6 +90,9 @@ namespace MAC
       //
       virtual void backward(){};
       //
+      // Backward error propagation
+      virtual void backward_error_propagation(){};
+      //
       //
       virtual void add( std::shared_ptr< NeuralNetwork > ){};
       //

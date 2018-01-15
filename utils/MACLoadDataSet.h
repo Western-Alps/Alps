@@ -52,6 +52,33 @@ namespace MAC
       {
 	return subjects_;
       }
+    Subject& get_subjects( const std::string Name )
+      {
+      try
+	{
+	  int subject_found = -1;
+	  for ( std::size_t s = 0 ; s < subjects_.size() ; s++ )
+	    if ( subjects_[s].get_subject_name() == Name )
+	      subject_found = s;
+
+	  //
+	  //
+	  if ( subject_found != -1 )
+	    return subjects_[ subject_found ];
+	  else
+	    {
+	      std::string mess = "Subject " + Name + " not found.";
+	      throw MAC::MACException( __FILE__, __LINE__,
+				       mess.c_str(),
+				       ITK_LOCATION );
+	    }
+	}
+      catch( itk::ExceptionObject & err )
+	{
+	  std::cerr << err << std::endl;
+	  exit(-1);
+	}
+      }
     const std::size_t get_number_of_features() const
       {
 	return number_of_features_;

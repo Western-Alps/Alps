@@ -64,8 +64,11 @@ namespace MAC
       // Forward propagation
       virtual void forward( Subject&, const Weights& W = Weights() );
       //
-      //
+      // Backward propagation
       virtual void backward();
+      //
+      // Backward error propagation to CNN
+      virtual void backward_error_propagation();
       //
       //
       virtual void add( std::shared_ptr< NeuralNetwork > ){};
@@ -93,14 +96,14 @@ namespace MAC
       int  number_of_weights_{0};
       //
       double* weights_{nullptr};
-      double* E_{nullptr};
 
       //
       // Neurons, activations and delta
-      std::map< std::string, std::tuple<
-	std::vector< std::shared_ptr<double> > /* activations */,
-	std::vector< std::shared_ptr<double> > /* neurons */,
-	std::vector< std::shared_ptr<double> > /* deltas */  > > neurons_;
+      using  Neurons_type = std::tuple< std::vector< std::shared_ptr<double> > /* activations */,
+	                                std::vector< std::shared_ptr<double> > /* neurons */,
+	                                std::vector< std::shared_ptr<double> > /* deltas */  >;
+      //
+      std::map< std::string, Neurons_type > neurons_;
       
       //
       // Cuda treatment

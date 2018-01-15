@@ -75,8 +75,12 @@ namespace MAC
 	  {
 	    std::cout << "Bkw elem" << std::endl;
 	    (*rit)->backward();
+	    (*rit)->backward_error_propagation();
 	  }
       };
+      //
+      // Backward error propagation
+      virtual void backward_error_propagation(){};
       //
       //
       virtual void add( std::shared_ptr< NeuralNetwork > NN)
