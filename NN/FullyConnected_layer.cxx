@@ -308,19 +308,19 @@ MAC::FullyConnected_layer::backward_error_propagation()
 	  raw_subject_image_ptr = curr_images[mod];
 	  itk::ImageRegionIterator< Image3DType > imageIterator( raw_subject_image_ptr,
 								 region );
-	  //
-	  // Test.
-	  // save images before
-	  itk::NiftiImageIO::Pointer nifti_io = itk::NiftiImageIO::New();
-	  //
-	  itk::ImageFileWriter< Image3DType >::Pointer writer =
-	    itk::ImageFileWriter< Image3DType >::New();
-	  //
-	  std::string name = "fc_inputs_" + subject_name + "_"+ std::to_string(mod) + ".nii.gz";
-	  writer->SetFileName( name );
-	  writer->SetInput( raw_subject_image_ptr );
-	  writer->SetImageIO( nifti_io );
-	  writer->Update();
+	  ////
+	  //// Test.
+	  //// save images before
+	  //itk::NiftiImageIO::Pointer nifti_io = itk::NiftiImageIO::New();
+	  ////
+	  //itk::ImageFileWriter< Image3DType >::Pointer writer =
+	  //  itk::ImageFileWriter< Image3DType >::New();
+	  ////
+	  //std::string name = "fc_inputs_" + subject_name + "_"+ std::to_string(mod) + ".nii.gz";
+	  //writer->SetFileName( name );
+	  //writer->SetInput( raw_subject_image_ptr );
+	  //writer->SetImageIO( nifti_io );
+	  //writer->Update();
 	  //
 	  // reset the input vector
 	  while( !imageIterator.IsAtEnd() )
@@ -332,17 +332,17 @@ MAC::FullyConnected_layer::backward_error_propagation()
 	    }
 	  //
 	  curr_images[mod]->Update();
-	  //
-	  // Test.
-	  // save images after
-	  itk::ImageFileWriter< Image3DType >::Pointer writer_af =
-	    itk::ImageFileWriter< Image3DType >::New();
-	  //
-	  std::string name_af = "fc_delta_" + subject_name + "_"+ std::to_string(mod) + ".nii.gz";
-	  writer_af->SetFileName( name_af );
-	  writer_af->SetInput( raw_subject_image_ptr );
-	  writer_af->SetImageIO( nifti_io );
-	  writer_af->Update();
+	  ////
+	  //// Test.
+	  //// save images after
+	  //itk::ImageFileWriter< Image3DType >::Pointer writer_af =
+	  //  itk::ImageFileWriter< Image3DType >::New();
+	  ////
+	  //std::string name_af = "fc_delta_" + subject_name + "_"+ std::to_string(mod) + ".nii.gz";
+	  //writer_af->SetFileName( name_af );
+	  //writer_af->SetInput( raw_subject_image_ptr );
+	  //writer_af->SetImageIO( nifti_io );
+	  //writer_af->Update();
 	}
 
       //
