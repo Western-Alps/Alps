@@ -1,4 +1,4 @@
-#include<iostream>
+#include <iostream>
 #include <cstdlib>
 #include <algorithm>
 #include <string>
@@ -23,6 +23,7 @@ using MaskReaderType = itk::ImageFileReader< MaskType >;
 //
 #include "MACException.h"
 #include "MACLoadDataSet.h"
+#include "Mont_Blanc_builder.h"
 //
 //
 //
@@ -82,10 +83,10 @@ main( const int argc, const char **argv )
 	  if ( !filename.empty() )
 	    {
 	      //
-//	      // Load the data set
-//	      MAC::Singleton::instance( filename );
-//	      // print the data set
-//	      MAC::Singleton::instance()->print_data_set();
+	      // Load the data set
+	      MAC::Singleton::instance( filename );
+	      // print the data set
+	      MAC::Singleton::instance()->print_data_set();
 
 	      ////////////////////////////
 	      ///////              ///////
@@ -99,7 +100,23 @@ main( const int argc, const char **argv )
 	      using ms           = std::chrono::milliseconds;
 	      using get_time     = std::chrono::steady_clock ;
 	      auto  start_timing = get_time::now();
-	      
+
+	      ///////////
+	      // Start //
+	      ///////////
+
+	      //
+	      // Main object
+	      MAC::Mont_Blanc_builder network;
+	      // Forward
+	      network.forward( MAC::Singleton::instance()->get_subjects()[0] );
+	      network.forward( MAC::Singleton::instance()->get_subjects()[1] );
+	      // Backward
+	      network.backward();
+
+	      /////////
+	      // End //
+	      /////////
 
 	      //
 	      // Task progress

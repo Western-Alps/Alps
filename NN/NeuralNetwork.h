@@ -37,7 +37,8 @@ namespace MAC
     /* Composite */
     composite_layer,
     /* Composition neural network */
-    Monte_rosa_layer
+    Monte_Rosa_layer,
+    Mont_Blanc_layer
   };
  
 

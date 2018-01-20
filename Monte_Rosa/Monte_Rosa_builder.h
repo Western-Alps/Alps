@@ -51,7 +51,7 @@ namespace MAC
       virtual std::string get_layer_name(){ return std::string("Monte Rosa neural network.");};
       //
       // get the layer name
-      virtual Layer get_layer_type(){ return Monte_rosa_layer;};
+      virtual Layer get_layer_type(){ return Monte_Rosa_layer;};
       //
       // Forward propagation
       virtual void forward( Subject&, const Weights& W = Weights() );
