@@ -21,9 +21,11 @@
 #include <itkSpatialOrientation.h>
 #include "itkChangeInformationImageFilter.h"
 #include "itkImageDuplicator.h"
-// Downsampling the pulling image
+// Downsampling the pooling image and upsampling
+#include "itkIdentityTransform.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkShrinkImageFilter.h"
+#include "itkResampleImageFilter.h"
 //
 // Some typedef
 using Image3DType    = itk::Image< double, 3 >;
@@ -100,10 +102,13 @@ namespace MAC
       virtual int get_number_weights() const { return number_of_weights_; };
       //
       //
-      const std::vector< Image3DType::Pointer > pulling();
+      const std::vector< Image3DType::Pointer > pooling();
       //
       //
-      std::vector< Image3DType::SizeType > pulling_image_size();
+      std::vector< Image3DType::SizeType > pooling_image_size();
+      //
+      //
+      const std::vector< Image3DType::Pointer > resample();
       //
       // 
       void write() const

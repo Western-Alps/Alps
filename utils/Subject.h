@@ -121,7 +121,7 @@ namespace MAC
 	    itk::ImageFileWriter< Image3DType >::Pointer writer =
 	      itk::ImageFileWriter< Image3DType >::New();
 	    //
-	    std::string name = "sunbject_clone_" + std::to_string(mod) + ".nii.gz";
+	    std::string name = "subject_clone_" + std::to_string(mod) + ".nii.gz";
 	    writer->SetFileName( name );
 	    writer->SetInput( img_ptr );
 	    writer->SetImageIO( nifti_io );

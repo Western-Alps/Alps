@@ -7,6 +7,13 @@
 //
 //
 //
+/*
+  Layer_name,   
+  Layer_number
+  Shrinkage: if it is positive it downsample, otherwise it up sample,  
+  Do_we_pool, 
+  Window_size 
+ */
 MAC::Convolutional_layer::Convolutional_layer( const std::string Layer_name,
 					       const int         Layer_number,
 					       const int         Shrinkage,
@@ -52,7 +59,7 @@ MAC::Convolutional_layer::Convolutional_layer( const std::string Layer_name,
   // Initialize the weights
   // we take the information from the pass round, on how many feature maps were created
   num_of_previous_features_ = static_cast< int >(MAC::Singleton::instance()->get_number_of_features());
-  number_of_weights_ *= num_of_previous_features_;
+//to rm  number_of_weights_ *= num_of_previous_features_;
   // add number of bias: biases of each kernel will be concataned at the end of the array
   number_of_weights_ += Window_size[0];
   // reset the number of feature map for the next round
@@ -119,7 +126,7 @@ MAC::Convolutional_layer::forward( Subject& Sub, const Weights& W )
     }
 
   //
-  //
+  // Create the new feature maps
   for ( int mod = 0 ; mod < convolution_window_size_[0] ; mod++ )
     {
       //
@@ -173,9 +180,7 @@ MAC::Convolutional_layer::forward( Subject& Sub, const Weights& W )
 			+ convolution_window_size_[1] * convolution_window_size_[2]
 			* (z+convolution_half_window_size_[3])
 			+ convolution_window_size_[1] * convolution_window_size_[2]
-			* convolution_window_size_[3] * prev
-			+ convolution_window_size_[1] * convolution_window_size_[2]
-			* convolution_window_size_[3] * num_of_previous_features_ * mod;
+			* convolution_window_size_[3] * mod;
 		      //
 		      convolution_voxel_value +=
 			weights_[ weight_idx ] * curr_images[prev]->GetPixel( {idx[0]+x, idx[1]+y, idx[2]+z} );
@@ -183,18 +188,18 @@ MAC::Convolutional_layer::forward( Subject& Sub, const Weights& W )
 	  // add the bias at the end of the array
 	  int bias_position = convolution_window_size_[0] * convolution_window_size_[1]
 			    * convolution_window_size_[2] * convolution_window_size_[3]
-			    * num_of_previous_features_ + mod;
-	  convolution_voxel_value += weights_[ bias_position ];
-
+			    + mod;
+	  convolution_voxel_value += weights_[ bias_position ]; // x 1.
+	  
 	  //
 	  // Update values
 	  double
-	     activation = convolution_voxel_value,
-	     neuron     = tanh(convolution_voxel_value);
+				    activation = convolution_voxel_value,
+				    neuron     = tanh( convolution_voxel_value );
 	  //
 	  size_t image_position = idx[0] + size[0]*idx[1] + size[0]*size[1]*idx[2];
 	  std::get< 0/*activations*/>(neurons_[subject_name])[mod].get()[image_position] = activation;
-	  std::get< 1/*neurons*/>(neurons_[subject_name])[mod].get()[image_position] = neuron;
+	  std::get< 1/*neurons*/>(neurons_[subject_name])[mod].get()[image_position]     = neuron;
 	  //
 	  convolution_images_[mod]->SetPixel( idx, neuron );
 
@@ -219,7 +224,7 @@ MAC::Convolutional_layer::forward( Subject& Sub, const Weights& W )
   // Pulling
   // Update the current image
   if ( pooling_operation_ )
-    Sub.update( pulling() );
+    Sub.update( resample() /*pooling()*/ );
   else
     Sub.update( convolution_images_ );
 };
@@ -227,7 +232,7 @@ MAC::Convolutional_layer::forward( Subject& Sub, const Weights& W )
 //
 //
 const std::vector< Image3DType::Pointer > 
-MAC::Convolutional_layer::pulling() 
+MAC::Convolutional_layer::pooling() 
 {
   //
   //
@@ -260,7 +265,7 @@ MAC::Convolutional_layer::pulling()
 //
 //
 std::vector< Image3DType::SizeType > 
-MAC::Convolutional_layer::pulling_image_size() 
+MAC::Convolutional_layer::pooling_image_size() 
 {
   //
   //
@@ -300,6 +305,65 @@ MAC::Convolutional_layer::pulling_image_size()
   //
   //
   return tempo;
+};
+//
+//
+//
+const std::vector< Image3DType::Pointer > 
+MAC::Convolutional_layer::resample() 
+{
+  //
+  //
+  for ( int mod = 0 ; mod < convolution_window_size_[0] ; mod++ )
+    {
+      //
+      // Images information
+      Image3DType::Pointer    raw_subject_image_ptr = convolution_images_[mod];
+      Image3DType::SizeType   size = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
+      //
+      Image3DType::PointType     orig_3d      = raw_subject_image_ptr->GetOrigin();
+      Image3DType::SpacingType   spacing_3d   = raw_subject_image_ptr->GetSpacing();
+      Image3DType::DirectionType direction_3d = raw_subject_image_ptr->GetDirection();
+
+      //
+      // Resize
+      Image3DType::SizeType outputSize;
+      Image3DType::SpacingType outputSpacing;
+      //
+      for ( int i = 0 ; i < 3 ; i++ )
+	{
+	  if ( shrink_ < 0 )
+	    outputSize[i] = -1 * size[i] * shrink_;
+	  else
+	    outputSize[i] = static_cast< int >( size[i] / shrink_ );
+	  //
+	  outputSpacing[i] = raw_subject_image_ptr->GetSpacing()[i] * (static_cast<double>(size[i]) / static_cast<double>(outputSize[i]));
+	}
+      //
+      typedef itk::IdentityTransform<double, 3> TransformType;
+      typedef itk::ResampleImageFilter<Image3DType, Image3DType> ResampleImageFilterType;
+      ResampleImageFilterType::Pointer resample = ResampleImageFilterType::New();
+      //
+      resample->SetInput(raw_subject_image_ptr);
+      resample->SetSize(outputSize);
+      resample->SetOutputSpacing(outputSpacing);
+      resample->SetOutputOrigin(orig_3d);
+      resample->SetOutputDirection(direction_3d);
+      resample->SetTransform(TransformType::New());
+      resample->UpdateLargestPossibleRegion();
+      
+      Image3DType::Pointer output = resample->GetOutput();
+      
+      
+      
+      //
+      pull_images_[mod] = resample->GetOutput();
+      pull_images_[mod]->Update();
+    }
+
+  //
+  //
+  return pull_images_;
 };
 //
 //
