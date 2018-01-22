@@ -80,6 +80,81 @@ MAC::Convolutional_layer::Convolutional_layer( const std::string Layer_name,
 //
 //
 //
+/*
+  Layer_name,   
+  Layer_number
+  Window_size 
+ */
+MAC::Convolutional_layer::Convolutional_layer( const std::string Layer_name,
+					       const int         Layer_number,
+					       const int*        Window_size ):
+  MAC::NeuralNetwork::NeuralNetwork(),
+  layer_name_{Layer_name}, layer_number_{Layer_number}, shrink_{0}, pooling_operation_{false},
+  match_inputs_{true}
+{
+  //
+  //
+  memcpy ( convolution_window_size_, Window_size, 4*sizeof(int) );
+  // Get the number of taget modalities, must be the same as the number of input images
+  int number_of_input_modalities = static_cast< int >(MAC::Singleton::instance()->get_number_of_input_features());
+  // replace the input number of feature maps
+  convolution_window_size_[0] = number_of_input_modalities;
+  
+  //
+  // The window size is a 3+1 dimensions, the dimension must be odd! because we are
+  // taking in account the center.
+  // 3 dimensions for x,y and z; +1 dimension for the number of feature maps we would
+  // like to create in this round.
+  // To complete the kernel size, we need to know how many feature maps we had in the
+  // previouse round.
+  convolution_half_window_size_ = new int[4];
+  //
+  for ( int i = 0 ; i < 4 ; i++ )
+    if ( convolution_window_size_[i] % 2 == 0 && i != 0 )
+      {
+	std::string mess = "The dimension of the window must be odd";
+	mess += "dimension "  + std::to_string( i );
+	mess += " value is: " + std::to_string( convolution_window_size_[i] );
+	//
+	throw MAC::MACException( __FILE__, __LINE__,
+				 mess.c_str(),
+				 ITK_LOCATION );
+      }
+    else
+      {
+	number_of_weights_ *= convolution_window_size_[i];
+	// Half window's size
+	if ( i > 0 )
+	  convolution_half_window_size_[i] = static_cast< int >( (Window_size[i] - 1) / 2 );
+	else
+	  convolution_half_window_size_[i] = number_of_input_modalities;
+      }
+
+  //
+  // Initialize the weights
+  // we take the information from the pass round, on how many feature maps were created
+  num_of_previous_features_ = static_cast< int >(MAC::Singleton::instance()->get_number_of_features());
+//to rm  number_of_weights_ *= num_of_previous_features_;
+  // add number of bias: biases of each kernel will be concataned at the end of the array
+  number_of_weights_ += number_of_input_modalities;
+  // reset the number of feature map for the next round
+  MAC::Singleton::instance()->set_number_of_features( number_of_input_modalities );
+  //
+  // Create the random weights
+  std::default_random_engine generator;
+  std::uniform_real_distribution<double> distribution( -1.0, 1.0 );
+  // initialization
+  std::cout << "number_of_weights_ " << number_of_weights_ << std::endl;
+  weights_ = new double[ number_of_weights_ ];
+  for ( int w = 0 ; w < number_of_weights_ ; w++ )
+    weights_[w] = distribution(generator);
+  //
+  convolution_images_.resize( number_of_input_modalities );
+  pull_images_.resize( number_of_input_modalities );
+};
+//
+//
+//
 void
 MAC::Convolutional_layer::forward( Subject& Sub, const Weights& W )
 {
@@ -224,9 +299,13 @@ MAC::Convolutional_layer::forward( Subject& Sub, const Weights& W )
   // Pulling
   // Update the current image
   if ( pooling_operation_ )
-    Sub.update( resample() /*pooling()*/ );
+    Sub.update( resample() );
+  else if ( match_inputs_ )
+    Sub.update( resample( Sub ) );
   else
     Sub.update( convolution_images_ );
+
+  Sub.write_clone();
 };
 //
 //
@@ -322,7 +401,7 @@ MAC::Convolutional_layer::resample()
       Image3DType::SizeType   size = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
       //
       Image3DType::PointType     orig_3d      = raw_subject_image_ptr->GetOrigin();
-      Image3DType::SpacingType   spacing_3d   = raw_subject_image_ptr->GetSpacing();
+      //Image3DType::SpacingType   spacing_3d   = raw_subject_image_ptr->GetSpacing();
       Image3DType::DirectionType direction_3d = raw_subject_image_ptr->GetDirection();
 
       //
@@ -352,10 +431,58 @@ MAC::Convolutional_layer::resample()
       resample->SetTransform(TransformType::New());
       resample->UpdateLargestPossibleRegion();
       
-      Image3DType::Pointer output = resample->GetOutput();
+      //
+      //
+      pull_images_[mod] = resample->GetOutput();
+      pull_images_[mod]->Update();
+    }
+
+  //
+  //
+  return pull_images_;
+};
+//
+//
+//
+const std::vector< Image3DType::Pointer > 
+MAC::Convolutional_layer::resample( const Subject& Sub ) 
+{
+  //
+  //
+  for ( int mod = 0 ; mod < convolution_window_size_[0] ; mod++ )
+    {
+      //
+      // Images layer information information
+      Image3DType::Pointer    raw_subject_image_ptr = convolution_images_[mod];
+      //Image3DType::SizeType   size = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
+      //
+      Image3DType::PointType     orig_3d      = raw_subject_image_ptr->GetOrigin();
+      //Image3DType::SpacingType   spacing_3d   = raw_subject_image_ptr->GetSpacing();
+      Image3DType::DirectionType direction_3d = raw_subject_image_ptr->GetDirection();
+      //
+      // Images input information information
+      Image3DType::Pointer input_ptr = Sub.get_modality_targets_ITK_images()[mod];
+      //
+      Image3DType::SizeType      in_ptr_size         = input_ptr->GetLargestPossibleRegion().GetSize();
+      //Image3DType::PointType     in_ptr_orig_3d      = input_ptr->GetOrigin();
+      Image3DType::SpacingType   in_ptr_spacing_3d   = input_ptr->GetSpacing();
+      Image3DType::DirectionType in_ptr_direction_3d = input_ptr->GetDirection();
+
+      //
+      // Resize
+      typedef itk::IdentityTransform<double, 3> TransformType;
+      typedef itk::ResampleImageFilter<Image3DType, Image3DType> ResampleImageFilterType;
+      ResampleImageFilterType::Pointer resample = ResampleImageFilterType::New();
+      //
+      resample->SetInput(raw_subject_image_ptr);
+      resample->SetSize(in_ptr_size);
+      resample->SetOutputSpacing(in_ptr_spacing_3d);
+      resample->SetOutputOrigin(orig_3d);
+      resample->SetOutputDirection(direction_3d);
+      resample->SetTransform(TransformType::New());
+      resample->UpdateLargestPossibleRegion();
       
-      
-      
+      //
       //
       pull_images_[mod] = resample->GetOutput();
       pull_images_[mod]->Update();

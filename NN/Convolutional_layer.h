@@ -65,14 +65,18 @@ namespace MAC
     public:
 
       /** Constructor. */
-      Convolutional_layer( const std::string,
-			   const int, 
-			   const int,
-			   const bool,
-			   const int* );
-      //
-      //explicit Subject( const int, const int );
-
+      explicit Convolutional_layer( const std::string,
+				    const int, 
+				    const int,
+				    const bool,
+				    const int* );
+      /** Constructor. 
+	  In the case of Mont Blanc technics, we need a constructor to match the 
+	  input images
+       */
+      explicit Convolutional_layer( const std::string,
+				    const int, 
+				    const int* );
       /** Destructor */
       virtual ~Convolutional_layer();
 
@@ -110,6 +114,9 @@ namespace MAC
       //
       const std::vector< Image3DType::Pointer > resample();
       //
+      //
+      const std::vector< Image3DType::Pointer > resample( const Subject& );
+      //
       // 
       void write() const
       {
@@ -144,6 +151,7 @@ namespace MAC
       // Shrinkage for the pooling layer
       int        shrink_;
       bool       pooling_operation_{true};
+      bool       match_inputs_{false};
       int        number_of_weights_{1};
       double*    weights_{nullptr};
       

@@ -21,7 +21,6 @@ MAC::Monte_Rosa_builder::Monte_Rosa_builder():
   //
   // Convolutional layers
   //
-  int number_of_conv_layers = 3;
   int downsize_factor       = 2;
   
   //

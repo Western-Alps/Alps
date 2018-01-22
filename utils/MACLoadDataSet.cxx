@@ -20,19 +20,6 @@ MAC::Singleton::Singleton( const std::string JSon_file ):
   //
 
   //
-  // Load images select train or test
-  std::size_t number_of_labels = data_["inputs"]["labels"].size();
-  if ( data_["strategy"]["status"] == "train" )
-    if ( number_of_labels > 0 )
-      train_ = true;
-    else
-      throw MAC::MACException( __FILE__, __LINE__,
-			       "Training labels are missing.",
-			       ITK_LOCATION );
-  else
-    train_ = false;
-
-  //
   // If we have more than one set of images, all sets needs to have the same number 
   // of images.
   number_of_features_ = data_["inputs"]["images"].size();
@@ -52,15 +39,48 @@ MAC::Singleton::Singleton( const std::string JSon_file ):
     }
 
   //
+  // Load images select train or test
+  std::size_t number_of_labels  = data_["inputs"]["labels"].size();
+  std::size_t number_of_targets = data_["inputs"]["targets"][0].size();
+  std::size_t number_of_target_features = data_["inputs"]["targets"].size();
+  number_of_input_features_ = number_of_target_features;
+  if ( data_["strategy"]["status"] == "train" )
+    if ( number_of_labels > 0 )
+      // Monte Rosa situation: classification
+      train_ = true;
+    else if ( number_of_targets )
+      // Mont Blanc: Convolutional stack auto-encoder
+      train_ = true;
+    else
+      throw MAC::MACException( __FILE__, __LINE__,
+			       "Training labels are missing.",
+			       ITK_LOCATION );
+  else
+    train_ = false;
+
+  //
   // The number of labels should be the same as the number of images
   if ( train_ )
-    if ( number_of_labels != modality_dim_ )
-      {
-	std::string mess = "Number of images and labels must be the same.\n";
-	throw MAC::MACException( __FILE__, __LINE__,
-				 mess.c_str(),
-				 ITK_LOCATION );
-      }
+    {
+      if ( number_of_labels != modality_dim_ && number_of_labels > 0 )
+	{
+	  std::string mess = "Number of images and labels must be the same.\n";
+	  throw MAC::MACException( __FILE__, __LINE__,
+				   mess.c_str(),
+				   ITK_LOCATION );
+	}
+      if ( number_of_targets != modality_dim_ &&
+	   number_of_target_features != number_of_features_ &&
+	   number_of_targets > 0 )
+	{
+	  std::cout << number_of_targets << " " << modality_dim_ << " " << number_of_labels
+		    << std::endl;
+	  std::string mess = "Number of images and targets must be the same.\n";
+	  throw MAC::MACException( __FILE__, __LINE__,
+				   mess.c_str(),
+				   ITK_LOCATION );
+	}
+    }
 
   //
   // Build vector of subjects
@@ -76,12 +96,16 @@ MAC::Singleton::Singleton( const std::string JSon_file ):
       for ( int img_mod = 0 ; img_mod < static_cast< int >( modality_dim_ ) ; img_mod++ )
 	{
 	  subjects_[img_mod].add_modality( modality[img_mod] );
+	  if ( number_of_targets > 0 )
+	    subjects_[img_mod].add_modality_target( modality[img_mod] );
 	}
     }
   // load labels
   for ( int img_mod = 0 ; img_mod < static_cast< int >( modality_dim_ ) ; img_mod++ )
     {
-      subjects_[img_mod].add_label( data_["inputs"]["labels"][img_mod] );
+      if ( number_of_labels > 0 )
+	subjects_[img_mod].add_label( data_["inputs"]["labels"][img_mod] );
+      //
       subjects_[img_mod].update();
       // update subject name
       subjects_[img_mod].set_subject_name( "subject_" + std::to_string( img_mod ) );

@@ -79,6 +79,10 @@ namespace MAC
 	  exit(-1);
 	}
       }
+    const std::size_t get_number_of_input_features() const
+      {
+	return number_of_input_features_;
+      }
     const std::size_t get_number_of_features() const
       {
 	return number_of_features_;
@@ -135,6 +139,8 @@ namespace MAC
     bool train_{true};
     // number of features maps
     std::size_t number_of_features_{0};
+    // number of input features maps
+    std::size_t number_of_input_features_{0};
     // Number of images per modality
     std::size_t modality_dim_{0};
     //

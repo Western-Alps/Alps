@@ -61,6 +61,10 @@ namespace MAC
       {
 	return modalities_ITK_images_;
       }
+      const std::vector< Image3DType::Pointer >& get_modality_targets_ITK_images() const
+      {
+	return modality_targets_ITK_images_;
+      }
       const std::vector< Image3DType::SizeType >& get_modality_images_size() const
       {
 	return modality_images_size_;
@@ -161,6 +165,36 @@ namespace MAC
 				     ITK_LOCATION );
 	  }
       };
+
+      //
+      // Add a target for the modality
+      void add_modality_target( const std::string Mod_target_name )
+      {
+	if ( file_exists(Mod_target_name) )
+	  {
+	    std::cout << Mod_target_name << std::endl;
+	    //
+	    // load the image ITK pointer
+	    auto image_ptr = itk::ImageIOFactory::CreateImageIO( Mod_target_name.c_str(),
+								 itk::ImageIOFactory::ReadMode );
+	    image_ptr->SetFileName( Mod_target_name );
+	    image_ptr->ReadImageInformation();
+	    // Read the ITK image
+	    Reader3D::Pointer img_ptr = Reader3D::New();
+	    img_ptr->SetFileName( image_ptr->GetFileName() );
+	    img_ptr->Update();
+	    //
+	    modality_targets_ITK_images_.push_back( img_ptr->GetOutput() );
+	  }
+	else
+	  {
+	    std::string mess = "Image (";
+	    mess +=  Mod_target_name + ") does not exists.";
+	    throw MAC::MACException( __FILE__, __LINE__,
+				     mess.c_str(),
+				     ITK_LOCATION );
+	  }
+      };
       //
       // Add label
       void add_label( const int Label )
@@ -199,6 +233,8 @@ namespace MAC
       std::string name_;
       // vector of modalities
       std::vector< Image3DType::Pointer > modalities_ITK_images_;
+      // vector of targets
+      std::vector< Image3DType::Pointer > modality_targets_ITK_images_;
       // Current read images
       // This set of images will be transfered to next neural network layers
       std::vector< Image3DType::Pointer > clone_modalities_images_;
