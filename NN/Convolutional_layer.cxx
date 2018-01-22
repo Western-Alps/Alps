@@ -301,11 +301,9 @@ MAC::Convolutional_layer::forward( Subject& Sub, const Weights& W )
   if ( pooling_operation_ )
     Sub.update( resample() );
   else if ( match_inputs_ )
-    Sub.update( resample( Sub ) );
+    Sub.update( reconstruct_inputs( Sub ) /*resample( Sub )*/ );
   else
     Sub.update( convolution_images_ );
-
-  Sub.write_clone();
 };
 //
 //
@@ -490,6 +488,69 @@ MAC::Convolutional_layer::resample( const Subject& Sub )
 
   //
   //
+  return pull_images_;
+};
+//
+//
+//
+const std::vector< Image3DType::Pointer > 
+MAC::Convolutional_layer::reconstruct_inputs( const Subject& Sub ) 
+{
+  //
+  // Resample to the original input dimensions
+  resample( Sub );
+    
+  //
+  // Create the delta image between the decoding phase and the inputs
+  for ( int mod = 0 ; mod < convolution_window_size_[0] ; mod++ )
+    {
+      //
+      // Images layer information information
+      Image3DType::Pointer    raw_subject_image_ptr = pull_images_[mod];
+      Image3DType::SizeType   size = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
+      Image3DType::IndexType  start = { 0, 0, 0 };
+      //
+      Image3DType::RegionType region;
+      region.SetSize( size );
+      region.SetIndex( start );
+      //
+//      Image3DType::PointType     orig_3d      = raw_subject_image_ptr->GetOrigin();
+//      //Image3DType::SpacingType   spacing_3d   = raw_subject_image_ptr->GetSpacing();
+//      Image3DType::DirectionType direction_3d = raw_subject_image_ptr->GetDirection();
+      //
+      // Images input information information
+      Image3DType::Pointer input_ptr = Sub.get_modality_targets_ITK_images()[mod];
+      //
+      Image3DType::SizeType      in_ptr_size         = input_ptr->GetLargestPossibleRegion().GetSize();
+//      //Image3DType::PointType     in_ptr_orig_3d      = input_ptr->GetOrigin();
+//      Image3DType::SpacingType   in_ptr_spacing_3d   = input_ptr->GetSpacing();
+//      Image3DType::DirectionType in_ptr_direction_3d = input_ptr->GetDirection();
+
+      //
+      // Be sure the images have the same dimension
+      if ( size != in_ptr_size )
+	throw MAC::MACException( __FILE__, __LINE__,
+				 "The images compared must have the same dimension",
+				 ITK_LOCATION );
+
+      //
+      // Loop over the image
+      itk::ImageRegionIterator< Image3DType > image_iter( pull_images_[mod], region );
+      while( !image_iter.IsAtEnd() )
+	{
+	  //
+	  // process the delta
+	  Image3DType::IndexType idx = image_iter.GetIndex();
+	  image_iter.Value() -= input_ptr->GetPixel(idx);
+	  
+	  //
+	  // Iter the voxel
+	  ++image_iter;
+	}
+    }
+
+  //
+  // return the delta image
   return pull_images_;
 };
 //

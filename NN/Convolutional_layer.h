@@ -117,6 +117,9 @@ namespace MAC
       //
       const std::vector< Image3DType::Pointer > resample( const Subject& );
       //
+      //
+      const std::vector< Image3DType::Pointer > reconstruct_inputs( const Subject& );
+      //
       // 
       void write() const
       {
