@@ -61,12 +61,12 @@ list( APPEND SOURCES ${SOURCES_} )
 
 #
 # Glbal
-file( GLOB HEADERS_ utils/*.h NN/*.cuh NN/*.h)
+file( GLOB HEADERS_ utils/*.h utils/Functions/*.h NN/*.cuh NN/*.h)
 file( GLOB SOURCES_ utils/*.cxx NN/*.cu  NN/*.cxx )
 #
 list( APPEND HEADERS ${HEADERS_}  )
 list( APPEND SOURCES ${SOURCES_} )
-include_directories( ${Alps_SOURCE_DIR}/utils ${Alps_SOURCE_DIR}/NN )
+include_directories( ${Alps_SOURCE_DIR}/utils ${Alps_SOURCE_DIR}/utils/Functions ${Alps_SOURCE_DIR}/NN )
 
 #
 # CNN + DC

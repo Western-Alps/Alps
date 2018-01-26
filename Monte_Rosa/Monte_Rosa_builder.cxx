@@ -7,6 +7,7 @@
 #include "NeuralNetwork.h"
 #include "NeuralNetworkComposite.h"
 #include "Monte_Rosa_builder.h"
+#include "Activations.h"
 //
 //
 //
@@ -16,12 +17,12 @@ MAC::Monte_Rosa_builder::Monte_Rosa_builder():
   //
   // Neural network anatomy
   //
-
+  using Convolution = MAC::Convolutional_layer< Activation_tanh >;
    
   //
   // Convolutional layers
   //
-  int downsize_factor       = 2;
+  int downsize_factor = 2;
   
   //
   // Layer 0
@@ -31,28 +32,28 @@ MAC::Monte_Rosa_builder::Monte_Rosa_builder():
   int window_0[4] = {5 /*s*/, 3 /*x*/,3 /*y*/,3 /*z*/};
   //
   std::shared_ptr< NeuralNetwork > nn_0 =
-    std::make_shared< MAC::Convolutional_layer >( "layer_0", 0,
-						  downsize_factor,
-						  true,
-						  window_0 );
+    std::make_shared< Convolution >( "layer_0", 0,
+				     downsize_factor,
+				     true,
+				     window_0 );
 
   //
   // Layer 1
   int window_1[4] = {10,5,5,5};
   std::shared_ptr< NeuralNetwork > nn_1 =
-    std::make_shared< MAC::Convolutional_layer >( "layer_1", 1,
-						  downsize_factor,
-						  true,
-						  window_1 );
+    std::make_shared< Convolution >( "layer_1", 1,
+				     downsize_factor,
+				     true,
+				     window_1 );
   
   //
   // Layer 2
   int window_2[4] = {20,3,3,3};
   std::shared_ptr< NeuralNetwork > nn_2 =
-    std::make_shared< MAC::Convolutional_layer >( "layer_2", 2,
-						  downsize_factor,
-						  true,
-						  window_2 );
+    std::make_shared< Convolution >( "layer_2", 2,
+				     downsize_factor,
+				     true,
+				     window_2 );
 
   //
   // Fully connected layers
