@@ -17,7 +17,8 @@ MAC::Monte_Rosa_builder::Monte_Rosa_builder():
   //
   // Neural network anatomy
   //
-  using Convolution = MAC::Convolutional_layer< Activation_tanh >;
+  using Convolution    = MAC::Convolutional_layer< Activation_tanh >;
+  using FullyConnected = MAC::FullyConnected_layer< Activation_tanh >;
    
   //
   // Convolutional layers
@@ -64,9 +65,9 @@ MAC::Monte_Rosa_builder::Monte_Rosa_builder():
   int fc_layers[num_fc_layers] = { -1, 1000, 500, 100, 50, 3 };
   //
   std::shared_ptr< NeuralNetwork > nn_3 =
-    std::make_shared< MAC::FullyConnected_layer >( "layer_3", 3,
-						   num_fc_layers,
-						   fc_layers );
+    std::make_shared< FullyConnected >( "layer_3", 3,
+					num_fc_layers,
+					fc_layers );
   
 
   //
