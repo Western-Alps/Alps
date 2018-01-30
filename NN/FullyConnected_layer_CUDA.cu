@@ -3,6 +3,7 @@
 //
 #include "MACException.h"
 #include "FullyConnected_layer_CUDA.cuh"
+#include "Activations.h"
 //
 // layer orgnization of the densly connected network
 // the data will be saved in the constant memory of the device
@@ -13,6 +14,7 @@ __constant__ int d_fc_layers_[20];
  *
  * Computes the delta element of the backward processing
  */
+template< typename Activate >
 __global__ void
 delta_cuda( const double *Weights_T, double *Delta, const double *A,
 	    const int Weights_offset,
@@ -23,10 +25,12 @@ delta_cuda( const double *Weights_T, double *Delta, const double *A,
   //
   int postion = blockDim.x * blockIdx.x + threadIdx.x;
   int l2 = OffSet2 + postion;
+  Activate a;
   //
   if ( l2 < OffSet3 )
     {
-      Delta[l2] = 1 - tanh( A[l2] ) * tanh( A[l2] );
+      //Delta[l2] = 1 - tanh( A[l2] ) * tanh( A[l2] );
+      Delta[l2] = a.df( A[l2] );
       //Delta[l2] = A[l2] ;
       // layer l_{u+1}
       double delta_omega = 0.;
@@ -251,7 +255,8 @@ MAC::FullyConnected_layer_CUDA::transpose_weight_matrices()
 //
 //
 __host__ void
-MAC::FullyConnected_layer_CUDA::backward( std::map< std::string, Neurons_type >& Neurons )
+MAC::FullyConnected_layer_CUDA::backward( std::map< std::string, Neurons_type >& Neurons,
+					  const Functions& Activation_func )
 {
   //
   //
@@ -383,10 +388,27 @@ MAC::FullyConnected_layer_CUDA::backward( std::map< std::string, Neurons_type >&
 	    L3 = ((fc_layers_[i] ) + threadsPerBlock - 1) / threadsPerBlock;
 	  //
 	  // 3.1. Compute delta
-	  delta_cuda<<< L2, threadsPerBlock >>>( d_weights_T_, d_delta, d_a_l,
-						 weights_offset_2,
-						 offset_2, i-1,
-						 offset_3, i );
+	  switch( Activation_func.get_function_name() )
+	    {
+	    case Func::F_TANH:
+	      delta_cuda< MAC::Activation_tanh ><<< L2, threadsPerBlock >>>( d_weights_T_, d_delta, d_a_l,
+									     weights_offset_2,
+									     offset_2, i-1,
+									     offset_3, i );
+	      break;
+	    case Func::F_SIGMOID:
+	      delta_cuda< MAC::Activation_sigmoid ><<< L2, threadsPerBlock >>>( d_weights_T_, d_delta, d_a_l,
+										weights_offset_2,
+										offset_2, i-1,
+										offset_3, i );
+	      break;
+	    case Func::UNDETERMINED:
+	    default:
+	      {
+		fprintf(stderr, "Wrong activation function.\n");
+		exit(EXIT_FAILURE);
+	      }
+	    }
 	  //
 	  if (err != cudaSuccess)
 	    {

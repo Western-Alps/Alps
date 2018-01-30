@@ -22,11 +22,15 @@
 #include <itkSpatialOrientation.h>
 #include "itkChangeInformationImageFilter.h"
 #include "itkImageDuplicator.h"
-// Downsampling the pooling image and upsampling
+// {down,up}sampling the pooling image and upsampling
 #include "itkIdentityTransform.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkShrinkImageFilter.h"
 #include "itkResampleImageFilter.h"
+#include "itkBSplineInterpolateImageFunction.h"
+#include "itkNearestNeighborInterpolateImageFunction.h"
+#include "itkLinearInterpolateImageFunction.h"
+
 //
 // Some typedef
 using Image3DType    = itk::Image< double, 3 >;
@@ -613,11 +617,15 @@ namespace MAC
 	      outputSpacing[i] = raw_subject_image_ptr->GetSpacing()[i] * (static_cast<double>(size[i]) / static_cast<double>(outputSize[i]));
 	    }
 	  //
-	  typedef itk::IdentityTransform<double, 3> TransformType;
-	  typedef itk::ResampleImageFilter<Image3DType, Image3DType> ResampleImageFilterType;
+	  typedef itk::IdentityTransform< double, 3 > TransformType;
+	  typedef itk::LinearInterpolateImageFunction< Image3DType, double >  InterpolatorType;
+	  typedef itk::ResampleImageFilter< Image3DType, Image3DType > ResampleImageFilterType;
+	  //
+	  InterpolatorType::Pointer interpolator    = InterpolatorType::New();
 	  ResampleImageFilterType::Pointer resample = ResampleImageFilterType::New();
 	  //
 	  resample->SetInput(raw_subject_image_ptr);
+	  resample->SetInterpolator( interpolator );
 	  resample->SetSize(outputSize);
 	  resample->SetOutputSpacing(outputSpacing);
 	  resample->SetOutputOrigin(orig_3d);

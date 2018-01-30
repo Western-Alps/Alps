@@ -18,6 +18,7 @@
 //
 //
 #include "MACException.h"
+#include "Functions.h"
 //
 //
 //
@@ -51,7 +52,7 @@ namespace MAC
 	                                std::vector< std::shared_ptr<double> > /* neurons */,
 	                                std::vector< std::shared_ptr<double> > /* deltas */  >;
       __host__
-      void backward( std::map< std::string, Neurons_type >& );
+      void backward( std::map< std::string, Neurons_type >&, const Functions&  );
       //
       //
       __host__

@@ -22,6 +22,10 @@
 //
 namespace MAC
 {
+  enum Func { UNDETERMINED = 0,
+	      F_TANH       = 1,
+	      F_SIGMOID    = 2,
+	      F_SSD        = 100 };
   /** \class Functions
    *
    * \brief 
@@ -44,16 +48,19 @@ namespace MAC
 
       //
       // activation function
-      virtual double f( const double )  = 0;
+      virtual __host__ __device__ double f( const double )  = 0;
       //
       // activation function derivative
-      virtual double df( const double ) = 0;
+      virtual __host__ __device__ double df( const double ) = 0;
       //
       // Loss function function
-      virtual double L( const double, const double )  = 0;
+      virtual __host__ __device__ double L( const double, const double )  = 0;
       //
       // Loss function derivative
-      virtual double dL( const double, const double ) = 0;
+      virtual __host__ __device__ double dL( const double, const double ) = 0;
+      //
+      // Loss function derivative
+      virtual Func get_function_name() const = 0;
     };
 }
 #endif
