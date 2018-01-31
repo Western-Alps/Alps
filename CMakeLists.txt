@@ -60,13 +60,22 @@ list( APPEND SOURCES ${SOURCES_} )
 #message(STATUS ${SOURCES})
 
 #
-# Glbal
-file( GLOB HEADERS_ utils/*.h utils/Functions/*.h NN/*.cuh NN/*.h)
-file( GLOB SOURCES_ utils/*.cxx NN/*.cu  NN/*.cxx )
+# Global
+file( GLOB HEADERS_
+  utils/*.h utils/Functions/*.h NN/*.cuh NN/*.h
+  ITK/Modules/Core/ImageFunction/include/*.h )
+#
+file( GLOB SOURCES_
+  utils/*.cxx NN/*.cu  NN/*.cxx 
+  ITK/Modules/Core/ImageFunction/include/*.hxx )
 #
 list( APPEND HEADERS ${HEADERS_}  )
 list( APPEND SOURCES ${SOURCES_} )
-include_directories( ${Alps_SOURCE_DIR}/utils ${Alps_SOURCE_DIR}/utils/Functions ${Alps_SOURCE_DIR}/NN )
+include_directories(
+  ${Alps_SOURCE_DIR}/utils
+  ${Alps_SOURCE_DIR}/utils/Functions
+  ${Alps_SOURCE_DIR}/ITK/Modules/Core/ImageFunction/include
+  ${Alps_SOURCE_DIR}/NN )
 
 #
 # CNN + DC
