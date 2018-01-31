@@ -620,7 +620,6 @@ namespace MAC
 	  //
 	  typedef itk::IdentityTransform< double, 3 > TransformType;
 	  //typedef itk::LinearInterpolateImageFunction< Image3DType, double >  InterpolatorType;
-	  std::cout << "YOYOYO je passe !!" << std::endl;
 	  typedef itk::ReLUInterpolateImageFunction< Image3DType, double >  InterpolatorType;
 	  typedef itk::ResampleImageFilter< Image3DType, Image3DType > ResampleImageFilterType;
 	  //
