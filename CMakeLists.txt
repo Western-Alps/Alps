@@ -108,8 +108,21 @@ list( APPEND SOURCES ${Mont_Blanc_SOURCES_} )
 cuda_add_executable( Mont_Blanc MACOSX_BUNDLE Mont_Blanc/Mont_Blanc.cpp ${SOURCES} )
 # cmake 3.1 target_compile_features(Mont_Blanc PRIVATE cxx_range_for)
 target_link_libraries( Mont_Blanc  ${ITK_LIBRARIES} ${HEADER_FILES} )
+#
+# Mont Maudi
+include_directories( ${Alps_SOURCE_DIR}/Mont_Maudit )
+#
+file( GLOB Mont_Maudit_HEADERS_ Mont_Maudit/*.h  Mont_Maudit/*.cuh )
+file( GLOB Mont_Maudit_SOURCES_ Mont_Maudit/*.cxx  Mont_Maudit/*.cxx )
+#
+list( APPEND HEADERS ${Mont_Maudit_HEADERS_} )
+list( APPEND SOURCES ${Mont_Maudit_SOURCES_} )
+#
+cuda_add_executable( Mont_Maudit MACOSX_BUNDLE Mont_Maudit/Mont_Maudit.cpp ${SOURCES} )
+# cmake 3.1 target_compile_features(Mont_Maudit PRIVATE cxx_range_for)
+target_link_libraries( Mont_Maudit  ${ITK_LIBRARIES} ${HEADER_FILES} )
 
 
 #
 # Install
-install( FILES ${HEADERS_} ${Monte_Rosa_HEADERS_} ${Mont_Blanc_HEADERS_} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ )
+install( FILES ${HEADERS_} ${Monte_Rosa_HEADERS_} ${Mont_Blanc_HEADERS_}  ${Mont_Maudit_HEADERS_} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ )

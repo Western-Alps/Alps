@@ -1,5 +1,5 @@
-#ifndef CONVOLUTIONAL_LAYER_H
-#define CONVOLUTIONAL_LAYER_H
+#ifndef CONVOLUTIONALAUTOENCODER_LAYER_H
+#define CONVOLUTIONALAUTOENCODER_LAYER_H
 //
 //
 //
@@ -58,33 +58,32 @@ using ShrinkImageFilterType = itk::ShrinkImageFilter < Image3DType, Image3DType 
 //
 namespace MAC
 {
-
-  /** \class Convolutional_layer
+  /** \class ConvolutionalAutoEncoder_layer
    *
    * \brief 
    * 
    * 
    */
   template< class ActivationFunction  >
-    class Convolutional_layer : public NeuralNetwork
+    class ConvolutionalAutoEncoder_layer : public NeuralNetwork
     {
 
     public:
 
       /** Constructor. */
-      explicit Convolutional_layer( const std::string,
-				    const int, 
-				    const int,
-				    const int* );
+      explicit ConvolutionalAutoEncoder_layer( const std::string,
+					       const int, 
+					       const int,
+					       const int* );
       /** Constructor. 
 	  In the case of Mont Blanc technics, we need a constructor to match the 
 	  input images
       */
-      explicit Convolutional_layer( const std::string,
-				    const int, 
-				    const int* );
+      explicit ConvolutionalAutoEncoder_layer( const std::string,
+					       const int, 
+					       const int* );
       /** Destructor */
-      virtual ~Convolutional_layer();
+      virtual ~ConvolutionalAutoEncoder_layer();
 
       //
       // Initialization
@@ -154,7 +153,7 @@ namespace MAC
 
     private:
       //
-      // Convolutional layer's name
+      // ConvolutionalAutoEncoder layer's name
       std::string layer_name_;
       
       //
@@ -215,10 +214,10 @@ namespace MAC
     Window_size 
   */
   template< class A >
-    MAC::Convolutional_layer< A >::Convolutional_layer( const std::string Layer_name,
-							const int         Layer_number,
-							const int         Shrinkage,
-							const int*        Window_size ):
+    MAC::ConvolutionalAutoEncoder_layer< A >::ConvolutionalAutoEncoder_layer( const std::string Layer_name,
+									      const int         Layer_number,
+									      const int         Shrinkage,
+									      const int*        Window_size ):
   MAC::NeuralNetwork::NeuralNetwork(),
     layer_name_{Layer_name}, layer_number_{Layer_number}, shrink_{Shrinkage}, pooling_operation_{true}
   {
@@ -289,9 +288,9 @@ namespace MAC
     Window_size 
   */
   template< class A >
-    MAC::Convolutional_layer< A >::Convolutional_layer( const std::string Layer_name,
-							const int         Layer_number,
-							const int*        Window_size ):
+    MAC::ConvolutionalAutoEncoder_layer< A >::ConvolutionalAutoEncoder_layer( const std::string Layer_name,
+									      const int         Layer_number,
+									      const int*        Window_size ):
   MAC::NeuralNetwork::NeuralNetwork(),
     layer_name_{Layer_name}, layer_number_{Layer_number}, shrink_{0}, pooling_operation_{false},match_inputs_{true}
   {
@@ -359,7 +358,7 @@ namespace MAC
   //
   //
   template< class A > void
-    MAC::Convolutional_layer< A >::forward( Subject& Sub, const Weights& W )
+    MAC::ConvolutionalAutoEncoder_layer< A >::forward( Subject& Sub, const Weights& W )
     {
       //
       // Convolution
@@ -512,7 +511,7 @@ namespace MAC
   //
   //
   template< class A > const std::vector< Image3DType::Pointer > 
-    MAC::Convolutional_layer< A >::pooling() 
+    MAC::ConvolutionalAutoEncoder_layer< A >::pooling() 
     {
       //
       //
@@ -545,7 +544,7 @@ namespace MAC
   //
   //
   template< class A > std::vector< Image3DType::SizeType > 
-    MAC::Convolutional_layer< A >::pooling_image_size() 
+    MAC::ConvolutionalAutoEncoder_layer< A >::pooling_image_size() 
     {
       //
       //
@@ -559,7 +558,7 @@ namespace MAC
 	{
 	  //      //
 	  //      //
-	  //      // Duplication the Convolutional image
+	  //      // Duplication the ConvolutionalAutoEncoder image
 	  //      DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	  //      duplicator->SetInputImage( curr_images[mod] );
 	  //      duplicator->Update();
@@ -590,7 +589,7 @@ namespace MAC
   //
   //
   template< class A > const std::vector< Image3DType::Pointer > 
-    MAC::Convolutional_layer< A >::resample() 
+    MAC::ConvolutionalAutoEncoder_layer< A >::resample() 
     {
       //
       //
@@ -651,7 +650,7 @@ namespace MAC
   //
   //
   template< class A > const std::vector< Image3DType::Pointer > 
-    MAC::Convolutional_layer< A >::resample( const Subject& Sub ) 
+    MAC::ConvolutionalAutoEncoder_layer< A >::resample( const Subject& Sub ) 
     {
       //
       //
@@ -702,7 +701,7 @@ namespace MAC
   //
   //
   template< class A > const std::vector< Image3DType::Pointer > 
-    MAC::Convolutional_layer< A >::resample_backward() 
+    MAC::ConvolutionalAutoEncoder_layer< A >::resample_backward() 
     {
       //
       //
@@ -745,7 +744,7 @@ namespace MAC
   //
   //
   template< class A > const std::vector< Image3DType::Pointer > 
-    MAC::Convolutional_layer< A >::reconstruct_inputs( const Subject& Sub ) 
+    MAC::ConvolutionalAutoEncoder_layer< A >::reconstruct_inputs( const Subject& Sub ) 
     {
       //
       // Resample to the original input dimensions
@@ -808,7 +807,7 @@ namespace MAC
   //
   //
   template< class A >
-    MAC::Convolutional_layer< A >::~Convolutional_layer() 
+    MAC::ConvolutionalAutoEncoder_layer< A >::~ConvolutionalAutoEncoder_layer() 
     {
       delete [] weights_;
       weights_ = nullptr;

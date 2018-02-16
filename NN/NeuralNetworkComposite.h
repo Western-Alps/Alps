@@ -22,6 +22,7 @@
 #include "Weights.h"
 #include "NN_test.h"
 #include "Convolutional_layer.h"
+#include "ConvolutionalAutoEncoder_layer.h"
 #include "FullyConnected_layer.h"
 //
 //

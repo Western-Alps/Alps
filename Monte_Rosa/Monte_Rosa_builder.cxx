@@ -35,7 +35,6 @@ MAC::Monte_Rosa_builder::Monte_Rosa_builder():
   std::shared_ptr< NeuralNetwork > nn_0 =
     std::make_shared< Convolution >( "layer_0", 0,
 				     downsize_factor,
-				     true,
 				     window_0 );
 
   //
@@ -44,7 +43,6 @@ MAC::Monte_Rosa_builder::Monte_Rosa_builder():
   std::shared_ptr< NeuralNetwork > nn_1 =
     std::make_shared< Convolution >( "layer_1", 1,
 				     downsize_factor,
-				     true,
 				     window_1 );
   
   //
@@ -53,7 +51,6 @@ MAC::Monte_Rosa_builder::Monte_Rosa_builder():
   std::shared_ptr< NeuralNetwork > nn_2 =
     std::make_shared< Convolution >( "layer_2", 2,
 				     downsize_factor,
-				     true,
 				     window_2 );
 
   //

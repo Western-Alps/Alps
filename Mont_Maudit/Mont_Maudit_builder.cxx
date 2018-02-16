@@ -6,18 +6,18 @@
 #include "MACException.h"
 #include "NeuralNetwork.h"
 #include "NeuralNetworkComposite.h"
-#include "Mont_Blanc_builder.h"
+#include "Mont_Maudit_builder.h"
 #include "Activations.h"
 //
 //
 //
-MAC::Mont_Blanc_builder::Mont_Blanc_builder():
+MAC::Mont_Maudit_builder::Mont_Maudit_builder():
   MAC::NeuralNetwork::NeuralNetwork()
 {
   //
   // Neural network anatomy
   //
-  using Convolution = MAC::Convolutional_layer< Activation_tanh >;
+  using Convolution = MAC::ConvolutionalAutoEncoder_layer< Activation_tanh >;
 
   //
   // Encoding Convolutional layers
@@ -112,7 +112,7 @@ MAC::Mont_Blanc_builder::Mont_Blanc_builder():
 //
 //
 void
-MAC::Mont_Blanc_builder::initialization()
+MAC::Mont_Maudit_builder::initialization()
 {
   mr_nn_.initialization();
 };
@@ -120,7 +120,7 @@ MAC::Mont_Blanc_builder::initialization()
 //
 //
 void
-MAC::Mont_Blanc_builder::forward( Subject& Sub, const Weights& W )
+MAC::Mont_Maudit_builder::forward( Subject& Sub, const Weights& W )
 {
   mr_nn_.forward( Sub, W );
 };
@@ -128,7 +128,7 @@ MAC::Mont_Blanc_builder::forward( Subject& Sub, const Weights& W )
 //
 //
 void
-MAC::Mont_Blanc_builder::backward()
+MAC::Mont_Maudit_builder::backward()
 {
   mr_nn_.backward();
 };
