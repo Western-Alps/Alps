@@ -25,7 +25,7 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
 
   //
   //
-  int downsize_factor = 2;
+  int downsize_factor = 0;
   
   //
   // Layer 0
@@ -39,21 +39,6 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
 				     downsize_factor,
 				     window_0 );
 
-  //
-  // Layer 1
-  int window_1[4] = {10,5,5,5};
-  std::shared_ptr< NeuralNetwork > nn_1 =
-    std::make_shared< Convolution >( "layer_1", 1,
-				     downsize_factor,
-				     window_1 );
-  
-  //
-  // Layer 2
-  int window_2[4] = {20,3,3,3};
-  std::shared_ptr< NeuralNetwork > nn_2 =
-    std::make_shared< Convolution >( "layer_2", 2,
-				     downsize_factor,
-				     window_2 );
 
   
   //
@@ -62,34 +47,16 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
 
   //
   //
-  int upsize_factor = -2;
+  int upsize_factor = 0;
   
   //
-  // Layer 3
-  int window_3[4] = {15 /*s*/, 3 /*x*/,3 /*y*/,3 /*z*/};
-  //
-  std::shared_ptr< NeuralNetwork > nn_3 =
-    std::make_shared< Convolution >( "layer_3", 3,
-				     upsize_factor,
-				     window_3 );
+  // Layer 1
+  // We link the decoder with the encoder layer
+  std::shared_ptr< NeuralNetwork > nn_1 =
+    std::make_shared< Convolution >( "layer_1", 1,
+				     window_0,
+				     nn_0 );
 
-  //
-  // Layer 4
-  int window_4[4] = {8,5,5,5};
-  std::shared_ptr< NeuralNetwork > nn_4 =
-    std::make_shared< Convolution >( "layer_4", 4,
-				     upsize_factor,
-				     window_4 );
-  
-  //
-  // Layer 5
-  // Constructor to match the input, we can put whatever number
-  // for the number of features, the constructor will replace it
-  // by the number of input maps.
-  int window_5[4] = {-1,3,3,3};
-  std::shared_ptr< NeuralNetwork > nn_5 =
-    std::make_shared< Convolution >( "layer_5", 5,
-				     window_5 );
 
   
 
@@ -99,11 +66,6 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
   
   mr_nn_.add( nn_0 );
   mr_nn_.add( nn_1 );
-  mr_nn_.add( nn_2 );
-  //
-  mr_nn_.add( nn_3 );
-  mr_nn_.add( nn_4 );
-  mr_nn_.add( nn_5 );
 
 
   //MAC::Singleton::instance()->get_subjects()[0].write_clone();

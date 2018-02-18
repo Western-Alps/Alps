@@ -34,6 +34,8 @@ namespace MAC
     neural_network_test_class,
     convolutional_layer,
     fully_connected_layer,
+    convolutional_encoder,
+    convolutional_decoder,
     /* Composite */
     composite_layer,
     /* Composition neural network */

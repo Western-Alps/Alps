@@ -80,34 +80,34 @@ include_directories(
 #
 # CNN + DC
 #
-# Monte Rosa
-include_directories( ${Alps_SOURCE_DIR}/Monte_Rosa )
+## Monte Rosa
+#include_directories( ${Alps_SOURCE_DIR}/Monte_Rosa )
+##
+#file( GLOB Monte_Rosa_HEADERS_ Monte_Rosa/*.h Monte_Rosa/*.cuh )
+#file( GLOB Monte_Rosa_SOURCES_ Monte_Rosa/*.cxx Monte_Rosa/*.cu )
+##
+#list( APPEND HEADERS ${Monte_Rosa_HEADERS_} )
+#list( APPEND SOURCES ${Monte_Rosa_SOURCES_} )
+##
+#cuda_add_executable( Monte_Rosa MACOSX_BUNDLE Monte_Rosa/Monte_Rosa.cpp ${SOURCES} )
+## cmake 3.1 target_compile_features(Monte_Rosa PRIVATE cxx_range_for)
+#target_link_libraries( Monte_Rosa ${ITK_LIBRARIES} ${HEADER_FILES} )
 #
-file( GLOB Monte_Rosa_HEADERS_ Monte_Rosa/*.h Monte_Rosa/*.cuh )
-file( GLOB Monte_Rosa_SOURCES_ Monte_Rosa/*.cxx Monte_Rosa/*.cu )
-#
-list( APPEND HEADERS ${Monte_Rosa_HEADERS_} )
-list( APPEND SOURCES ${Monte_Rosa_SOURCES_} )
-#
-cuda_add_executable( Monte_Rosa MACOSX_BUNDLE Monte_Rosa/Monte_Rosa.cpp ${SOURCES} )
-# cmake 3.1 target_compile_features(Monte_Rosa PRIVATE cxx_range_for)
-target_link_libraries( Monte_Rosa ${ITK_LIBRARIES} ${HEADER_FILES} )
-
-#
-# Auto-encoder
-#
-# Mont Blanc
-include_directories( ${Alps_SOURCE_DIR}/Mont_Blanc )
-#
-file( GLOB Mont_Blanc_HEADERS_ Mont_Blanc/*.h  Mont_Blanc/*.cuh )
-file( GLOB Mont_Blanc_SOURCES_ Mont_Blanc/*.cxx  Mont_Blanc/*.cxx )
-#
-list( APPEND HEADERS ${Mont_Blanc_HEADERS_} )
-list( APPEND SOURCES ${Mont_Blanc_SOURCES_} )
-#
-cuda_add_executable( Mont_Blanc MACOSX_BUNDLE Mont_Blanc/Mont_Blanc.cpp ${SOURCES} )
-# cmake 3.1 target_compile_features(Mont_Blanc PRIVATE cxx_range_for)
-target_link_libraries( Mont_Blanc  ${ITK_LIBRARIES} ${HEADER_FILES} )
+##
+## Auto-encoder
+##
+## Mont Blanc
+#include_directories( ${Alps_SOURCE_DIR}/Mont_Blanc )
+##
+#file( GLOB Mont_Blanc_HEADERS_ Mont_Blanc/*.h  Mont_Blanc/*.cuh )
+#file( GLOB Mont_Blanc_SOURCES_ Mont_Blanc/*.cxx  Mont_Blanc/*.cxx )
+##
+#list( APPEND HEADERS ${Mont_Blanc_HEADERS_} )
+#list( APPEND SOURCES ${Mont_Blanc_SOURCES_} )
+##
+#cuda_add_executable( Mont_Blanc MACOSX_BUNDLE Mont_Blanc/Mont_Blanc.cpp ${SOURCES} )
+## cmake 3.1 target_compile_features(Mont_Blanc PRIVATE cxx_range_for)
+#target_link_libraries( Mont_Blanc  ${ITK_LIBRARIES} ${HEADER_FILES} )
 #
 # Mont Maudi
 include_directories( ${Alps_SOURCE_DIR}/Mont_Maudit )
