@@ -383,7 +383,7 @@ namespace MAC
       size_lu_       = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
       origine_lu_    = raw_subject_image_ptr->GetOrigin();
       spacing_lu_    = raw_subject_image_ptr->GetSpacing();
-      direction_lu_  = raw_subject_image_ptr->GetDirection();
+      direction_lu_ = raw_subject_image_ptr->GetDirection();
       //
       Image3DType::RegionType region;
       region.SetSize( size_lu_ );
@@ -437,73 +437,58 @@ namespace MAC
 
 	  //
 	  // Loop over the image
-	  itk::ImageRegionIterator< Image3DType >  convolution_image_iter( convolution_images_[mod], region );
-	  // Build vector of iterators
-	  Image3DType::SizeType
-	    radius = {static_cast< ConvolutionWindowType::SizeValueType >(convolution_half_window_size_[1]),
-		      static_cast< ConvolutionWindowType::SizeValueType >(convolution_half_window_size_[2]),
-		      static_cast< ConvolutionWindowType::SizeValueType >(convolution_half_window_size_[3])};
-	  // Vector of iterators
-	  std::vector< itk::ConstNeighborhoodIterator< Image3DType > >
-	    previouse_feature_maps_iter(num_of_previous_features_);
-	  // 
-	  for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ ) // run through the num of previous features
-	    previouse_feature_maps_iter[prev] = itk::ConstNeighborhoodIterator< Image3DType >( radius,
-											       convolution_images_[mod],
-											       region );
+	  itk::ImageRegionIterator< Image3DType > convolution_image_iter( convolution_images_[mod], region );
 	  //
 	  while( !convolution_image_iter.IsAtEnd() )
 	    {
+	      //
+	      //
+	      Image3DType::IndexType idx = convolution_image_iter.GetIndex();
+	      //
+	      double convolution_voxel_value = 0;
+	      //	  int X, x, Y, y, Z, z;
 	      for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ ) // run through the num of previous features
-		++previouse_feature_maps_iter[prev];
-//	      //
-//	      //
-//	      Image3DType::IndexType idx = convolution_image_iter.GetIndex();
-//	      //
-//	      double convolution_voxel_value = 0;
-//	      //	  int X, x, Y, y, Z, z;
-//	      for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ ) // run through the num of previous features
-//		for ( int z = - convolution_half_window_size_[3];
-//		      z < (convolution_half_window_size_[3]+1) ; z++ ) // run through z
-//		  for( int y = - convolution_half_window_size_[2];
-//		       y < (convolution_half_window_size_[2]+1) ; y++ ) // run through y
-//		    for( int x = - convolution_half_window_size_[1];
-//			 x < (convolution_half_window_size_[1]+1) ; x++ ) // run through x
-//		      if ( idx[0] + x > -1 && idx[1] + y > -1 && idx[2] + z > -1 &&
-//			   idx[0] + x < static_cast<int>(size_lu_[0]) &&
-//			   idx[1] + y < static_cast<int>(size_lu_[1]) &&
-//			   idx[2] + z < static_cast<int>(size_lu_[2]) ) // zero padding
-//			{
-//			  int weight_idx = (x+convolution_half_window_size_[1])
-//			    + convolution_window_size_[1] * (y+convolution_half_window_size_[2])
-//			    + convolution_window_size_[1] * convolution_window_size_[2]
-//			    * (z+convolution_half_window_size_[3])
-//			    + convolution_window_size_[1] * convolution_window_size_[2]
-//			    * convolution_window_size_[3] * mod;
-//			  //
-//			  convolution_voxel_value +=
-//			    weights_[ weight_idx ] * curr_images[prev]->GetPixel( {idx[0]+x, idx[1]+y, idx[2]+z} );
-//			}
-//	      // add the bias at the end of the array
-//	      int bias_position = convolution_window_size_[0] * convolution_window_size_[1]
-//		* convolution_window_size_[2] * convolution_window_size_[3]
-//		+ mod;
-//	      convolution_voxel_value += weights_[ bias_position ]; // x 1.
-//	  
-//	      //
-//	      // Update values
-//	      double
-//		activation = convolution_voxel_value,
-//		neuron     = activation_.f( convolution_voxel_value );
-//	      //
-//	      size_t image_position = idx[0] + size_lu_[0]*idx[1] + size_lu_[0]*size_lu_[1]*idx[2];
-//	      std::get< 0/*activations*/>(neurons_[subject_name])[mod].get()[image_position] = activation;
-//	      std::get< 1/*neurons*/>(neurons_[subject_name])[mod].get()[image_position]     = neuron;
-//	      //
-//	      convolution_images_[mod]->SetPixel( idx, neuron );
-//
-//	      //
-//	      // Iter the convolution image
+		for ( int z = - convolution_half_window_size_[3];
+		      z < (convolution_half_window_size_[3]+1) ; z++ ) // run through z
+		  for( int y = - convolution_half_window_size_[2];
+		       y < (convolution_half_window_size_[2]+1) ; y++ ) // run through y
+		    for( int x = - convolution_half_window_size_[1];
+			 x < (convolution_half_window_size_[1]+1) ; x++ ) // run through x
+		      if ( idx[0] + x > -1 && idx[1] + y > -1 && idx[2] + z > -1 &&
+			   idx[0] + x < static_cast<int>(size_lu_[0]) &&
+			   idx[1] + y < static_cast<int>(size_lu_[1]) &&
+			   idx[2] + z < static_cast<int>(size_lu_[2]) ) // zero padding
+			{
+			  int weight_idx = (x+convolution_half_window_size_[1])
+			    + convolution_window_size_[1] * (y+convolution_half_window_size_[2])
+			    + convolution_window_size_[1] * convolution_window_size_[2]
+			    * (z+convolution_half_window_size_[3])
+			    + convolution_window_size_[1] * convolution_window_size_[2]
+			    * convolution_window_size_[3] * mod;
+			  //
+			  convolution_voxel_value +=
+			    weights_[ weight_idx ] * curr_images[prev]->GetPixel( {idx[0]+x, idx[1]+y, idx[2]+z} );
+			}
+	      // add the bias at the end of the array
+	      int bias_position = convolution_window_size_[0] * convolution_window_size_[1]
+		* convolution_window_size_[2] * convolution_window_size_[3]
+		+ mod;
+	      convolution_voxel_value += weights_[ bias_position ]; // x 1.
+	  
+	      //
+	      // Update values
+	      double
+		activation = convolution_voxel_value,
+		neuron     = activation_.f( convolution_voxel_value );
+	      //
+	      size_t image_position = idx[0] + size_lu_[0]*idx[1] + size_lu_[0]*size_lu_[1]*idx[2];
+	      std::get< 0/*activations*/>(neurons_[subject_name])[mod].get()[image_position] = activation;
+	      std::get< 1/*neurons*/>(neurons_[subject_name])[mod].get()[image_position]     = neuron;
+	      //
+	      convolution_images_[mod]->SetPixel( idx, neuron );
+
+	      //
+	      // Iter the convolution image
 	      ++convolution_image_iter;
 	    }
 	}
