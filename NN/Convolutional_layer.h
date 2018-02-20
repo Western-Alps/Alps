@@ -11,6 +11,12 @@
 #include <memory>
 #include <random>
 //
+// CUDA
+//
+#include <cuda_runtime.h>
+#include <thrust/host_vector.h>
+#include "Convolutional_layer_CUDA.cuh"
+//
 // ITK
 //
 #include <itkSize.h>
@@ -205,6 +211,10 @@ namespace MAC
       //
       // Activation function
       ActivationFunction activation_;
+
+      //
+      // Cuda treatment
+      Convolutional_layer_CUDA cuda_treatment_;
     };
   //
   //
@@ -383,12 +393,33 @@ namespace MAC
       size_lu_       = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
       origine_lu_    = raw_subject_image_ptr->GetOrigin();
       spacing_lu_    = raw_subject_image_ptr->GetSpacing();
-      direction_lu_ = raw_subject_image_ptr->GetDirection();
+      direction_lu_  = raw_subject_image_ptr->GetDirection();
       //
       Image3DType::RegionType region;
       region.SetSize( size_lu_ );
       region.SetIndex( start );
 
+
+      
+
+      //
+      //
+      if ( true /*CUDA*/)
+	{
+	  int image_size[3] = {static_cast<int>(size_lu_[0]),
+			       static_cast<int>(size_lu_[1]),
+			       static_cast<int>(size_lu_[2])};
+	  //
+	  cuda_treatment_.init( image_size,
+				convolution_half_window_size_,
+				number_of_weights_, weights_);
+
+	  thrust::host_vector<int> H(4);
+
+	}
+
+
+      
       //
       // Initialize the neurons, activation and delta
       if ( neurons_.find( subject_name ) == neurons_.end() )
