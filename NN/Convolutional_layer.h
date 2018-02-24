@@ -398,6 +398,8 @@ namespace MAC
       Image3DType::RegionType region;
       region.SetSize( size_lu_ );
       region.SetIndex( start );
+      //
+      std::size_t neuron_number = size_lu_[0]*size_lu_[1]*size_lu_[2];
 
 
       
@@ -406,125 +408,235 @@ namespace MAC
       //
       if ( true /*CUDA*/)
 	{
+	  //
+	  // Init the CUDA device
 	  int image_size[3] = {static_cast<int>(size_lu_[0]),
 			       static_cast<int>(size_lu_[1]),
 			       static_cast<int>(size_lu_[2])};
 	  //
 	  cuda_treatment_.init( image_size,
 				convolution_half_window_size_,
-				number_of_weights_, weights_);
+				number_of_weights_, weights_ );
 
-	  thrust::host_vector<int> H(4);
+	  //
+	  // Initialize the neurons, activation and delta
+	  if ( neurons_.find( subject_name ) == neurons_.end() )
+	    {
+	      std::vector< std::shared_ptr<double> >
+		activations( convolution_window_size_[0] ),
+		neurons( convolution_window_size_[0] ),
+		deltas( convolution_window_size_[0] );
+	      //
+	      for ( int mod = 0 ; mod < convolution_window_size_[0] ; mod++ )
+		{
+		  activations[mod] = std::shared_ptr<double>( new double[neuron_number], std::default_delete< double[] >() );
+		  neurons[mod]     = std::shared_ptr<double>( new double[neuron_number], std::default_delete< double[] >() );
+		  deltas[mod]      = std::shared_ptr<double>( new double[neuron_number], std::default_delete< double[] >() );
+		}
+	      //
+	      neurons_[subject_name] = std::make_tuple(activations,neurons,deltas);
+	    }
 
+
+
+	  
+	  //
+	  // access the previouse feature maps
+	  double** prev_features_to_device;
+	  Mapping* prev_idx_mapping_to_device;
+	  //
+	  prev_features_to_device    = new double*[ curr_images.size() ];
+	  // Loop over the image
+	  for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ ) // run through the previous features
+	    {
+	      prev_features_to_device[prev]    = new double[ neuron_number ];
+	      if ( prev == 0)
+		prev_idx_mapping_to_device = new Mapping[ neuron_number ];
+	      //
+	      itk::ImageRegionIterator< Image3DType > convolution_image_iter( curr_images[prev], region );
+	      std::size_t current_position = 0;
+	      while( !convolution_image_iter.IsAtEnd() )
+		{
+		  //
+		  Image3DType::IndexType idx = convolution_image_iter.GetIndex();
+		  //
+		  if  ( prev == 0 )
+		    {
+		      prev_idx_mapping_to_device[current_position].idx_ = current_position;
+		      prev_idx_mapping_to_device[current_position].x_   = idx[0];
+		      prev_idx_mapping_to_device[current_position].y_   = idx[1];
+		      prev_idx_mapping_to_device[current_position].z_   = idx[2];
+		    }
+		  //
+		  prev_features_to_device[prev][current_position++] = convolution_image_iter.Value();
+		  //
+		  ++convolution_image_iter;
+		}
+	    }
+	  // Load images on the device
+	  cuda_treatment_.load_previouse_feature_maps( prev_features_to_device,
+						       prev_idx_mapping_to_device,
+						       num_of_previous_features_,
+						       neuron_number );
+
+	  //
+	  // Create the new feature maps
+	  for ( int mod = 0 ; mod < convolution_window_size_[0] ; mod++ )
+	    {	    
+	      //
+	      // Duplicate the image
+	      Image3DType::Pointer records = Image3DType::New();
+	      // image filter
+	      FilterType::Pointer images_filter;
+	      images_filter = FilterType::New();
+	      //
+	      images_filter->SetOutputSpacing( spacing_lu_ );
+	      images_filter->ChangeSpacingOn();
+	      images_filter->SetOutputOrigin( origine_lu_ );
+	      images_filter->ChangeOriginOn();
+	      images_filter->SetOutputDirection( direction_lu_ );
+	      images_filter->ChangeDirectionOn();
+	      //
+	      records->SetRegions( region );
+	      records->Allocate();
+	      records->FillBuffer( 0.0 );
+	      images_filter->SetInput( records );
+	      images_filter->Update();
+	      //
+	      convolution_images_[mod] = images_filter->GetOutput();
+
+	      //
+	      //
+	      cuda_treatment_.convolution( neurons_[subject_name], mod,
+					   activation_ );
+
+	      
+//	      while( !convolution_image_iter.IsAtEnd() )
+//		{
+//		  //
+//		  //
+//		  Image3DType::IndexType idx = convolution_image_iter.GetIndex();
+//		  //std::cout << idx << " " << convolution_image_iter.Value() << std::endl;
+//		  ++convolution_image_iter;
+//		  //
+//		  double convolution_voxel_value = 0;
+//		  //	  int X, x, Y, y, Z, z;
+//		  for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ ) // run through the num of previous features
+//		    {}
+//		}
+	    }
 	}
+      else
+	{
 
 
       
-      //
-      // Initialize the neurons, activation and delta
-      if ( neurons_.find( subject_name ) == neurons_.end() )
-	{
-	  std::vector< std::shared_ptr<double> >
-	    activations( convolution_window_size_[0] ),
-	    neurons( convolution_window_size_[0] ),
-	    deltas( convolution_window_size_[0] );
 	  //
+	  // Initialize the neurons, activation and delta
+	  if ( neurons_.find( subject_name ) == neurons_.end() )
+	    {
+	      std::vector< std::shared_ptr<double> >
+		activations( convolution_window_size_[0] ),
+		neurons( convolution_window_size_[0] ),
+		deltas( convolution_window_size_[0] );
+	      //
+	      for ( int mod = 0 ; mod < convolution_window_size_[0] ; mod++ )
+		{
+		  size_t size_map = size_lu_[0] * size_lu_[1] * size_lu_[2];
+		  activations[mod] = std::shared_ptr<double>( new double[size_map], std::default_delete< double[] >() );
+		  neurons[mod]     = std::shared_ptr<double>( new double[size_map], std::default_delete< double[] >() );
+		  deltas[mod]      = std::shared_ptr<double>( new double[size_map], std::default_delete< double[] >() );
+		}
+	      //
+	      neurons_[subject_name] = std::make_tuple(activations,neurons,deltas);
+	    }
+
+	  //
+	  // Create the new feature maps
 	  for ( int mod = 0 ; mod < convolution_window_size_[0] ; mod++ )
 	    {
-	      size_t size_map = size_lu_[0] * size_lu_[1] * size_lu_[2];
-	      activations[mod] = std::shared_ptr<double>( new double[size_map], std::default_delete< double[] >() );
-	      neurons[mod]     = std::shared_ptr<double>( new double[size_map], std::default_delete< double[] >() );
-	      deltas[mod]      = std::shared_ptr<double>( new double[size_map], std::default_delete< double[] >() );
-	    }
-	  //
-	  neurons_[subject_name] = std::make_tuple(activations,neurons,deltas);
-	}
+	      //
+	      // Duplicate the image
+	      Image3DType::Pointer records = Image3DType::New();
+	      // image filter
+	      FilterType::Pointer images_filter;
+	      images_filter = FilterType::New();
+	      //
+	      images_filter->SetOutputSpacing( spacing_lu_ );
+	      images_filter->ChangeSpacingOn();
+	      images_filter->SetOutputOrigin( origine_lu_ );
+	      images_filter->ChangeOriginOn();
+	      images_filter->SetOutputDirection( direction_lu_ );
+	      images_filter->ChangeDirectionOn();
+	      //
+	      records->SetRegions( region );
+	      records->Allocate();
+	      records->FillBuffer( 0.0 );
+	      images_filter->SetInput( records );
+	      images_filter->Update();
+	      //
+	      convolution_images_[mod] = images_filter->GetOutput();
 
-      //
-      // Create the new feature maps
-      for ( int mod = 0 ; mod < convolution_window_size_[0] ; mod++ )
-	{
-	  //
-	  // Duplicate the image
-	  Image3DType::Pointer records = Image3DType::New();
-	  // image filter
-	  FilterType::Pointer images_filter;
-	  images_filter = FilterType::New();
-	  //
-	  images_filter->SetOutputSpacing( spacing_lu_ );
-	  images_filter->ChangeSpacingOn();
-	  images_filter->SetOutputOrigin( origine_lu_ );
-	  images_filter->ChangeOriginOn();
-	  images_filter->SetOutputDirection( direction_lu_ );
-	  images_filter->ChangeDirectionOn();
-	  //
-	  records->SetRegions( region );
-	  records->Allocate();
-	  records->FillBuffer( 0.0 );
-	  images_filter->SetInput( records );
-	  images_filter->Update();
-	  //
-	  convolution_images_[mod] = images_filter->GetOutput();
-
-	  //
-	  // Loop over the image
-	  itk::ImageRegionIterator< Image3DType > convolution_image_iter( convolution_images_[mod], region );
-	  //
-	  while( !convolution_image_iter.IsAtEnd() )
-	    {
 	      //
+	      // Loop over the image
+	      itk::ImageRegionIterator< Image3DType > convolution_image_iter( convolution_images_[mod], region );
 	      //
-	      Image3DType::IndexType idx = convolution_image_iter.GetIndex();
-	      //
-	      double convolution_voxel_value = 0;
-	      //	  int X, x, Y, y, Z, z;
-	      for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ ) // run through the num of previous features
-		for ( int z = - convolution_half_window_size_[3];
-		      z < (convolution_half_window_size_[3]+1) ; z++ ) // run through z
-		  for( int y = - convolution_half_window_size_[2];
-		       y < (convolution_half_window_size_[2]+1) ; y++ ) // run through y
-		    for( int x = - convolution_half_window_size_[1];
-			 x < (convolution_half_window_size_[1]+1) ; x++ ) // run through x
-		      if ( idx[0] + x > -1 && idx[1] + y > -1 && idx[2] + z > -1 &&
-			   idx[0] + x < static_cast<int>(size_lu_[0]) &&
-			   idx[1] + y < static_cast<int>(size_lu_[1]) &&
-			   idx[2] + z < static_cast<int>(size_lu_[2]) ) // zero padding
-			{
-			  int weight_idx = (x+convolution_half_window_size_[1])
-			    + convolution_window_size_[1] * (y+convolution_half_window_size_[2])
-			    + convolution_window_size_[1] * convolution_window_size_[2]
-			    * (z+convolution_half_window_size_[3])
-			    + convolution_window_size_[1] * convolution_window_size_[2]
-			    * convolution_window_size_[3] * mod;
-			  //
-			  convolution_voxel_value +=
-			    weights_[ weight_idx ] * curr_images[prev]->GetPixel( {idx[0]+x, idx[1]+y, idx[2]+z} );
-			}
-	      // add the bias at the end of the array
-	      int bias_position = convolution_window_size_[0] * convolution_window_size_[1]
-		* convolution_window_size_[2] * convolution_window_size_[3]
-		+ mod;
-	      convolution_voxel_value += weights_[ bias_position ]; // x 1.
+	      while( !convolution_image_iter.IsAtEnd() )
+		{
+		  //
+		  //
+		  Image3DType::IndexType idx = convolution_image_iter.GetIndex();
+		  //
+		  double convolution_voxel_value = 0;
+		  //	  int X, x, Y, y, Z, z;
+		  for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ ) // run through the num of previous features
+		    for ( int z = - convolution_half_window_size_[3];
+			  z < (convolution_half_window_size_[3]+1) ; z++ ) // run through z
+		      for( int y = - convolution_half_window_size_[2];
+			   y < (convolution_half_window_size_[2]+1) ; y++ ) // run through y
+			for( int x = - convolution_half_window_size_[1];
+			     x < (convolution_half_window_size_[1]+1) ; x++ ) // run through x
+			  if ( idx[0] + x > -1 && idx[1] + y > -1 && idx[2] + z > -1 &&
+			       idx[0] + x < static_cast<int>(size_lu_[0]) &&
+			       idx[1] + y < static_cast<int>(size_lu_[1]) &&
+			       idx[2] + z < static_cast<int>(size_lu_[2]) ) // zero padding
+			    {
+			      int weight_idx = (x+convolution_half_window_size_[1])
+				+ convolution_window_size_[1] * (y+convolution_half_window_size_[2])
+				+ convolution_window_size_[1] * convolution_window_size_[2]
+				* (z+convolution_half_window_size_[3])
+				+ convolution_window_size_[1] * convolution_window_size_[2]
+				* convolution_window_size_[3] * mod;
+			      //
+			      convolution_voxel_value +=
+				weights_[ weight_idx ] * curr_images[prev]->GetPixel( {idx[0]+x, idx[1]+y, idx[2]+z} );
+			    }
+		  // add the bias at the end of the array
+		  int bias_position = convolution_window_size_[0] * convolution_window_size_[1]
+		    * convolution_window_size_[2] * convolution_window_size_[3]
+		    + mod;
+		  convolution_voxel_value += weights_[ bias_position ]; // x 1.
 	  
-	      //
-	      // Update values
-	      double
-		activation = convolution_voxel_value,
-		neuron     = activation_.f( convolution_voxel_value );
-	      //
-	      size_t image_position = idx[0] + size_lu_[0]*idx[1] + size_lu_[0]*size_lu_[1]*idx[2];
-	      std::get< 0/*activations*/>(neurons_[subject_name])[mod].get()[image_position] = activation;
-	      std::get< 1/*neurons*/>(neurons_[subject_name])[mod].get()[image_position]     = neuron;
-	      //
-	      convolution_images_[mod]->SetPixel( idx, neuron );
+		  //
+		  // Update values
+		  double
+		    activation = convolution_voxel_value,
+		    neuron     = activation_.f( convolution_voxel_value );
+		  //
+		  size_t image_position = idx[0] + size_lu_[0]*idx[1] + size_lu_[0]*size_lu_[1]*idx[2];
+		  std::get< 0/*activations*/>(neurons_[subject_name])[mod].get()[image_position] = activation;
+		  std::get< 1/*neurons*/>(neurons_[subject_name])[mod].get()[image_position]     = neuron;
+		  //
+		  convolution_images_[mod]->SetPixel( idx, neuron );
 
-	      //
-	      // Iter the convolution image
-	      ++convolution_image_iter;
+		  //
+		  // Iter the convolution image
+		  ++convolution_image_iter;
+		}
 	    }
 	}
       //
-      write();
+      //write();
 
       //  for ( int k = 0 ; k < size_lu_[2] ; k++ )
       //    for ( int j = 0 ; j < size_lu_[1] ; j++ )
@@ -535,15 +647,15 @@ namespace MAC
       //	  std::cout << std::get< 1>(neurons_[subject_name])[0].get()[pos_temp] << std::endl;
       //	}
   
-      //
-      // Pulling
-      // Update the current image
-      if ( pooling_operation_ )
-	Sub.update( resample() );
-      else if ( match_inputs_ )
-	Sub.update( reconstruct_inputs( Sub ) /*resample( Sub )*/ );
-      else
-	Sub.update( convolution_images_ );
+//       //
+//       // Pulling
+//       // Update the current image
+//       if ( pooling_operation_ )
+//       	Sub.update( resample() );
+//       else if ( match_inputs_ )
+//       	Sub.update( reconstruct_inputs( Sub ) /*resample( Sub )*/ );
+//       else
+//       	Sub.update( convolution_images_ );
     };
   //
   //

@@ -22,6 +22,12 @@
 //
 namespace MAC
 {
+  typedef struct
+  {
+    unsigned int idx_;
+    int x_, y_, z_;
+  } Mapping;
+
   enum Func { UNDETERMINED = 0,
 	      F_TANH       = 1,
 	      F_SIGMOID    = 2,
