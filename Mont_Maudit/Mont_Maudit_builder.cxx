@@ -32,7 +32,7 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
   // {s,x,y,z}
   // s: num of feature maps we want to create
   // (x,y,z) sive of the receiving window
-  int window_0[4] = {5 /*s*/, 3 /*x*/,3 /*y*/,3 /*z*/};
+  int window_0[4] = {3 /*s*/, 3 /*x*/,3 /*y*/,3 /*z*/};
   //
   std::shared_ptr< NeuralNetwork > nn_0 =
     std::make_shared< Convolution >( "layer_0", 0,

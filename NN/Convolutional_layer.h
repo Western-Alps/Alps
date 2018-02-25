@@ -402,14 +402,12 @@ namespace MAC
       std::size_t neuron_number = size_lu_[0]*size_lu_[1]*size_lu_[2];
 
 
-      
-
       //
       //
       if ( true /*CUDA*/)
 	{
 	  //
-	  // Init the CUDA device
+	  // 1. Init the CUDA device and the new feature output
 	  int image_size[3] = {static_cast<int>(size_lu_[0]),
 			       static_cast<int>(size_lu_[1]),
 			       static_cast<int>(size_lu_[2])};
@@ -441,7 +439,7 @@ namespace MAC
 
 	  
 	  //
-	  // access the previouse feature maps
+	  // 2. access the previouse feature maps and load it on the GPU device
 	  double** prev_features_to_device;
 	  Mapping* prev_idx_mapping_to_device;
 	  //
@@ -480,7 +478,7 @@ namespace MAC
 						       neuron_number );
 
 	  //
-	  // Create the new feature maps
+	  // 3. Create the new feature maps with convolution
 	  for ( int mod = 0 ; mod < convolution_window_size_[0] ; mod++ )
 	    {	    
 	      //
@@ -506,31 +504,21 @@ namespace MAC
 	      convolution_images_[mod] = images_filter->GetOutput();
 
 	      //
+	      // Convolution on GPU
+	      cuda_treatment_.convolution( neurons_[subject_name],
+					   mod, activation_ );
 	      //
-	      cuda_treatment_.convolution( neurons_[subject_name], mod,
-					   activation_ );
-
-	      
-//	      while( !convolution_image_iter.IsAtEnd() )
-//		{
-//		  //
-//		  //
-//		  Image3DType::IndexType idx = convolution_image_iter.GetIndex();
-//		  //std::cout << idx << " " << convolution_image_iter.Value() << std::endl;
-//		  ++convolution_image_iter;
-//		  //
-//		  double convolution_voxel_value = 0;
-//		  //	  int X, x, Y, y, Z, z;
-//		  for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ ) // run through the num of previous features
-//		    {}
-//		}
+	      itk::ImageRegionIterator< Image3DType > convolution_iter( convolution_images_[mod], region );
+	      int feature_idx = 0;
+	      while( !convolution_iter.IsAtEnd() )
+		{
+		  convolution_iter.Set( (std::get< 1/*neurons*/>( neurons_[subject_name] ))[mod].get()[feature_idx++] );
+		  ++convolution_iter;
+		}
 	    }
 	}
       else
 	{
-
-
-      
 	  //
 	  // Initialize the neurons, activation and delta
 	  if ( neurons_.find( subject_name ) == neurons_.end() )
@@ -636,7 +624,8 @@ namespace MAC
 	    }
 	}
       //
-      //write();
+      //
+      write();
 
       //  for ( int k = 0 ; k < size_lu_[2] ; k++ )
       //    for ( int j = 0 ; j < size_lu_[1] ; j++ )
@@ -647,15 +636,15 @@ namespace MAC
       //	  std::cout << std::get< 1>(neurons_[subject_name])[0].get()[pos_temp] << std::endl;
       //	}
   
-//       //
-//       // Pulling
-//       // Update the current image
-//       if ( pooling_operation_ )
-//       	Sub.update( resample() );
-//       else if ( match_inputs_ )
-//       	Sub.update( reconstruct_inputs( Sub ) /*resample( Sub )*/ );
-//       else
-//       	Sub.update( convolution_images_ );
+       //
+       // Pulling
+       // Update the current image
+       if ( pooling_operation_ )
+       	Sub.update( resample() );
+       else if ( match_inputs_ )
+       	Sub.update( reconstruct_inputs( Sub ) /*resample( Sub )*/ );
+       else
+       	Sub.update( convolution_images_ );
     };
   //
   //
