@@ -17,7 +17,7 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
   //
   // Neural network anatomy
   //
-  using Convolution = MAC::ConvolutionalAutoEncoder_layer< Activation_tanh >;
+  using ConvolutionAE = MAC::ConvolutionalAutoEncoder_layer< Activation_tanh >;
 
   //
   // Encoding Convolutional layers
@@ -32,12 +32,12 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
   // {s,x,y,z}
   // s: num of feature maps we want to create
   // (x,y,z) sive of the receiving window
-  int window_0[4] = {3 /*s*/, 3 /*x*/,3 /*y*/,3 /*z*/};
+  int window_0[4] = {5 /*s*/, 3 /*x*/,3 /*y*/,3 /*z*/};
   //
   std::shared_ptr< NeuralNetwork > nn_0 =
-    std::make_shared< Convolution >( "layer_0", 0,
-				     downsize_factor,
-				     window_0 );
+    std::make_shared< ConvolutionAE >( "layer_0", 0,
+				       downsize_factor,
+				       window_0 );
 
 
   
@@ -46,19 +46,13 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
   //
 
   //
-  //
-  int upsize_factor = 0;
-  
-  //
   // Layer 1
   // We link the decoder with the encoder layer
   std::shared_ptr< NeuralNetwork > nn_1 =
-    std::make_shared< Convolution >( "layer_1", 1,
-				     window_0,
-				     nn_0 );
+    std::make_shared< ConvolutionAE >( "layer_1", 1,
+				       nn_0 );
 
 
-  
 
   //
   // Anatomy

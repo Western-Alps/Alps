@@ -124,6 +124,15 @@ namespace MAC
       int get_shrink() const { return shrink_; };
       //
       //
+      int* get_window_size() const { return convolution_window_size_; };
+      //
+      //
+      double* get_weights(){ return weights_; };
+      //
+      //
+      Convolutional_layer_CUDA& get_cuda(){ return cuda_treatment_; };
+      //
+      //
       const std::vector< Image3DType::Pointer > pooling();
       //
       //
@@ -314,7 +323,7 @@ namespace MAC
     //
     //
     memcpy ( convolution_window_size_, Window_size, 4*sizeof(int) );
-    // Get the number of taget modalities, must be the same as the number of input images
+    // Get the number of target modalities, must be the same as the number of input images
     int number_of_input_modalities = static_cast< int >(MAC::Singleton::instance()->get_number_of_input_features());
     // replace the input number of feature maps
     convolution_window_size_[0] = number_of_input_modalities;
@@ -444,12 +453,11 @@ namespace MAC
 	  Mapping* prev_idx_mapping_to_device;
 	  //
 	  prev_features_to_device    = new double*[ curr_images.size() ];
+	  prev_idx_mapping_to_device = new Mapping[ neuron_number ];
 	  // Loop over the image
 	  for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ ) // run through the previous features
 	    {
 	      prev_features_to_device[prev]    = new double[ neuron_number ];
-	      if ( prev == 0)
-		prev_idx_mapping_to_device = new Mapping[ neuron_number ];
 	      //
 	      itk::ImageRegionIterator< Image3DType > convolution_image_iter( curr_images[prev], region );
 	      std::size_t current_position = 0;
@@ -624,8 +632,7 @@ namespace MAC
 	    }
 	}
       //
-      //
-      write();
+      // write();
 
       //  for ( int k = 0 ; k < size_lu_[2] ; k++ )
       //    for ( int j = 0 ; j < size_lu_[1] ; j++ )
