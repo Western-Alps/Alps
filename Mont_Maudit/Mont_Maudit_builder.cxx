@@ -17,7 +17,7 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
   //
   // Neural network anatomy
   //
-  using ConvolutionAE = MAC::ConvolutionalAutoEncoder_layer< Activation_tanh >;
+  using ConvolutionAE = MAC::ConvolutionalAutoEncoder_layer< Activation_sigmoid >;
 
   //
   // Encoding Convolutional layers

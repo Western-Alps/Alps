@@ -207,21 +207,41 @@ namespace MAC
 	      {
 		//
 		// Subject informations
-		const std::vector< Image3DType::Pointer > curr_images = Sub.get_clone_modalities_images();
+		const std::vector< Image3DType::Pointer > curr_images   = Sub.get_clone_modalities_images();
+		const std::vector< Image3DType::Pointer > target_images = Sub.get_modality_targets_ITK_images();
 		std::string subject_name = Sub.get_subject_name();
 		//
 		// Images information
 		Image3DType::IndexType  start = { 0, 0, 0 };
 		Image3DType::Pointer    raw_subject_image_ptr = curr_images[0];
 		//
-		Image3DType::SizeType size_lu = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
+		Convolutional_layer<A>::size_lu_       = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
+		Convolutional_layer<A>::origine_lu_    = raw_subject_image_ptr->GetOrigin();
+		Convolutional_layer<A>::spacing_lu_    = raw_subject_image_ptr->GetSpacing();
+		Convolutional_layer<A>::direction_lu_  = raw_subject_image_ptr->GetDirection();
 		//
 		Image3DType::RegionType region;
-		region.SetSize( size_lu );
+		region.SetSize( Convolutional_layer<A>::size_lu_ );
 		region.SetIndex( start );
 		//
-		std::size_t neuron_number = size_lu[0]*size_lu[1]*size_lu[2];
+		std::size_t neuron_number = Convolutional_layer<A>::size_lu_[0]*Convolutional_layer<A>::size_lu_[1]*Convolutional_layer<A>::size_lu_[2];
 
+		//
+		// Check the images comply
+		auto size_target       = target_images[0]->GetLargestPossibleRegion().GetSize();;
+		auto origine_target    = target_images[0]->GetOrigin();
+		auto spacing_target    = target_images[0]->GetSpacing();
+		auto direction_target  = target_images[0]->GetDirection();
+		//
+		if ( Convolutional_layer<A>::size_lu_      != size_target    ||
+		     Convolutional_layer<A>::origine_lu_   != origine_target ||
+		     Convolutional_layer<A>::spacing_lu_   != spacing_target ||
+		     Convolutional_layer<A>::direction_lu_ != direction_target )
+		  throw MAC::MACException( __FILE__, __LINE__,
+					   "Feature maps and taget map must have identical size, origine, spacing and direction. \n Check no pooling is applied.",
+					   ITK_LOCATION );
+
+		  
 		//
 		//
 		//
@@ -252,13 +272,15 @@ namespace MAC
 
 	  
 		//
-		// 2. access the previouse feature maps and load it on the GPU device
+		// 2. access the previouse feature maps and target maps
 		double** prev_features_to_device;
+		double** target_features_to_device;
 		Mapping* prev_idx_mapping_to_device;
 		//
-		prev_features_to_device    = new double*[ curr_images.size() ];
-		prev_idx_mapping_to_device = new Mapping[ neuron_number ];
-		// Loop over the image
+		prev_features_to_device      = new double*[ curr_images.size() ];
+		prev_idx_mapping_to_device   = new Mapping[ neuron_number ];
+		target_features_to_device    = new double*[ target_images.size() ];
+		// Loop over the previouse features maps
 		for ( int prev = 0 ; prev < curr_images.size() ; prev++ ) // run through the previous features
 		  {
 		    prev_features_to_device[prev]    = new double[ neuron_number ];
@@ -283,52 +305,96 @@ namespace MAC
 			++convolution_image_iter;
 		      }
 		  }
-//		// Load images on the device
-//		cuda_treatment_.load_previouse_feature_maps( prev_features_to_device,
-//							     prev_idx_mapping_to_device,
-//							     num_of_previous_features_,
-//							     neuron_number );
-//
-//		//
-//		// 3. Create the new feature maps with convolution
-//		for ( int mod = 0 ; mod < convolution_window_size_[0] ; mod++ )
-//		  {	    
-//		    //
-//		    // Duplicate the image
-//		    Image3DType::Pointer records = Image3DType::New();
-//		    // image filter
-//		    FilterType::Pointer images_filter;
-//		    images_filter = FilterType::New();
-//		    //
-//		    images_filter->SetOutputSpacing( spacing_lu_ );
-//		    images_filter->ChangeSpacingOn();
-//		    images_filter->SetOutputOrigin( origine_lu_ );
-//		    images_filter->ChangeOriginOn();
-//		    images_filter->SetOutputDirection( direction_lu_ );
-//		    images_filter->ChangeDirectionOn();
-//		    //
-//		    records->SetRegions( region );
-//		    records->Allocate();
-//		    records->FillBuffer( 0.0 );
-//		    images_filter->SetInput( records );
-//		    images_filter->Update();
-//		    //
-//		    convolution_images_[mod] = images_filter->GetOutput();
-//
-//		    //
-//		    // Convolution on GPU
-//		    cuda_treatment_.convolution( neurons_[subject_name],
-//						 mod, activation_ );
-//		    //
-//		    itk::ImageRegionIterator< Image3DType > convolution_iter( convolution_images_[mod], region );
-//		    int feature_idx = 0;
-//		    while( !convolution_iter.IsAtEnd() )
-//		      {
-//			convolution_iter.Set( (std::get< 1/*neurons*/>( neurons_[subject_name] ))[mod].get()[feature_idx++] );
-//			++convolution_iter;
-//		      }
-//		  }
+		//
+		for ( int targ = 0 ; targ < target_images.size() ; targ++ ) // run through the target images
+		  {
+		    target_features_to_device[targ]    = new double[ neuron_number ];
+		    //
+		    itk::ImageRegionIterator< Image3DType > convolution_image_iter( target_images[targ], region );
+		    std::size_t current_position = 0;
+		    while( !convolution_image_iter.IsAtEnd() )
+		      {
+			//
+			Image3DType::IndexType idx = convolution_image_iter.GetIndex();
+			//
+			target_features_to_device[targ][current_position++] = convolution_image_iter.Value();
+			//
+			++convolution_image_iter;
+		      }
+		  }
 
+		//
+		// Load images on the device
+		encoder_conv_layer_->get_cuda().load_previouse_feature_maps( prev_features_to_device,
+									     target_features_to_device,
+									     prev_idx_mapping_to_device,
+									     curr_images.size(),
+									     target_images.size(),
+									     neuron_number );
+
+		//
+		// 3. Create the new feature maps with convolution
+		for ( int mod = 0 ; mod < Convolutional_layer<A>::convolution_window_size_[0] ; mod++ )
+		  {	    
+		    //
+		    // Duplicate the image
+		    Image3DType::Pointer records = Image3DType::New();
+		    // image filter
+		    FilterType::Pointer images_filter;
+		    images_filter = FilterType::New();
+		    //
+		    images_filter->SetOutputSpacing( Convolutional_layer<A>::spacing_lu_ );
+		    images_filter->ChangeSpacingOn();
+		    images_filter->SetOutputOrigin( Convolutional_layer<A>::origine_lu_ );
+		    images_filter->ChangeOriginOn();
+		    images_filter->SetOutputDirection( Convolutional_layer<A>::direction_lu_ );
+		    images_filter->ChangeDirectionOn();
+		    //
+		    records->SetRegions( region );
+		    records->Allocate();
+		    records->FillBuffer( 0.0 );
+		    images_filter->SetInput( records );
+		    images_filter->Update();
+		    //
+		    Convolutional_layer<A>::convolution_images_[mod] = images_filter->GetOutput();
+
+		    //
+		    // Convolution on GPU
+		    encoder_conv_layer_->get_cuda().convolution_decoding( Convolutional_layer<A>::neurons_[subject_name],
+									  mod, activation_ );
+		    //
+		    itk::ImageRegionIterator< Image3DType > convolution_iter( Convolutional_layer<A>::convolution_images_[mod],
+									      region );
+		    int feature_idx = 0;
+		    while( !convolution_iter.IsAtEnd() )
+		      {
+			convolution_iter.Set( (std::get< 1/*neurons*/>( Convolutional_layer<A>::neurons_[subject_name] ))[mod].get()[feature_idx++] );
+			++convolution_iter;
+		      }
+		  }
+		//
+		//
+		Convolutional_layer<A>::write();
+		
+		//  for ( int k = 0 ; k < size_lu_[2] ; k++ )
+		//    for ( int j = 0 ; j < size_lu_[1] ; j++ )
+		//      for ( int i = 0 ; i < size_lu_[0] ; i++ )
+		//	{
+		//	  std::cout << i << "," << j << "," << k << " --> ";
+		//	  size_t pos_temp = i + size_lu_[0] * j + size_lu_[0]*size_lu_[1]*k;
+		//	  std::cout << std::get< 1>(neurons_[subject_name])[0].get()[pos_temp] << std::endl;
+		//	}
+		
+		//
+		// Pulling
+		// Update the current image
+		if ( Convolutional_layer<A>::pooling_operation_ )
+		  Sub.update( Convolutional_layer<A>::resample() );
+		else if ( Convolutional_layer<A>::match_inputs_ )
+		  Sub.update( Convolutional_layer<A>::reconstruct_inputs( Sub ) /*resample( Sub )*/ );
+		else
+		  Sub.update( Convolutional_layer<A>::convolution_images_ );
+		
 		//
 		//
 		break;
