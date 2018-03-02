@@ -54,60 +54,80 @@ include(${ITK_USE_FILE})
 include_directories( ${Alps_SOURCE_DIR}  )
 #
 
-#
-file( GLOB SOURCES_ *.cxx  )
-list( APPEND SOURCES ${SOURCES_} )
-#message(STATUS ${SOURCES})
+##
+#file( GLOB SOURCES_ *.cxx  )
+#list( APPEND SOURCES ${SOURCES_} )
+##message(STATUS ${SOURCES})
 
 #
 # Global
+#file(  NN_HEADERS_
+#  NN/Functions/*.h NN/*.cuh NN/*.h
+#  ITK/Modules/Core/ImageFunction/include/*.h )
+#file(  UTILS_HEADERS_
+#  utils/*.h  )
 file( GLOB HEADERS_
-  utils/*.h utils/Functions/*.h NN/*.cuh NN/*.h
+  utils/*.h NN/Functions/*.h NN/*.cuh NN/*.h
   ITK/Modules/Core/ImageFunction/include/*.h )
 #
-file( GLOB SOURCES_
-  utils/*.cxx NN/*.cu  NN/*.cxx 
+file( GLOB NN_SOURCES_
+  NN/*.cu  NN/*.cxx 
   ITK/Modules/Core/ImageFunction/include/*.hxx )
-#
+file( GLOB UTILS_SOURCES_
+  utils/*.cxx  )
+#file( GLOB SOURCES_
+#  utils/*.cxx NN/*.cu  NN/*.cxx 
+#  ITK/Modules/Core/ImageFunction/include/*.hxx )
+
 list( APPEND HEADERS ${HEADERS_}  )
-list( APPEND SOURCES ${SOURCES_} )
+list( APPEND SOURCES ${NN_SOURCES_} ${UTILS_SOURCES_} )
+#list( APPEND HEADERS ${HEADERS_}  )
+#list( APPEND SOURCES ${SOURCES_} )
 include_directories(
   ${Alps_SOURCE_DIR}/utils
-  ${Alps_SOURCE_DIR}/utils/Functions
+  ${Alps_SOURCE_DIR}/NN
+  ${Alps_SOURCE_DIR}/NN/Functions
   ${Alps_SOURCE_DIR}/ITK/Modules/Core/ImageFunction/include
-  ${Alps_SOURCE_DIR}/NN )
+   )
+
+#
+# Libraries
+cuda_add_library( _Alps_nn SHARED ${NN_SOURCES_} OPTIONS --compiler-options "-fPIC" )
+add_library( _Alps_utils SHARED ${UTILS_SOURCES_} )
+#
+#link_directories (${LIB_BINARY_DIR}/NN ${LIB_BINARY_DIR}/utils ) 
 
 #
 # CNN + DC
 #
-## Monte Rosa
-#include_directories( ${Alps_SOURCE_DIR}/Monte_Rosa )
-##
-#file( GLOB Monte_Rosa_HEADERS_ Monte_Rosa/*.h Monte_Rosa/*.cuh )
-#file( GLOB Monte_Rosa_SOURCES_ Monte_Rosa/*.cxx Monte_Rosa/*.cu )
-##
-#list( APPEND HEADERS ${Monte_Rosa_HEADERS_} )
-#list( APPEND SOURCES ${Monte_Rosa_SOURCES_} )
-##
-#cuda_add_executable( Monte_Rosa MACOSX_BUNDLE Monte_Rosa/Monte_Rosa.cpp ${SOURCES} )
-## cmake 3.1 target_compile_features(Monte_Rosa PRIVATE cxx_range_for)
-#target_link_libraries( Monte_Rosa ${ITK_LIBRARIES} ${HEADER_FILES} )
+# Monte Rosa
+include_directories( ${Alps_SOURCE_DIR}/Monte_Rosa )
 #
-##
-## Auto-encoder
-##
-## Mont Blanc
-#include_directories( ${Alps_SOURCE_DIR}/Mont_Blanc )
-##
-#file( GLOB Mont_Blanc_HEADERS_ Mont_Blanc/*.h  Mont_Blanc/*.cuh )
-#file( GLOB Mont_Blanc_SOURCES_ Mont_Blanc/*.cxx  Mont_Blanc/*.cxx )
-##
-#list( APPEND HEADERS ${Mont_Blanc_HEADERS_} )
-#list( APPEND SOURCES ${Mont_Blanc_SOURCES_} )
-##
-#cuda_add_executable( Mont_Blanc MACOSX_BUNDLE Mont_Blanc/Mont_Blanc.cpp ${SOURCES} )
-## cmake 3.1 target_compile_features(Mont_Blanc PRIVATE cxx_range_for)
-#target_link_libraries( Mont_Blanc  ${ITK_LIBRARIES} ${HEADER_FILES} )
+file( GLOB Monte_Rosa_HEADERS_ Monte_Rosa/*.h Monte_Rosa/*.cuh )
+file( GLOB Monte_Rosa_SOURCES_ Monte_Rosa/*.cxx Monte_Rosa/*.cu )
+#
+list( APPEND HEADERS ${Monte_Rosa_HEADERS_} )
+list( APPEND SOURCES ${Monte_Rosa_SOURCES_} )
+#
+cuda_add_executable( Monte_Rosa MACOSX_BUNDLE Monte_Rosa/Monte_Rosa.cpp ${HEADERS} ${Monte_Rosa_SOURCES_} )
+# cmake 3.1 target_compile_features(Monte_Rosa PRIVATE cxx_range_for)
+target_link_libraries( Monte_Rosa ${ITK_LIBRARIES} _Alps_nn _Alps_utils )
+#
+#
+# Auto-encoder
+#
+# Mont Blanc
+include_directories( ${Alps_SOURCE_DIR}/Mont_Blanc )
+#
+file( GLOB Mont_Blanc_HEADERS_ Mont_Blanc/*.h  Mont_Blanc/*.cuh )
+file( GLOB Mont_Blanc_SOURCES_ Mont_Blanc/*.cxx  Mont_Blanc/*.cxx )
+#
+list( APPEND HEADERS ${Mont_Blanc_HEADERS_} )
+list( APPEND SOURCES ${Mont_Blanc_SOURCES_} )
+#
+cuda_add_executable( Mont_Blanc MACOSX_BUNDLE Mont_Blanc/Mont_Blanc.cpp ${HEADERS} ${Mont_Blanc_SOURCES_} )
+# cmake 3.1 target_compile_features(Mont_Blanc PRIVATE cxx_range_for)
+target_link_libraries( Mont_Blanc  ${ITK_LIBRARIES} _Alps_nn _Alps_utils )
 #
 # Mont Maudi
 include_directories( ${Alps_SOURCE_DIR}/Mont_Maudit )
@@ -118,9 +138,9 @@ file( GLOB Mont_Maudit_SOURCES_ Mont_Maudit/*.cxx  Mont_Maudit/*.cxx )
 list( APPEND HEADERS ${Mont_Maudit_HEADERS_} )
 list( APPEND SOURCES ${Mont_Maudit_SOURCES_} )
 #
-cuda_add_executable( Mont_Maudit MACOSX_BUNDLE Mont_Maudit/Mont_Maudit.cpp ${SOURCES} )
+cuda_add_executable( Mont_Maudit MACOSX_BUNDLE Mont_Maudit/Mont_Maudit.cpp  ${HEADERS} ${Mont_Maudit_SOURCES_} )
 # cmake 3.1 target_compile_features(Mont_Maudit PRIVATE cxx_range_for)
-target_link_libraries( Mont_Maudit  ${ITK_LIBRARIES} ${HEADER_FILES} )
+target_link_libraries( Mont_Maudit  ${ITK_LIBRARIES}  _Alps_nn _Alps_utils )
 
 
 #

@@ -361,7 +361,7 @@ namespace MAC
 		    //
 		    // Convolution on GPU
 		    encoder_conv_layer_->get_cuda().convolution_decoding( Convolutional_layer<A>::neurons_[subject_name],
-									  mod, activation_ );
+									  1.1, mod, activation_ );
 		    //
 		    itk::ImageRegionIterator< Image3DType > convolution_iter( Convolutional_layer<A>::convolution_images_[mod],
 									      region );
