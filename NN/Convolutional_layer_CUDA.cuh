@@ -27,6 +27,10 @@
 //
 namespace MAC
 {
+  typedef struct {
+    int d_half_window_[4];
+    int d_image_size_[3];
+  } small_arrays;
   /** \class Convolutional_layer_CUDA
    *
    * \brief 
@@ -117,8 +121,10 @@ namespace MAC
       bool CUDA_init_{false};
       //
       // Weights and transposed weights
-      int*    d_half_window_{NULL};
-      int*    d_image_size_{NULL};
+      //
+      small_arrays to_cuda_;
+      //int     d_half_window_{NULL};
+      // int*    d_image_size_{NULL};
       double* d_weights_{NULL};
       double* d_weights_T_{NULL};
       double* d_E_{NULL};

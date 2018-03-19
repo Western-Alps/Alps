@@ -18,11 +18,11 @@ test_cuda( double **tempo, MAC::Mapping* Map, int mod )
 template< typename Activate >
 __global__ void
  convolution_cuda( double** Previouse_feature_maps, MAC::Mapping* Map_idx,
-		   double*  Activations, double*  Neurons, 
-		   double*  Weights, int* Half_window, int* Image_size,
-		   int      Number_of_weights, int Number_of_neurons,
-		   int      Num_prev_images,
-		   int      Modality )
+		   double*  Activations, double*  Neurons, double*  Weights,
+		   const MAC::small_arrays To_cuda /*int* Half_window, int* Image_size*/,
+		   const int Number_of_weights, const int Number_of_neurons,
+		   const int Num_prev_images,
+		   const int Modality )
 {
   //
   // We visit all voxels
@@ -35,9 +35,9 @@ __global__ void
       Activate a;
       //
       int
-	Window_x = 2*Half_window[1]+1,
-	Window_y = 2*Half_window[2]+1,
-	Window_z = 2*Half_window[3]+1;
+	Window_x = 2*To_cuda.d_half_window_[1]+1,
+	Window_y = 2*To_cuda.d_half_window_[2]+1,
+	Window_z = 2*To_cuda.d_half_window_[3]+1;
       //
       int
 	vox_x = Map_idx[idx].x_,
@@ -46,54 +46,54 @@ __global__ void
       //
       // Convolution
       double convolution_voxel_value = 0.;
-      if ( vox_x - Half_window[1] > -1 && vox_x + Half_window[1] < Image_size[0] &&
-	   vox_y - Half_window[2] > -1 && vox_y + Half_window[2] < Image_size[1] &&
-	   vox_z - Half_window[3] > -1 && vox_z + Half_window[3] < Image_size[2]  )
+      if ( vox_x - To_cuda.d_half_window_[1] > -1 && vox_x + To_cuda.d_half_window_[1] < To_cuda.d_image_size_[0] &&
+	   vox_y - To_cuda.d_half_window_[2] > -1 && vox_y + To_cuda.d_half_window_[2] < To_cuda.d_image_size_[1] &&
+	   vox_z - To_cuda.d_half_window_[3] > -1 && vox_z + To_cuda.d_half_window_[3] < To_cuda.d_image_size_[2]  )
 	{
 	  for ( int prev = 0 ; prev < Num_prev_images ; prev++ ) 
-	    for ( int z = -Half_window[3]; z < Half_window[3]+1 ; z++ ) // run through z
-	      for( int y = -Half_window[2]; y < Half_window[2]+1 ; y++ ) // run through y
-		for( int x = -Half_window[1]; x < Half_window[1]+1 ; x++ ) // run through x
+	    for ( int z = -To_cuda.d_half_window_[3]; z < To_cuda.d_half_window_[3]+1 ; z++ ) // run through z
+	      for( int y = -To_cuda.d_half_window_[2]; y < To_cuda.d_half_window_[2]+1 ; y++ ) // run through y
+		for( int x = -To_cuda.d_half_window_[1]; x < To_cuda.d_half_window_[1]+1 ; x++ ) // run through x
 		    {
-		      int weight_idx = (x+Half_window[1])
-			+ Window_x * (y+Half_window[2])
+		      int weight_idx = (x+To_cuda.d_half_window_[1])
+			+ Window_x * (y+To_cuda.d_half_window_[2])
 			+ Window_x * Window_y
-			* (z+Half_window[3])
+			* (z+To_cuda.d_half_window_[3])
 			+ Window_x * Window_y
 			* Window_z * Modality;
 		      //
-		      int neighbor = (vox_x+x) + Image_size[0] * (vox_y+y)
-			+ Image_size[0]*Image_size[1]*(vox_z+z);
+		      int neighbor = (vox_x+x) + To_cuda.d_image_size_[0] * (vox_y+y)
+			+ To_cuda.d_image_size_[0]*To_cuda.d_image_size_[1]*(vox_z+z);
 		      convolution_voxel_value += Weights[ weight_idx ] * Previouse_feature_maps[prev][neighbor];
 		    }
 	  // add the bias at the end of the array
-	  int bias_position =  Half_window[0] * Window_x * Window_y * Window_z + Modality;
+	  int bias_position =  To_cuda.d_half_window_[0] * Window_x * Window_y * Window_z + Modality;
 	  convolution_voxel_value += Weights[ bias_position ]; // x 1.
 	}
       else
 	{
 	  for ( int prev = 0 ; prev < Num_prev_images ; prev++ ) 
-	    for ( int z = -Half_window[3]; z < Half_window[3]+1 ; z++ ) // run through z
-	      for( int y = -Half_window[2]; y < Half_window[2]+1 ; y++ ) // run through y
-		for( int x = -Half_window[1]; x < Half_window[1]+1 ; x++ ) // run through x
+	    for ( int z = -To_cuda.d_half_window_[3]; z < To_cuda.d_half_window_[3]+1 ; z++ ) // run through z
+	      for( int y = -To_cuda.d_half_window_[2]; y < To_cuda.d_half_window_[2]+1 ; y++ ) // run through y
+		for( int x = -To_cuda.d_half_window_[1]; x < To_cuda.d_half_window_[1]+1 ; x++ ) // run through x
 		  if( vox_x + x > -1 && vox_y + y > -1 && vox_z + z > -1 &&
-		      vox_x + x < static_cast<int>(Image_size[0]) &&
-		      vox_y + y < static_cast<int>(Image_size[1]) &&
-		      vox_z + z < static_cast<int>(Image_size[2]) ) // zero padding
+		      vox_x + x < static_cast<int>(To_cuda.d_image_size_[0]) &&
+		      vox_y + y < static_cast<int>(To_cuda.d_image_size_[1]) &&
+		      vox_z + z < static_cast<int>(To_cuda.d_image_size_[2]) ) // zero padding
 		    {
-		      int weight_idx = (x+Half_window[1])
-			+ Window_x * (y+Half_window[2])
+		      int weight_idx = (x+To_cuda.d_half_window_[1])
+			+ Window_x * (y+To_cuda.d_half_window_[2])
 			+ Window_x * Window_y
-			* (z+Half_window[3])
+			* (z+To_cuda.d_half_window_[3])
 			+ Window_x * Window_y
 			* Window_z * Modality;
 		      //
-		      int neighbor = (vox_x+x) + Image_size[0] * (vox_y+y)
-			+ Image_size[0]*Image_size[1]*(vox_z+z);
+		      int neighbor = (vox_x+x) + To_cuda.d_image_size_[0] * (vox_y+y)
+			+ To_cuda.d_image_size_[0]*To_cuda.d_image_size_[1]*(vox_z+z);
 		      convolution_voxel_value += Weights[ weight_idx ] * Previouse_feature_maps[prev][neighbor];
 		    }
 	  // add the bias at the end of the array
-	  int bias_position = Half_window[0] * Window_x * Window_y * Window_z + Modality;
+	  int bias_position = To_cuda.d_half_window_[0] * Window_x * Window_y * Window_z + Modality;
 	  convolution_voxel_value += Weights[ bias_position ]; // x 1.
 	}
       //
@@ -118,12 +118,12 @@ __global__ void
 template< typename Activate >
 __global__ void
  convolution_decoding_cuda( double** Previouse_feature_maps, double** Target_maps, MAC::Mapping* Map_idx,
-			    double*  Activations, double*  Neurons, double*  Deltas, 
-			    double*  Weights_T, int* Half_window, int* Image_size,
-			    int      Number_of_weights, int Number_of_neurons,
-			    int      Num_prev_images,
-			    int      Modality,
-			    double   E_i )
+			    double*  Activations, double*  Neurons, double*  Deltas, double*  Weights_T,
+			    const MAC::small_arrays To_cuda /*int* Half_window, int* Image_size*/,
+			    const int Number_of_weights, const int Number_of_neurons,
+			    const int Num_prev_images,
+			    const int Modality,
+			    double E_i )
 {
   //
   // We visit all voxels
@@ -136,9 +136,9 @@ __global__ void
       Activate a;
       //
       int
-	Window_x = 2*Half_window[1]+1,
-	Window_y = 2*Half_window[2]+1,
-	Window_z = 2*Half_window[3]+1;
+	Window_x = 2*To_cuda.d_half_window_[1]+1,
+	Window_y = 2*To_cuda.d_half_window_[2]+1,
+	Window_z = 2*To_cuda.d_half_window_[3]+1;
       //
       int
 	vox_x = Map_idx[idx].x_,
@@ -147,54 +147,54 @@ __global__ void
       //
       // Convolution
       double convolution_voxel_value = 0.;
-      if ( vox_x - Half_window[1] > -1 && vox_x + Half_window[1] < Image_size[0] &&
-	   vox_y - Half_window[2] > -1 && vox_y + Half_window[2] < Image_size[1] &&
-	   vox_z - Half_window[3] > -1 && vox_z + Half_window[3] < Image_size[2]  )
+      if ( vox_x - To_cuda.d_half_window_[1] > -1 && vox_x + To_cuda.d_half_window_[1] < To_cuda.d_image_size_[0] &&
+	   vox_y - To_cuda.d_half_window_[2] > -1 && vox_y + To_cuda.d_half_window_[2] < To_cuda.d_image_size_[1] &&
+	   vox_z - To_cuda.d_half_window_[3] > -1 && vox_z + To_cuda.d_half_window_[3] < To_cuda.d_image_size_[2]  )
 	{
 	  for ( int prev = 0 ; prev < Num_prev_images ; prev++ ) 
-	    for ( int z = -Half_window[3]; z < Half_window[3]+1 ; z++ ) // run through z
-	      for( int y = -Half_window[2]; y < Half_window[2]+1 ; y++ ) // run through y
-		for( int x = -Half_window[1]; x < Half_window[1]+1 ; x++ ) // run through x
+	    for ( int z = -To_cuda.d_half_window_[3]; z < To_cuda.d_half_window_[3]+1 ; z++ ) // run through z
+	      for( int y = -To_cuda.d_half_window_[2]; y < To_cuda.d_half_window_[2]+1 ; y++ ) // run through y
+		for( int x = -To_cuda.d_half_window_[1]; x < To_cuda.d_half_window_[1]+1 ; x++ ) // run through x
 		    {
-		      int weight_idx = (x+Half_window[1])
-			+ Window_x * (y+Half_window[2])
+		      int weight_idx = (x+To_cuda.d_half_window_[1])
+			+ Window_x * (y+To_cuda.d_half_window_[2])
 			+ Window_x * Window_y
-			* (z+Half_window[3])
+			* (z+To_cuda.d_half_window_[3])
 			+ Window_x * Window_y
 			* Window_z * prev;
 		      //
-		      int neighbor = (vox_x+x) + Image_size[0] * (vox_y+y)
-			+ Image_size[0]*Image_size[1]*(vox_z+z);
+		      int neighbor = (vox_x+x) + To_cuda.d_image_size_[0] * (vox_y+y)
+			+ To_cuda.d_image_size_[0]*To_cuda.d_image_size_[1]*(vox_z+z);
 		      convolution_voxel_value += Weights_T[ weight_idx ] * Previouse_feature_maps[prev][neighbor];
 		    }
 	  // add the bias at the end of the array
-	  int bias_position =  Half_window[0] * Window_x * Window_y * Window_z + Modality;
+	  int bias_position =  To_cuda.d_half_window_[0] * Window_x * Window_y * Window_z + Modality;
 	  convolution_voxel_value += Weights_T[ bias_position ]; // x 1.
 	}
       else
 	{
 	  for ( int prev = 0 ; prev < Num_prev_images ; prev++ ) 
-	    for ( int z = -Half_window[3]; z < Half_window[3]+1 ; z++ ) // run through z
-	      for( int y = -Half_window[2]; y < Half_window[2]+1 ; y++ ) // run through y
-		for( int x = -Half_window[1]; x < Half_window[1]+1 ; x++ ) // run through x
+	    for ( int z = -To_cuda.d_half_window_[3]; z < To_cuda.d_half_window_[3]+1 ; z++ ) // run through z
+	      for( int y = -To_cuda.d_half_window_[2]; y < To_cuda.d_half_window_[2]+1 ; y++ ) // run through y
+		for( int x = -To_cuda.d_half_window_[1]; x < To_cuda.d_half_window_[1]+1 ; x++ ) // run through x
 		  if( vox_x + x > -1 && vox_y + y > -1 && vox_z + z > -1 &&
-		      vox_x + x < static_cast<int>(Image_size[0]) &&
-		      vox_y + y < static_cast<int>(Image_size[1]) &&
-		      vox_z + z < static_cast<int>(Image_size[2]) ) // zero padding
+		      vox_x + x < static_cast<int>(To_cuda.d_image_size_[0]) &&
+		      vox_y + y < static_cast<int>(To_cuda.d_image_size_[1]) &&
+		      vox_z + z < static_cast<int>(To_cuda.d_image_size_[2]) ) // zero padding
 		    {
-		      int weight_idx = (x+Half_window[1])
-			+ Window_x * (y+Half_window[2])
+		      int weight_idx = (x+To_cuda.d_half_window_[1])
+			+ Window_x * (y+To_cuda.d_half_window_[2])
 			+ Window_x * Window_y
-			* (z+Half_window[3])
+			* (z+To_cuda.d_half_window_[3])
 			+ Window_x * Window_y
 			* Window_z * prev;
 		      //
-		      int neighbor = (vox_x+x) + Image_size[0] * (vox_y+y)
-			+ Image_size[0]*Image_size[1]*(vox_z+z);
+		      int neighbor = (vox_x+x) + To_cuda.d_image_size_[0] * (vox_y+y)
+			+ To_cuda.d_image_size_[0]*To_cuda.d_image_size_[1]*(vox_z+z);
 		      convolution_voxel_value += Weights_T[ weight_idx ] * Previouse_feature_maps[prev][neighbor];
 		    }
 	  // add the bias at the end of the array
-	  int bias_position = Half_window[0] * Window_x * Window_y * Window_z + Modality;
+	  int bias_position = To_cuda.d_half_window_[0] * Window_x * Window_y * Window_z + Modality;
 	  convolution_voxel_value += Weights_T[ bias_position ]; // x 1.
 	}
       //
@@ -251,8 +251,8 @@ MAC::Convolutional_layer_CUDA::init( const int*    Image_size,
       //
       // 1. Allocate memory on the device
 //      err = cudaMalloc((void **)&d_E_,         number_of_weights_* sizeof(double) );
-      err = cudaMalloc((void **)&d_half_window_, 4 * sizeof(int) );
-      err = cudaMalloc((void **)&d_image_size_,  3 * sizeof(int) );
+      //1err = cudaMalloc((void **)&d_half_window_, 4 * sizeof(int) );
+      //1err = cudaMalloc((void **)&d_image_size_,  3 * sizeof(int) );
       err = cudaMalloc((void **)&d_weights_, number_of_weights_ * sizeof(double) );
 //      err = cudaMalloc((void **)&d_weights_T_, number_of_weights_* sizeof(double) );
       err = cudaMalloc((void **)&d_activations_, number_of_neurons_ * sizeof(double) );
@@ -273,10 +273,13 @@ MAC::Convolutional_layer_CUDA::init( const int*    Image_size,
       
       //
       // 3. Copy on the device
-      err = cudaMemcpy( d_half_window_, half_window_, 4 * sizeof(int), 
-			cudaMemcpyHostToDevice );
-      err = cudaMemcpy( d_image_size_,  image_size_,  3 * sizeof(int), 
-			cudaMemcpyHostToDevice );
+      //      memcpy( d_half_window_, half_window_, 4 * sizeof(int) );
+      memcpy( to_cuda_.d_half_window_, half_window_, 4 * sizeof(int) );
+      memcpy( to_cuda_.d_image_size_, image_size_, 3 * sizeof(int) );
+//1      err = cudaMemcpy( d_half_window_, half_window_, 4 * sizeof(int), 
+//1			cudaMemcpyHostToDevice );
+//1      err = cudaMemcpy( d_image_size_,  image_size_,  3 * sizeof(int), 
+//1			cudaMemcpyHostToDevice );
       err = cudaMemcpy( d_weights_, Weights, number_of_weights_ * sizeof(double), 
 			cudaMemcpyHostToDevice );
 
@@ -426,8 +429,9 @@ MAC::Convolutional_layer_CUDA::convolution( Neurons_type& Sub, const int Mod,
 										  d_activations_,
 										  d_neurons_,
 										  d_weights_,
-										  d_half_window_,
-										  d_image_size_,
+										  //d_half_window_,
+										  to_cuda_,
+										  //d_image_size_,
 										  number_of_weights_,
 										  number_of_neurons_,
 										  num_prev_images_,
@@ -439,8 +443,9 @@ MAC::Convolutional_layer_CUDA::convolution( Neurons_type& Sub, const int Mod,
 										     d_activations_,
 										     d_neurons_,
 										     d_weights_,
-										     d_half_window_,
-										     d_image_size_,
+										     //d_half_window_,
+										     to_cuda_,
+										     //d_image_size_,
 										     number_of_weights_,
 										     number_of_neurons_,
 										     num_prev_images_,
@@ -493,8 +498,9 @@ MAC::Convolutional_layer_CUDA::convolution_decoding( Neurons_type& Sub, double E
 											   d_neurons_,
 											   d_deltas_,
 											   d_weights_T_,
-											   d_half_window_,
-											   d_image_size_,
+											   //d_half_window_,
+											   to_cuda_,
+											   //d_image_size_,
 											   number_of_weights_,
 											   number_of_neurons_,
 											   num_prev_images_,
@@ -509,8 +515,9 @@ MAC::Convolutional_layer_CUDA::convolution_decoding( Neurons_type& Sub, double E
 											      d_neurons_,
 											      d_deltas_,
 											      d_weights_T_,
-											      d_half_window_,
-											      d_image_size_,
+											      //d_half_window_,
+											      to_cuda_,
+											      //d_image_size_,
 											      number_of_weights_,
 											      number_of_neurons_,
 											      num_prev_images_,

@@ -16,14 +16,15 @@ using json = nlohmann::json;
 #include <itkImageFileReader.h>
 #include <itkSpatialOrientationAdapter.h>
 #include "itkChangeInformationImageFilter.h"
-using MaskType       = itk::Image< unsigned char, 3 >;
-using MaskReaderType = itk::ImageFileReader< MaskType >;
 //
 // 
 //
 #include "MACException.h"
 #include "MACLoadDataSet.h"
+#include "CrossValidation_k_folds.h"
 #include "Mont_Maudit_builder.h"
+//
+using Validation = MAC::CrossValidation_k_folds< MAC::Mont_Maudit_builder >;
 //
 //
 //
@@ -105,6 +106,8 @@ main( const int argc, const char **argv )
 	      // Start //
 	      ///////////
 
+	      Validation cross_val;
+	      
 	      //
 	      // Main object
 	      MAC::Mont_Maudit_builder network;
