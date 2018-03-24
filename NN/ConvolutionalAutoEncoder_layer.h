@@ -93,6 +93,9 @@ namespace MAC
       // get the layer name
       virtual Layer get_layer_type(){ return layer_type_;};
       //
+      // get the layer name
+      virtual double get_energy(){ return Convolutional_layer< ActivationFunction >::get_energy();};
+      //
       // Forward propagation
       virtual void forward( Subject&, const Weights& W = Weights() );
       //
@@ -238,7 +241,7 @@ namespace MAC
 		     Convolutional_layer<A>::spacing_lu_   != spacing_target ||
 		     Convolutional_layer<A>::direction_lu_ != direction_target )
 		  throw MAC::MACException( __FILE__, __LINE__,
-					   "Feature maps and taget map must have identical size, origine, spacing and direction. \n Check no pooling is applied.",
+					   "Feature maps and target map must have identical size, origine, spacing and direction. \n Check no pooling is applied.",
 					   ITK_LOCATION );
 
 		  
@@ -250,8 +253,6 @@ namespace MAC
 		//    We will initialize the weights_T
 		encoder_conv_layer_->get_cuda().set_weights_T( number_of_decode_weights_,
 							       weights_T_ );
-
-		//
 		// Initialize the neurons, activation and delta
 		if ( Convolutional_layer<A>::neurons_.find( subject_name ) == Convolutional_layer<A>::neurons_.end() )
 		  {
@@ -283,7 +284,8 @@ namespace MAC
 		// Loop over the previouse features maps
 		for ( int prev = 0 ; prev < curr_images.size() ; prev++ ) // run through the previous features
 		  {
-		    prev_features_to_device[prev]    = new double[ neuron_number ];
+		    prev_features_to_device[prev] = new double[ neuron_number ];
+		    //
 		    //
 		    itk::ImageRegionIterator< Image3DType > convolution_image_iter( curr_images[prev], region );
 		    std::size_t current_position = 0;
@@ -334,7 +336,7 @@ namespace MAC
 
 		//
 		// 3. Create the new feature maps with convolution
-		for ( int mod = 0 ; mod < Convolutional_layer<A>::convolution_window_size_[0] ; mod++ )
+		for ( int mod = 0 ; mod < target_images.size() ; mod++ )
 		  {	    
 		    //
 		    // Duplicate the image
@@ -361,7 +363,7 @@ namespace MAC
 		    //
 		    // Convolution on GPU
 		    encoder_conv_layer_->get_cuda().convolution_decoding( Convolutional_layer<A>::neurons_[subject_name],
-									  1.1, mod, activation_ );
+									  Convolutional_layer<A>::energy_, mod, activation_ );
 		    //
 		    itk::ImageRegionIterator< Image3DType > convolution_iter( Convolutional_layer<A>::convolution_images_[mod],
 									      region );
@@ -391,7 +393,7 @@ namespace MAC
 		if ( Convolutional_layer<A>::pooling_operation_ )
 		  Sub.update( Convolutional_layer<A>::resample() );
 		else if ( Convolutional_layer<A>::match_inputs_ )
-		  Sub.update( Convolutional_layer<A>::reconstruct_inputs( Sub ) /*resample( Sub )*/ );
+		  Sub.update( Convolutional_layer<A>::reconstruct_inputs( Sub ) );
 		else
 		  Sub.update( Convolutional_layer<A>::convolution_images_ );
 		

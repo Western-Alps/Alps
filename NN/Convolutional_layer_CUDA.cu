@@ -4,6 +4,31 @@
 #include "MACException.h"
 #include "Convolutional_layer_CUDA.cuh"
 #include "Activations.h"
+//
+#define THREADSPERBLOCK 1024
+//
+// Note that any atomic operation can be implemented based on atomicCAS() (Compare And Swap). For example, atomicAdd() for double-precision floating-point numbers is not available on devices with compute capability lower than 6.0 but it can be implemented as follows: 
+#if __CUDA_ARCH__ < 600
+__device__ double atomicAdd_patch(double* address, double val)
+{
+    unsigned long long int* address_as_ull =
+                              (unsigned long long int*)address;
+    unsigned long long int old = *address_as_ull, assumed;
+
+    do {
+        assumed = old;
+        old = atomicCAS(address_as_ull, assumed,
+                        __double_as_longlong(val +
+                               __longlong_as_double(assumed)));
+
+    // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+    } while (assumed != old);
+
+    return __longlong_as_double(old);
+}
+#endif
+//
+//
 __global__ void
 test_cuda( double **tempo, MAC::Mapping* Map, int mod )
 {
@@ -122,8 +147,7 @@ __global__ void
 			    const MAC::small_arrays To_cuda /*int* Half_window, int* Image_size*/,
 			    const int Number_of_weights, const int Number_of_neurons,
 			    const int Num_prev_images,
-			    const int Modality,
-			    double E_i )
+			    const int Modality )
 {
   //
   // We visit all voxels
@@ -200,9 +224,59 @@ __global__ void
       //
       // record the activation
       Activations[idx] = convolution_voxel_value;
-      Neurons[idx]     = a.f(convolution_voxel_value);
-      Deltas[idx]      = Target_maps[Modality][idx] - Neurons[idx];
-      E_i             += Deltas[idx] * Deltas[idx];
+      //
+      double function_activation = a.f(convolution_voxel_value);
+      double delta               = Target_maps[Modality][idx] - function_activation;
+      Neurons[idx]               = function_activation;
+      Deltas[idx]                = delta;
+      //
+      //if ( idx == 421578 )
+      //	{
+      //	  printf(" [%f, %f, %f] ", convolution_voxel_value, Target_maps[Modality][idx], delta );
+      //	  printf("Map(%d) = [%d,%d,%d] \n", 421578, Map_idx[421578].x_, Map_idx[421578].y_, Map_idx[421578].z_);
+      //	}
+      //if ( idx == 411578 )
+      //	{
+      //	  printf(" [%f, %f, %f] ", convolution_voxel_value, Target_maps[Modality][idx], delta );
+      //	  printf("Map(%d) = [%d,%d,%d] \n", 411578, Map_idx[411578].x_, Map_idx[411578].y_, Map_idx[411578].z_);
+      //	}
+    }
+}
+/**
+ * CUDA Kernel Device code
+ *
+ * Sum of squares to calculate the energy
+ */
+__global__ void
+sum_of_squares( double* Deltas, double* E_i, const int Number_of_neurons ) {
+  //
+  // Calculation of energy per block
+  __shared__ double  block_energy[ THREADSPERBLOCK ];
+   
+  //
+  // We visit all voxels
+  int idx = blockDim.x * blockIdx.x + threadIdx.x;
+  // if we are inside of the image
+  if ( idx < Number_of_neurons )
+    {
+      double delta = Deltas[ idx ];
+      //printf(" %f ", delta);
+      block_energy[ threadIdx.x ] = delta * delta;
+    }
+  else
+    block_energy[ threadIdx.x ] = 0.;
+  // thread synchronization
+  __syncthreads();
+
+  //
+  //
+  if( 0 == threadIdx.x )
+    {
+      double sum = 0;
+      for( int i = 0 ; i < THREADSPERBLOCK ; i++ )
+	sum += block_energy[i];
+      atomicAdd_patch( E_i, sum );
+      //printf(" %f ", *E_i);
     }
 }
 //
@@ -259,7 +333,7 @@ MAC::Convolutional_layer_CUDA::init( const int*    Image_size,
       err = cudaMalloc((void **)&d_neurons_,     number_of_neurons_ * sizeof(double) );
       err = cudaMalloc((void **)&d_deltas_,      number_of_neurons_ * sizeof(double) );
 //      // device
-//      int threadsPerBlock = 1024;
+//      int threadsPerBlock = THREADSPERBLOCK;
 //      int numBlocks = (( number_of_weights_ ) + threadsPerBlock - 1) / threadsPerBlock;
 //      // 3.1. Compute delta
 //      array_init_cuda<<< numBlocks, threadsPerBlock >>>( d_E_, number_of_weights_ );
@@ -360,7 +434,7 @@ MAC::Convolutional_layer_CUDA::load_previouse_feature_maps( double** Prev,
   num_prev_images_   = Num_images;
   num_target_images_ = Num_targets;
   err = cudaMalloc((void **)&d_prev_feature_maps_, Num_images * sizeof(double*) );
-  err = cudaMalloc((void **)&d_target_maps_, Num_images * sizeof(double*) );
+  err = cudaMalloc((void **)&d_target_maps_, Num_targets * sizeof(double*) );
   err = cudaMalloc((void **)&d_map_idx_, Image_size * sizeof(Mapping) );
   if (err != cudaSuccess)
     {
@@ -410,7 +484,7 @@ MAC::Convolutional_layer_CUDA::convolution( Neurons_type& Sub, const int Mod,
 {
   //
   // 1. check on the device
-  int threadsPerBlock = 1024;
+  int threadsPerBlock = THREADSPERBLOCK;
   int numBlocks       = (( number_of_neurons_ ) + threadsPerBlock - 1) / threadsPerBlock;
   cudaError_t err = cudaGetLastError();
   if (err != cudaSuccess)
@@ -472,12 +546,12 @@ MAC::Convolutional_layer_CUDA::convolution( Neurons_type& Sub, const int Mod,
 //
 //
 __host__ void
-MAC::Convolutional_layer_CUDA::convolution_decoding( Neurons_type& Sub, double E_i, const int Mod,
+MAC::Convolutional_layer_CUDA::convolution_decoding( Neurons_type& Sub, double& E_i, const int Mod,
 						     const Functions& Activation_func )
 {
   //
   // 1. check on the device
-  int threadsPerBlock = 1024;
+  int threadsPerBlock = THREADSPERBLOCK;
   int numBlocks       = (( number_of_neurons_ ) + threadsPerBlock - 1) / threadsPerBlock;
   cudaError_t err = cudaGetLastError();
   if (err != cudaSuccess)
@@ -504,8 +578,7 @@ MAC::Convolutional_layer_CUDA::convolution_decoding( Neurons_type& Sub, double E
 											   number_of_weights_,
 											   number_of_neurons_,
 											   num_prev_images_,
-											   Mod,
-											   E_i );
+											   Mod );
       break;
     case Func::F_SIGMOID:
       convolution_decoding_cuda< MAC::Activation_sigmoid ><<< numBlocks, threadsPerBlock >>>( d_prev_feature_maps_,
@@ -521,8 +594,7 @@ MAC::Convolutional_layer_CUDA::convolution_decoding( Neurons_type& Sub, double E
 											      number_of_weights_,
 											      number_of_neurons_,
 											      num_prev_images_,
-											      Mod,
-											      E_i );
+											      Mod );
       break;
     case Func::UNDETERMINED:
     default:
@@ -543,6 +615,20 @@ MAC::Convolutional_layer_CUDA::convolution_decoding( Neurons_type& Sub, double E
   err = cudaMemcpy( (std::get< 2/*deltas*/>( Sub ))[Mod].get(),
 		    d_deltas_,
 		    number_of_neurons_ * sizeof(double), cudaMemcpyDeviceToHost );
+
+  //
+  // 4. Energy calculation
+  double *d_energy, map_energy = 0.;
+  cudaMalloc( (void**)& d_energy, sizeof(double) );
+  cudaMemcpy( d_energy, &map_energy,  sizeof(double), cudaMemcpyHostToDevice);
+  sum_of_squares<<< numBlocks, threadsPerBlock >>>( d_deltas_, d_energy, number_of_neurons_ );
+  cudaMemcpy( &map_energy, d_energy, sizeof(double), cudaMemcpyDeviceToHost);
+  //
+  E_i += map_energy;
+
+  //
+  // Free
+  cudaFree(d_energy);
 }
 //
 //

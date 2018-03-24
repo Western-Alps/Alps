@@ -53,6 +53,9 @@ namespace MAC
       // get the layer name
       virtual Layer get_layer_type(){ return Monte_Rosa_layer;};
       //
+      // get the layer name
+      virtual double get_energy(){ return 1. /*ToDo*/;};
+      //
       // Forward propagation
       virtual void forward( Subject&, const Weights& W = Weights() );
       //

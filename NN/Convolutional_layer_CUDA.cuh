@@ -90,7 +90,7 @@ namespace MAC
       //
       __host__
       void convolution_decoding( Neurons_type&,
-				 double, 
+				 double&, 
 				 const int,
 				 const Functions& );
       //

@@ -63,6 +63,9 @@ namespace MAC
       // get the layer name
       virtual Layer get_layer_type(){ return fully_connected_layer;};
       //
+      // get the layer name
+      virtual double get_energy(){ return energy_;};
+      //
       // Forward propagation
       virtual void forward( Subject&, const Weights& W = Weights() );
       //
@@ -86,6 +89,8 @@ namespace MAC
       //
       // Convolutional layer's name
       std::string layer_name_;
+      // layer energy
+      double energy_{0.};
       
       //
       // Weights

@@ -53,6 +53,9 @@ namespace MAC
       // get the layer name
       virtual Layer get_layer_type(){ return Mont_Maudit_layer;};
       //
+      // get the layer name
+      virtual double get_energy(){ return mr_nn_.get_energy();};
+      //
       // Forward propagation
       virtual void forward( Subject&, const Weights& W = Weights() );
       //

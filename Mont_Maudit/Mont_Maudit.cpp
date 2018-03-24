@@ -106,7 +106,7 @@ main( const int argc, const char **argv )
 	      // Start //
 	      ///////////
 
-	      Validation cross_val;
+	      // -> Validation cross_val;
 	      
 	      //
 	      // Main object
@@ -114,7 +114,10 @@ main( const int argc, const char **argv )
 	      // Forward
 	      network.forward( MAC::Singleton::instance()->get_subjects()[0] );
 	      network.forward( MAC::Singleton::instance()->get_subjects()[1] );
+	      network.forward( MAC::Singleton::instance()->get_subjects()[2] );
 	      network.forward( MAC::Singleton::instance()->get_subjects()[3] );
+	      //
+	      std::cout << "Epoque energy: " << network.get_energy() << std::endl;
 	      // Backward
 	      network.backward();
 

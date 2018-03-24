@@ -74,6 +74,9 @@ namespace MAC
       // get the layer name
       virtual Layer get_layer_type(){ return neural_network_base_class;};
       //
+      // get the layer name
+      virtual double get_energy(){ return 1.e+08;};
+      //
       // Forward propagation
       virtual void forward( Subject&, const Weights& W = Weights() ){};
       //

@@ -58,13 +58,20 @@ namespace MAC
       // get the layer name
       virtual Layer get_layer_type(){ return composite_layer;};
       //
+      // get the layer name
+      virtual double get_energy(){ return energy_;};
+      //
       // Forward propagation
       virtual void forward( Subject& Sub, const Weights& W = Weights() )
       {
+	//
 	for ( auto nn_elem : nn_composite_ )
 	  {
 	    std::cout << "New elem" << std::endl;
 	    nn_elem->forward( Sub, weights_ );
+	    // we just want to save the last energy
+	    // energies are already cumulated in the container
+	    energy_ = nn_elem->get_energy();
 	  }
       };
       //
@@ -98,6 +105,8 @@ namespace MAC
       std::string layer_name_{"composit layer"};
       // Type of layer
       Layer layer_type_{composite_layer};
+      //
+      double energy_{0.};
       
       //
       // Structure of the composite neural network
