@@ -8,6 +8,7 @@
 #include "NeuralNetworkComposite.h"
 #include "Mont_Maudit_builder.h"
 #include "Activations.h"
+#include "Convolutional_window.h"
 //
 //
 //
@@ -22,6 +23,11 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
   //
   // Encoding Convolutional layers
   //
+
+  //
+  // Test new convolutional window
+  std::shared_ptr< MAC::Convolutional_window > Conv_window = 
+    std::make_shared< MAC::Convolutional_window >("test.dat");
 
   //
   //
