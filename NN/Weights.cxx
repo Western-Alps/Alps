@@ -13,6 +13,11 @@ MAC::Weights::Weights():
 {}
 //
 // Constructor
+MAC::Weights::Weights(const std::string Name ):
+  name_{Name}, number_of_weights_{0}, weight_indexes_(), weights_{nullptr}
+{}
+//
+// Constructor
 MAC::Weights::Weights( const int Number_of_weights, const std::vector< int >  Weight_indexes ):
   number_of_weights_{Number_of_weights}, weight_indexes_(Weight_indexes)
 {

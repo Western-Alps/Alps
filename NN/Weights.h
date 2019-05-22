@@ -33,7 +33,13 @@ namespace MAC
     Weights();
     //
     // Constructor
+    Weights( const std::string );
+    //
+    // Constructor
     Weights( const int , const std::vector< int > );
+    //
+    // Destructor
+    virtual ~Weights(){};
 
     //
     // Accessors
@@ -43,7 +49,12 @@ namespace MAC
   public:
     //
     // Accessors
-    void print();
+    virtual void print();
+    // Save the weightd
+    virtual void save_weights(){};
+    // Save the weightd
+    virtual void load_weights(){};
+
     
     //
 //    // Single instance
@@ -55,7 +66,9 @@ namespace MAC
 //    }
 
 
-  private:
+  protected:
+    // 
+    std::string         name_{""};
     // Number of weights
     int                 number_of_weights_{0};
     // The weight indexes is an array of indexes where starts the weights of this layer
