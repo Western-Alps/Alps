@@ -26,8 +26,15 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
 
   //
   // Test new convolutional window
-  std::shared_ptr< MAC::Convolutional_window > Conv_window = 
-    std::make_shared< MAC::Convolutional_window >("test.dat");
+  int half_window_0[3] = {3 /*x*/,3 /*y*/,3 /*z*/};
+  int stride_0[3]      = {2 /*x*/,2 /*y*/,2 /*z*/};
+  int padding_0[3]     = {0 /*x*/,0 /*y*/,0 /*z*/};
+  int number_features  = 16;
+  //
+  std::shared_ptr< MAC::Convolutional_window > Conv_weights = 
+    std::make_shared< MAC::Convolutional_window >( "test.dat",
+						   half_window_0, stride_0, padding_0,
+						   number_features );
 
   //
   //
