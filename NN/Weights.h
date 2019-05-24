@@ -75,6 +75,8 @@ namespace MAC
     std::vector< int >  weight_indexes_;
     // weights
     double*             weights_;
+    // weights
+    double**            shared_weights_;
 //    //! Unique instance
 //    static Weights *weights_instance_;
   };

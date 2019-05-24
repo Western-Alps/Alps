@@ -8,6 +8,8 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include <memory>
+#include <random>
 //
 // 
 //
@@ -81,6 +83,7 @@ namespace MAC
     //
     // Transpose the weights in the process of
     // convolution <-> deconvolution
+    // this function should return a "this"
     void   transpose(){ transpose_ = true;};
     // Output feature size
     // This function creates the size of the output feature 
@@ -91,9 +94,9 @@ namespace MAC
     // 
     // Inputs
     // Half window
-    int convolution_half_window_size_[3]{0,0,0};
-    int stride_[3]{0,0,0};
-    int padding_[3]{0,0,0};
+    int *convolution_half_window_size_;
+    int *stride_;
+    int *padding_;
 
     //
     // Operations
