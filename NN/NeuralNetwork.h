@@ -32,6 +32,7 @@ namespace MAC
     neural_network_base_class,
     /* Leaves */
     neural_network_test_class,
+    convolution,
     convolutional_layer,
     fully_connected_layer,
     convolutional_encoder,
@@ -71,7 +72,7 @@ namespace MAC
       // get the layer name
       virtual std::string get_layer_name(){ return std::string("Neural network base class.");};
       //
-      // get the layer name
+      // get the layer type
       virtual Layer get_layer_type(){ return neural_network_base_class;};
       //
       // get the layer name

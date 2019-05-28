@@ -7,8 +7,6 @@
 #include "NeuralNetwork.h"
 #include "NeuralNetworkComposite.h"
 #include "Mont_Maudit_builder.h"
-#include "Activations.h"
-#include "Convolutional_window.h"
 //
 //
 //
@@ -19,6 +17,7 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
   // Neural network anatomy
   //
   using ConvolutionAE = MAC::ConvolutionalAutoEncoder_layer< Activation_sigmoid >;
+  using Conv_layer    = MAC::Convolution< SGD, Activation_sigmoid >;
 
   //
   // Encoding Convolutional layers
@@ -31,10 +30,13 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
   int padding_0[3]     = {0 /*x*/,0 /*y*/,0 /*z*/};
   int number_features  = 16;
   //
-  std::shared_ptr< MAC::Convolutional_window > Conv_weights = 
+  std::shared_ptr< MAC::Convolutional_window > Conv_weights_0 = 
     std::make_shared< MAC::Convolutional_window >( "test.dat",
 						   half_window_0, stride_0, padding_0,
 						   number_features );
+  std::shared_ptr< NeuralNetwork > convlayer_0 =
+    std::make_shared< Conv_layer >( "layer_0", 0,
+				    "inputs", Conv_weights_0 );
 
   //
   //

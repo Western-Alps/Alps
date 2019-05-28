@@ -19,11 +19,20 @@
 #include "MACException.h"
 #include "NeuralNetwork.h"
 #include "Subject.h"
+// Gradients
+#include "Gradient.h"
+#include "SGD.h"
+// Weights
 #include "Weights.h"
-#include "NN_test.h"
+#include "Convolutional_window.h"
+// Layers
+#include "Convolution.h"
 #include "Convolutional_layer.h"
 #include "ConvolutionalAutoEncoder_layer.h"
 #include "FullyConnected_layer.h"
+#include "NN_test.h"
+// Activation
+#include "Activations.h"
 //
 //
 //

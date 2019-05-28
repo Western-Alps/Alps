@@ -25,12 +25,12 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   number_of_features_ = Num_of_features;
 
   //
-  // Initialization
+  // Initialization of the weights
   int number_of_weights_ = 
     (2*(Conv_half_window[0]) + 1)*
     (2*(Conv_half_window[1]) + 1)*
     (2*(Conv_half_window[2]) + 1);
-  // Create the random weights
+  // Create the random weights for each kernel
   // ToDo: Do the right initialization
   std::default_random_engine generator;
   std::uniform_real_distribution<double> distribution( -1.0, 1.0 );
