@@ -133,10 +133,6 @@ namespace MAC
       // Current read images
       // This set of images will be transfered to next neural network layers
       std::vector< Image3DType::Pointer > clone_modalities_images_;
-      // features/input layer
-      std::map< 
-	std::string /* layer */, 
-	std::vector< Image3DType::Pointer > > layer_modalities_images_;
       // images size
       std::vector< Image3DType::SizeType > modality_images_size_;
       // label

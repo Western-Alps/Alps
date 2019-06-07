@@ -90,24 +90,35 @@ MAC::Singleton::Singleton( const std::string JSon_file ):
   // Load the subjects
   // load images
   subjects_.resize( modality_dim_ );
+  features_["inputs"] = std::vector< Subject >( modality_dim_ );
+  //
   for ( auto modality : data_["inputs"]["images"] )
     {
       std::cout << modality << std::endl;
       for ( int img_mod = 0 ; img_mod < static_cast< int >( modality_dim_ ) ; img_mod++ )
 	{
 	  subjects_[img_mod].add_modality( modality[img_mod] );
+	  features_["inputs"][img_mod].add_modality( modality[img_mod] );
 	  if ( number_of_targets > 0 )
-	    subjects_[img_mod].add_modality_target( modality[img_mod] );
+	    {
+	      subjects_[img_mod].add_modality_target( modality[img_mod] );
+	      features_["inputs"][img_mod].add_modality_target( modality[img_mod] );
+	    }
 	}
     }
   // load labels
   for ( int img_mod = 0 ; img_mod < static_cast< int >( modality_dim_ ) ; img_mod++ )
     {
       if ( number_of_labels > 0 )
-	subjects_[img_mod].add_label( data_["inputs"]["labels"][img_mod] );
+	{
+	  subjects_[img_mod].add_label( data_["inputs"]["labels"][img_mod] );
+	  features_["inputs"][img_mod].add_label( data_["inputs"]["labels"][img_mod] );
+	}
       //
       subjects_[img_mod].update();
+      features_["inputs"][img_mod].update();
       // update subject name
       subjects_[img_mod].set_subject_name( "subject_" + std::to_string( img_mod ) );
+      features_["inputs"][img_mod].set_subject_name( "subject_" + std::to_string( img_mod ) );
     }
 }

@@ -48,6 +48,12 @@ namespace MAC
       {
 	return data_;
       }
+    std::map<
+      std::string,
+      std::vector< Subject > > & get_features() 
+	{
+	  return features_;
+	}
     std::vector< Subject >& get_subjects()
       {
 	return subjects_;
@@ -146,6 +152,10 @@ namespace MAC
     //
     // Subjects
     std::vector< Subject > subjects_;
+    // Features/Subjects
+    std::map< 
+      std::string /* layer */,
+      std::vector< Subject > > features_;
   };
 }
 #endif
