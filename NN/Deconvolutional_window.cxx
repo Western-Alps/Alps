@@ -26,7 +26,7 @@ MAC::Deconvolutional_window::Deconvolutional_window( const std::string Name,
   //
   
   //
-  int number_of_weights_ = Conv_wind->get_number_of_weights();
+  number_of_weights_ = Conv_wind->get_number_of_weights();
   // ToDo: here we will take the transposed matrix of the tensor
   // Initialize the biases
   std::default_random_engine generator;
@@ -35,7 +35,7 @@ MAC::Deconvolutional_window::Deconvolutional_window( const std::string Name,
   shared_weights_ = nullptr;
   shared_biases_  = new double[ number_of_features_out_ ];
   //
-  for ( int feature = 0 ; feature < number_of_features_out_ ; feature++ )
+  for ( std::size_t feature = 0 ; feature < number_of_features_out_ ; feature++ )
       shared_biases_[feature] = distribution(generator);
   
 

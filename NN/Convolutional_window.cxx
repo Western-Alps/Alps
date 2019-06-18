@@ -59,7 +59,7 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
       }
   //
   // WARNING: the bias represents index 0!
-  int number_of_weights_ = 
+  number_of_weights_ = 
     (2*(Conv_half_window[0]) + 1)*
     (2*(Conv_half_window[1]) + 1)*
     (2*(Conv_half_window[2]) + 1);
@@ -163,7 +163,7 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
       }
   //
   // WARNING: the bias represents index 0!
-  int number_of_weights_ = 
+  number_of_weights_ = 
     (2*(Conv_half_window[0]) + 1)*
     (2*(Conv_half_window[1]) + 1)*
     (2*(Conv_half_window[2]) + 1);
@@ -229,6 +229,44 @@ MAC::Convolutional_window::print()
     std::cout << weights_[w] << " ";
   //
   std::cout << std::endl;
+}
+//
+//
+//
+void
+MAC::Convolutional_window::save_weights()
+{
+  //
+  //
+  std::ofstream out( name_, std::ios::out | std::ios::binary | std::ios::trunc );
+  //
+  out.write( (char*) (&number_of_features_in_),  sizeof(size_t) );
+  out.write( (char*) (&number_of_features_out_), sizeof(size_t) );
+  //
+  for ( std::size_t feature = 0 ; feature < number_of_features_out_ ; feature++ )
+    {
+      out.write( (char*) shared_weights_[feature], number_of_weights_*sizeof(double) );
+      out.write( (char*) &shared_biases_[feature], sizeof(double) );
+    }
+}
+//
+//
+//
+void
+MAC::Convolutional_window::load_weights()
+{
+  //
+  //
+  std::ifstream out( name_, std::ios::in | std::ios::binary );
+  //
+  out.read( (char*) (&number_of_features_in_),  sizeof(size_t) );
+  out.read( (char*) (&number_of_features_out_), sizeof(size_t) );
+  //
+  for ( std::size_t feature = 0 ; feature < number_of_features_out_ ; feature++ )
+    {
+      out.read( (char*) shared_weights_[feature], number_of_weights_*sizeof(double) );
+      out.read( (char*) &shared_biases_[feature], sizeof(double) );
+    }
 }
 //
 //

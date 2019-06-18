@@ -117,9 +117,9 @@ namespace MAC
     //
     // Mother class
     // Save the weights
-    virtual void save_weights(){};
+    virtual void save_weights();
     // Save the weights
-    virtual void load_weights(){};
+    virtual void load_weights();
     //
     // from the class
     const std::size_t get_number_of_features_in()  const { return number_of_features_in_;};
