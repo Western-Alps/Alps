@@ -59,6 +59,7 @@ using ConvolutionWindowType = itk::Size< 3 >;
 #include "NeuralNetwork.h"
 #include "Weights.h"
 #include "Convolutional_window.h"
+#include "Deconvolutional_window.h"
 //
 // CUDA
 //
@@ -84,8 +85,11 @@ namespace MAC
       /** Constructor. */
       explicit Convolution( const std::string,
 			    const int, 
-			    const std::string,
 			    std::shared_ptr< Convolutional_window > );
+      /** Constructor. */
+      explicit Convolution( const std::string,
+			    const int, 
+			    std::shared_ptr< Deconvolutional_window > );
       /** Destructor */
       virtual ~Convolution();
 
@@ -152,10 +156,10 @@ namespace MAC
       const int  layer_number_;
 
       //
-      // Input features
-      std::string input_layer_name_;
       // Convolution window
-      std::shared_ptr< Convolutional_window > window_;
+      std::shared_ptr< Convolutional_window >   window_;
+      // Convolution window
+      std::shared_ptr< Deconvolutional_window > dec_window_;
 
       //
       //
@@ -197,11 +201,22 @@ namespace MAC
   //
   template< class G, class A >
     MAC::Convolution< G, A >::Convolution( const std::string   Layer_name,
-					const int           Layer_number,
-					const std::string   Input_layer_name,
-					std::shared_ptr< Convolutional_window > Window ):
+					   const int           Layer_number,
+					   std::shared_ptr< Convolutional_window > Window ):
   MAC::NeuralNetwork::NeuralNetwork(),
-    layer_name_{Layer_name}, layer_number_{Layer_number}, input_layer_name_{Input_layer_name}, window_{Window}
+    layer_name_{Layer_name}, layer_number_{Layer_number}, window_{Window}
+			       
+  {
+  };
+  //
+  //
+  //
+  template< class G, class A >
+    MAC::Convolution< G, A >::Convolution( const std::string Layer_name,
+					   const int         Layer_number,
+					std::shared_ptr< Deconvolutional_window > Window ):
+  MAC::NeuralNetwork::NeuralNetwork(),
+    layer_name_{Layer_name}, layer_number_{Layer_number}, dec_window_{Window}
 			       
   {
   };

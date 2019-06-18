@@ -25,19 +25,61 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
 
   //
   // Test new convolutional window
-  int half_window_0[3] = {3 /*x*/,3 /*y*/,3 /*z*/};
-  int stride_0[3]      = {2 /*x*/,2 /*y*/,2 /*z*/};
-  int padding_0[3]     = {0 /*x*/,0 /*y*/,0 /*z*/};
-  int number_features  = 16;
+  //
+  // Gridy Convolution
+  //
+  // Layer 0
+  int half_window_0[3]  = {3 /*x*/,3 /*y*/,3 /*z*/};
+  int stride_0[3]       = {2 /*x*/,2 /*y*/,2 /*z*/};
+  int padding_0[3]      = {0 /*x*/,0 /*y*/,0 /*z*/};
+  int number_features_0 = 16;
   //
   std::shared_ptr< MAC::Convolutional_window > Conv_weights_0 = 
-    std::make_shared< MAC::Convolutional_window >( "test.dat",
+    std::make_shared< MAC::Convolutional_window >( "test_0.dat",
 						   half_window_0, stride_0, padding_0,
-						   number_features );
+						   number_features_0 );
+  //
   std::shared_ptr< NeuralNetwork > convlayer_0 =
-    std::make_shared< Conv_layer >( "layer_0", 0,
-				    "inputs", Conv_weights_0 );
+    std::make_shared< Conv_layer >( "conv_layer_0", 0,
+				    Conv_weights_0 );
+  //
+  // Layer 1
+  int half_window_1[3]  = {3 /*x*/,3 /*y*/,3 /*z*/};
+  int stride_1[3]       = {2 /*x*/,2 /*y*/,2 /*z*/};
+  int padding_1[3]      = {0 /*x*/,0 /*y*/,0 /*z*/};
+  int number_features_1 = 8;
+  //
+  std::shared_ptr< MAC::Convolutional_window > Conv_weights_1 = 
+    std::make_shared< MAC::Convolutional_window >( "test_1.dat", Conv_weights_0,
+						   half_window_1, stride_1, padding_1,
+						   number_features_1 );
+  //
+  std::shared_ptr< NeuralNetwork > convlayer_1 =
+    std::make_shared< Conv_layer >( "conv_layer_1", 1,
+				    Conv_weights_1 );
 
+  std::cout << "Je suis dans Mont Maudit Builder" << std::endl;
+
+  //
+  // Gridy deconvolution
+  //
+  // Layer 1
+  std::shared_ptr< MAC::Deconvolutional_window > Deconv_weights_1 = 
+    std::make_shared< MAC::Deconvolutional_window >( "test_1.dat", Conv_weights_1 );
+  std::shared_ptr< NeuralNetwork > deconvlayer_1 =
+    std::make_shared< Conv_layer >( "deconv_layer_1", 1,
+				    Deconv_weights_1 );
+  //
+  // Layer 0
+  std::shared_ptr< MAC::Deconvolutional_window > Deconv_weights_0 = 
+    std::make_shared< MAC::Deconvolutional_window >( "test_0.dat", Conv_weights_0 );
+  std::shared_ptr< NeuralNetwork > deconvlayer_0 =
+    std::make_shared< Conv_layer >( "deconv_layer_0", 0,
+				    Deconv_weights_0 );
+
+  
+
+  
   //
   //
   int downsize_factor = 0;

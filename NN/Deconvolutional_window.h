@@ -1,5 +1,5 @@
-#ifndef CONVOLUTIONAL_WINDOW_H
-#define CONVOLUTIONAL_WINDOW_H
+#ifndef DECONVOLUTIONAL_WINDOW_H
+#define DECONVOLUTIONAL_WINDOW_H
 //
 //
 //
@@ -9,8 +9,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <random>
-//
+#include <random>//
 // ITK
 //
 #include <itkSize.h>
@@ -41,12 +40,14 @@ using MaskType       = itk::Image< unsigned char, 3 >;
 using FilterType     = itk::ChangeInformationImageFilter< Image3DType >;
 using DuplicatorType = itk::ImageDuplicator< Image3DType > ;
 using ShrinkImageFilterType = itk::ShrinkImageFilter < Image3DType, Image3DType >;
+
 //
 // 
 //
 #include "MACException.h"
 #include "Weights.h"
-//#include "NeuralNetwork.h"
+#include "Convolutional_window.h"
+#include "MACLoadDataSet.h"
 //
 //
 //
@@ -57,7 +58,7 @@ using ShrinkImageFilterType = itk::ShrinkImageFilter < Image3DType, Image3DType 
  */
 namespace MAC
 {
-  /*! \class Convolutional_window
+  /*! \class Deconvolutional_window
    * \brief class representing the shared weights in a convolutional layer.
    *
    * convolution_half_window_size_: 
@@ -73,6 +74,10 @@ namespace MAC
    * padding_:
    * 	ToDo: This feature is ignored for the first version of the software.
    * 
+   * transpose_:
+   *    This Window can be the deconvolution process of a convolution window or 
+   *    simply an up sampling.
+   *
    *  number_of_features_:  
    * 	Number of features: 2,4,8,16,...,1024. Represents the number of kernel we
    *    are going to build.
@@ -80,78 +85,32 @@ namespace MAC
    *
    *
    */
-  class Convolutional_window  : public Weights  
+  class Deconvolutional_window  : public Weights  
   {
   public:
     //
     // Constructor
-    Convolutional_window();
+    Deconvolutional_window();
     //
     // Constructor
-    // WARNING: This constructor is tagetting the first
-    // convolution. Subsequent window must take a window as
-    // input.
-    Convolutional_window( const std::string, std::shared_ptr< Convolutional_window >,
-			  const int*, const int*, const int*,
-			  const int );
-    //
-    // Constructor
-    // WARNING: This constructor is tagetting the first
-    // convolution. Subsequent window must take a window as
-    // input.
-    Convolutional_window( const std::string,
-			  const int*, const int*, const int*,
-			  const int );
+    Deconvolutional_window( const std::string,
+			    std::shared_ptr< Convolutional_window > );
     //
     // Destructor
-    virtual ~Convolutional_window();
+    virtual ~Deconvolutional_window();
     
     
   public:
     //
-    // Functions
-    virtual void print();
-
-    //
     // Accessors
-    //
-    // Mother class
-    // Save the weights
+    virtual void print();
+    // Save the weightd
     virtual void save_weights(){};
-    // Save the weights
+    // Save the weightd
     virtual void load_weights(){};
-    //
-    // from the class
-    const std::size_t get_number_of_features_in()  const { return number_of_features_in_;};
-    const std::size_t get_number_of_features_out() const { return number_of_features_out_;};
-    // Image information input layer
-    const Image3DType::SizeType      get_size_in()      const { return size_in_;};
-    const Image3DType::SpacingType   get_spacing_in()   const { return spacing_in_;};
-    const Image3DType::PointType     get_origine_in()   const { return origine_in_;};
-    const Image3DType::DirectionType get_direction_in() const { return direction_in_;};
-    // Image information output layer
-    const Image3DType::SizeType      get_size_out()      const { return size_out_;};
-    const Image3DType::SpacingType   get_spacing_out()   const { return spacing_out_;};
-    const Image3DType::PointType     get_origine_out()   const { return origine_out_;};
-    const Image3DType::DirectionType get_direction_out() const { return direction_out_;};
 
-    
-    
-    //
-    // Output feature size
-    size_t number_of_features( const int ) const {return number_of_features_out_;};
 
   private:
-    // This function creates the size of the output feature 
-    // following each direction Dim.
-    Image3DType::SizeType feature_size( const Image3DType::SizeType ) const;
-    // This function creates the size of the output feature 
-    // following each direction Dim.
-    Image3DType::PointType feature_orig( const Image3DType::SizeType,
-					 const Image3DType::SpacingType,
-					 const Image3DType::PointType ) const;
-
-
     // 
     // Inputs
     std::shared_ptr< Convolutional_window > previouse_conv_window_;
