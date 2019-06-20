@@ -29,7 +29,7 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
   // Gridy Convolution
   //
   // Layer 0
-  int half_window_0[3]  = {1 /*x*/,  1/*y*/, 1 /*z*/};
+  int half_window_0[3]  = {1 /*x*/, 1 /*y*/, 1 /*z*/};
   int stride_0[3]       = {2 /*x*/ ,2 /*y*/, 2 /*z*/};
   int padding_0[3]      = {0 /*x*/ ,0 /*y*/, 0 /*z*/};
   int number_features_0 = 16;
