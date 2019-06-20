@@ -15,7 +15,7 @@
 //
 #include <cuda_runtime.h>
 #include <thrust/host_vector.h>
-//#include "Convolution_CUDA.cuh"
+#include "Convolutional_CUDA.cuh"
 //
 // ITK
 //
@@ -49,7 +49,6 @@ using MaskType       = itk::Image< unsigned char, 3 >;
 using FilterType     = itk::ChangeInformationImageFilter< Image3DType >;
 using DuplicatorType = itk::ImageDuplicator< Image3DType > ;
 using ShrinkImageFilterType = itk::ShrinkImageFilter < Image3DType, Image3DType >;
-using ConvolutionWindowType = itk::Size< 3 >;
 //
 //
 //
@@ -116,7 +115,7 @@ namespace MAC
       virtual int get_number_weights() const { return 0 /*number_of_weights_*/; };
       //
       //
-      //Convolution_CUDA& get_cuda(){ return cuda_treatment_; };
+      //Convolutional_CUDA& get_cuda(){ return cuda_treatment_; };
       //
       // 
       void write() const
@@ -190,7 +189,7 @@ namespace MAC
 
       //
       // Cuda treatment
-      //Convolution_CUDA cuda_treatment_;
+      Convolutional_CUDA cuda_treatment_;
     };
   //
   //

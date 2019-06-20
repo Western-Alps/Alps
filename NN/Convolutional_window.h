@@ -88,7 +88,7 @@ namespace MAC
     Convolutional_window();
     //
     // Constructor
-    // WARNING: This constructor is tagetting the first
+    // WARNING: This constructor is targetting the first
     // convolution. Subsequent window must take a window as
     // input.
     Convolutional_window( const std::string, std::shared_ptr< Convolutional_window >,
@@ -96,9 +96,8 @@ namespace MAC
 			  const int );
     //
     // Constructor
-    // WARNING: This constructor is tagetting the first
-    // convolution. Subsequent window must take a window as
-    // input.
+    // WARNING: This constructor is for subsequent window.
+    // It comes after a first convolutional window.
     Convolutional_window( const std::string,
 			  const int*, const int*, const int*,
 			  const int );
@@ -176,6 +175,10 @@ namespace MAC
     Image3DType::SpacingType   spacing_out_;
     Image3DType::PointType     origine_out_;
     Image3DType::DirectionType direction_out_;
+    // Weights position in the Weight matrix
+    std::size_t**              weights_poisition_oi_;
+    std::size_t**              weights_poisition_io_;
+
   };
 }
 #endif

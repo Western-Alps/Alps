@@ -1,4 +1,5 @@
 #include <random>
+#include <Eigen/Sparse>
 //
 #include "Convolutional_window.h"
 #include "MACLoadDataSet.h"
@@ -41,22 +42,22 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   // Initialization of the weights
   //
   
-  // The dimensions of the window must be odd! We are taking in account the center.
-  // 3 dimensions for x,y and z;
-  // To complete the kernel size, we need to know how many feature maps we had in the
-  // previouse round.
-  //
-  for ( int i = 0 ; i < 3 ; i++ )
-    if ( Conv_half_window[i] % 2 == 0  )
-      {
-	std::string mess = "The dimension of the window must be odd";
-	mess += " dimension " + std::to_string( i );
-	mess += " value is: " + std::to_string( Conv_half_window[i] );
-	//
-	throw MAC::MACException( __FILE__, __LINE__,
-				 mess.c_str(),
-				 ITK_LOCATION );
-      }
+//  // The dimensions of the window must be odd! We are taking in account the center.
+//  // 3 dimensions for x,y and z;
+//  // To complete the kernel size, we need to know how many feature maps we had in the
+//  // previouse round.
+//  //
+//  for ( int i = 0 ; i < 3 ; i++ )
+//    if ( Conv_half_window[i] % 2 == 0  )
+//      {
+//	std::string mess = "The dimension of the window must be odd";
+//	mess += " dimension " + std::to_string( i );
+//	mess += " value is: " + std::to_string( Conv_half_window[i] );
+//	//
+//	throw MAC::MACException( __FILE__, __LINE__,
+//				 mess.c_str(),
+//				 ITK_LOCATION );
+//      }
   //
   // WARNING: the bias represents index 0!
   number_of_weights_ = 
@@ -114,6 +115,130 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   std::cout << "origine_out_ " << origine_out_ << std::endl;
   std::cout << "spacing_out_ " << spacing_out_ << std::endl;
   std::cout << "direction_out_ " << direction_out_ << std::endl;
+  //
+  // Prepare the weights matrices
+  Image3DType::IndexType  start = { 0, 0, 0 };
+  Image3DType::RegionType region;
+  region.SetSize( size_in_ );
+  region.SetIndex( start );
+  //
+  // Loop over the image
+  int
+    half_wind_X = convolution_half_window_size_[0],
+    half_wind_Y = convolution_half_window_size_[1],
+    half_wind_Z = convolution_half_window_size_[2],
+    //
+    Im_size_X = size_in_[0],
+    Im_size_Y = size_in_[1],
+    Im_size_Z = size_in_[2],
+    //
+    stride_X = stride_[0],
+    stride_Y = stride_[1],
+    stride_Z = stride_[2];
+  //
+  std::size_t
+    check_output_X = 0,
+    check_output_Y = 0,
+    check_output_Z = 0,
+    //
+    Im_size_in  = size_in_[0]*size_in_[1]*size_in_[2],
+    Im_size_out = size_out_[0]*size_out_[1]*size_out_[2];
+  //
+  weights_poisition_oi_ = new std::size_t*[ Im_size_out ];
+  weights_poisition_io_ = new std::size_t*[ Im_size_in ];
+  //
+  // Init the I/O array
+  for ( std::size_t i = 0 ; i < Im_size_in ; i++ )
+    {
+      weights_poisition_io_[i] = new std::size_t[number_of_weights_];
+      for ( int k = 0 ; k < number_of_weights_ ; k++ )
+	// adding an unreachable position in case the position is empty
+	weights_poisition_io_[i][k] = 999999999;
+    }
+  //
+  // weights[out_idx][k] = in_idx
+  // Creation of a sparse matrix of weight multiplication between in and out images
+  typedef Eigen::Triplet<double> T;
+  std::vector<T> tripletList;
+  std::size_t estimation_of_entries = number_of_weights_ * Im_size_out;
+  tripletList.reserve(estimation_of_entries);
+  Eigen::SparseMatrix< std::size_t > W_out_in_( Im_size_out, Im_size_in );
+  W_out_in_.setZero();
+  //
+  std::size_t output_idx = 0;
+  for ( auto Z = half_wind_Z ; Z < Im_size_Z - half_wind_Z ; Z = Z + stride_Z )
+    {
+      // double check output dimension
+      check_output_Z++;
+      check_output_Y = 0;
+      for ( auto Y = half_wind_Y ; Y < Im_size_Y - half_wind_Y ; Y = Y + stride_Y )
+	{
+	  // double check output dimension
+	  check_output_Y++;
+	  check_output_X = 0;
+	  for ( auto X = half_wind_X ; X < Im_size_X - half_wind_X ; X = X + stride_X )
+	    {
+	      // double check output dimension
+	      check_output_X++;
+	      // run through the convolution window
+	      int index = 0;
+	      weights_poisition_oi_[ output_idx ] = new std::size_t[ number_of_weights_ ];
+	      //
+	      for ( int z = -half_wind_Z ; z < half_wind_Z + 1 ; z++ )
+		for ( int y = -half_wind_Y ; y < half_wind_Y + 1 ; y++ )
+		  for ( int x = -half_wind_X ; x < half_wind_X + 1 ; x++ )
+		    {
+		      std::size_t in_idx = (X + x) + (Y + y)*Im_size_X + (Z + z)*Im_size_X*Im_size_Y;
+		      weights_poisition_oi_[output_idx][index++] = in_idx;
+		      // we keep the same index to not have zero value in the sparse matrix
+		      tripletList.push_back(T( output_idx, in_idx, index ));
+		        //std::cout
+			//<< "index: " << index-1
+			//<< " (" << X + x
+			//<< ", " << Y + y
+			//<< ", " << Z + z
+			//<< ") -- (" << output_idx
+			//<< ", " << in_idx
+			//<< ")"
+			//<< std::endl;
+		    }
+	      //
+	      output_idx++;
+	    }
+	}
+    }
+  // Fill the sparse matrix
+  W_out_in_.setFromTriplets( tripletList.begin(), tripletList.end() );
+  //
+  for ( int k = 0 ; k < W_out_in_.outerSize() ; ++k )
+    for ( Eigen::SparseMatrix< std::size_t >::InnerIterator it( W_out_in_, k ) ; it ; ++it )
+      {
+	  //std::cout
+	  //<< " it.value() " << it.value()
+	  //<< " it.row(): " << it.row()   // row index
+	  //<< " it.col(): " << it.col()   // col index (here it is equal to k)
+	  //<< std::endl;
+	weights_poisition_io_[it.col()][it.value()-1] = it.row();
+      }
+
+  //
+  //
+  if ( check_output_X != size_out_[0] ||
+       check_output_Y != size_out_[1] ||
+       check_output_Z != size_out_[2]  )
+    {
+      std::string mess = "There is a dimension issue with the output: ";
+      mess += "( " + std::to_string( check_output_X ) ;
+      mess += ", " + std::to_string( check_output_Y ) ;
+      mess += ", " + std::to_string( check_output_Z ) + ") != ";
+      mess += "( " + std::to_string( size_out_[0] ) ;
+      mess += ", " + std::to_string( size_out_[1] ) ;
+      mess += ", " + std::to_string( size_out_[2] ) + ").";
+      //
+      throw MAC::MACException( __FILE__, __LINE__,
+			       mess.c_str(),
+			       ITK_LOCATION );
+    }
 }
 //
 //
