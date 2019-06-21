@@ -146,6 +146,10 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
     Im_size_Y = size_in_[1],
     Im_size_Z = size_in_[2],
     //
+    O_size_X = size_out_[0],
+    O_size_Y = size_out_[1],
+    O_size_Z = size_out_[2],
+    //
     stride_X = stride_[0],
     stride_Y = stride_[1],
     stride_Z = stride_[2];
@@ -224,7 +228,7 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 	      //
 	      output_idx++;
 	      // ToDo: tempo
-	      image_out->SetPixel(iidx, conv);
+	      //image_out->SetPixel(iidx, conv);
 	    }
 	}
     }
@@ -241,6 +245,39 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 	  //<< std::endl;
 	weights_poisition_io_[it.col()][it.value()-1] = it.row();
       }
+
+  //
+  // ToDo: remove
+  // Test matrix multiplication
+  std::cout << "First step" << std::endl;
+  double* tempo = new double[Im_size_out];
+  for ( auto Z = 0 ; Z < Im_size_Z ; Z++ )
+    {
+      std::cout << "Z = " << Z << std::endl;
+      for ( auto Y = 0 ; Y < Im_size_Y ; Y++ )
+	for ( auto X = 0 ; X < Im_size_X ; X++ )
+	  {
+	    Image3DType::IndexType idx = {X, Y, Z};
+	    int ii = X + Y*Im_size_X + Z*Im_size_X*Im_size_Y;
+	    for ( int oo = 0 ; oo < Im_size_out ; oo++ )
+	      {
+		tempo[oo] = 0.;
+		for ( int k = 0 ; k < number_of_weights_ ; k++ )
+		  if ( weights_poisition_oi_[oo][k] == ii )
+		    tempo[oo] += shared_weights_[0][k]*raw_subject_image_ptr->GetPixel(idx);
+	      }
+	  }
+    }
+  std::cout << "Second step" << std::endl;
+  for ( auto Z = 0 ; Z < O_size_Z ; Z++ )
+    for ( auto Y = 0 ; Y < O_size_Y ; Y++ )
+      for ( auto X = 0 ; X < O_size_X ; X++ )
+	{
+	  Image3DType::IndexType idx = {X, Y, Z};
+	  int oo = X + Y*O_size_X + Z*O_size_X*O_size_Y;
+	  image_out->SetPixel(idx, tempo[oo]);
+	}
+      
 
   //
   //
@@ -268,7 +305,7 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   //nifti_io->SetPixelType( "float" );
   //
   itk::ImageFileWriter< Image3DType >::Pointer writer = itk::ImageFileWriter< Image3DType >::New();
-  writer->SetFileName( "image_test.nii.gz" );
+  writer->SetFileName( "image_test_2.nii.gz" );
   writer->SetInput( image_out );
   //writer->SetImageIO( nifti_io );
   writer->Update();
@@ -476,6 +513,7 @@ MAC::Convolutional_window::feature_orig( const Image3DType::SizeType    Input_si
 //
 MAC::Convolutional_window::~Convolutional_window()
 {
+  // ToDo: pointer to pointer free
   if (convolution_half_window_size_)
     delete [] convolution_half_window_size_;
   convolution_half_window_size_ = nullptr;
