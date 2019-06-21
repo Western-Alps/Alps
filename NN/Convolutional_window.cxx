@@ -485,4 +485,16 @@ MAC::Convolutional_window::~Convolutional_window()
   if (padding_)
     delete [] padding_;
   padding_ = nullptr;
+  if (shared_weights_)
+    delete [] shared_weights_;
+  shared_weights_ = nullptr;
+  if (shared_biases_)
+    delete [] shared_biases_;
+  shared_biases_ = nullptr;
+  if (weights_poisition_oi_)
+    delete [] weights_poisition_oi_;
+  weights_poisition_oi_ = nullptr;
+  if (weights_poisition_io_)
+    delete [] weights_poisition_io_;
+  weights_poisition_io_ = nullptr;
 }
