@@ -82,7 +82,7 @@ namespace MAC
     double*             weights_;
     // weights
     double**            shared_weights_;
-    // weights
+    // biases
     double*             shared_biases_;
 //    //! Unique instance
 //    static Weights *weights_instance_;

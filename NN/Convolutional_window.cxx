@@ -42,24 +42,8 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   // Initialization of the weights
   //
   
-//  // The dimensions of the window must be odd! We are taking in account the center.
-//  // 3 dimensions for x,y and z;
-//  // To complete the kernel size, we need to know how many feature maps we had in the
-//  // previouse round.
-//  //
-//  for ( int i = 0 ; i < 3 ; i++ )
-//    if ( Conv_half_window[i] % 2 == 0  )
-//      {
-//	std::string mess = "The dimension of the window must be odd";
-//	mess += " dimension " + std::to_string( i );
-//	mess += " value is: " + std::to_string( Conv_half_window[i] );
-//	//
-//	throw MAC::MACException( __FILE__, __LINE__,
-//				 mess.c_str(),
-//				 ITK_LOCATION );
-//      }
   //
-  // WARNING: the bias represents index 0!
+  // Weights
   number_of_weights_ = 
     (2*(Conv_half_window[0]) + 1)*
     (2*(Conv_half_window[1]) + 1)*
@@ -189,13 +173,13 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
       // double check output dimension
       check_output_Z++;
       check_output_Y = 0;
-      Y_o = 0; Z_o++;
+      Y_o = 0; 
       for ( auto Y = half_wind_Y ; Y < Im_size_Y - half_wind_Y ; Y = Y + stride_Y )
 	{
 	  // double check output dimension
 	  check_output_Y++;
 	  check_output_X = 0;
-	  X_o = 0; Y_o++;
+	  X_o = 0; 
 	  for ( auto X = half_wind_X ; X < Im_size_X - half_wind_X ; X = X + stride_X )
 	    {
 	      // double check output dimension
@@ -213,24 +197,26 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 		  for ( int x = -half_wind_X ; x < half_wind_X + 1 ; x++ )
 		    {
 		      std::size_t in_idx = (X + x) + (Y + y)*Im_size_X + (Z + z)*Im_size_X*Im_size_Y;
-		      weights_poisition_oi_[output_idx][index++] = in_idx;
+		      weights_poisition_oi_[output_idx][index] = in_idx;
 		      // we keep the same index to not have zero value in the sparse matrix
+		      // ToDo: tempo
+		      Image3DType::IndexType idx = {(X + x), (Y + y), (Z + z)};
+		      conv += shared_weights_[0][index++]*raw_subject_image_ptr->GetPixel(idx);
 		      tripletList.push_back(T( output_idx, in_idx, index ));
 		      //std::cout
 		      //<< "index: " << index-1 << " (" << X + x << ", " << Y + y 
 		      //<< ", " << Z + z << ") -- (" << output_idx
 		      //<< ", " << in_idx << ")" << std::endl;
 		      //
-		      // ToDo: tempo
-		      Image3DType::IndexType idx = {(X + x), (Y + y), (Z + z)};
-		      conv += shared_weights_[0][index]*raw_subject_image_ptr->GetPixel(idx);
 		    }
 	      //
 	      output_idx++;
 	      // ToDo: tempo
-	      //image_out->SetPixel(iidx, conv);
+	      image_out->SetPixel(iidx, conv);
 	    }
+	  Y_o++;
 	}
+      Z_o++;
     }
   // Fill the sparse matrix
   W_out_in_.setFromTriplets( tripletList.begin(), tripletList.end() );
@@ -246,37 +232,51 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 	weights_poisition_io_[it.col()][it.value()-1] = it.row();
       }
 
-  //
-  // ToDo: remove
-  // Test matrix multiplication
-  std::cout << "First step" << std::endl;
-  double* tempo = new double[Im_size_out];
-  for ( auto Z = 0 ; Z < Im_size_Z ; Z++ )
-    {
-      std::cout << "Z = " << Z << std::endl;
-      for ( auto Y = 0 ; Y < Im_size_Y ; Y++ )
-	for ( auto X = 0 ; X < Im_size_X ; X++ )
-	  {
-	    Image3DType::IndexType idx = {X, Y, Z};
-	    int ii = X + Y*Im_size_X + Z*Im_size_X*Im_size_Y;
-	    for ( int oo = 0 ; oo < Im_size_out ; oo++ )
-	      {
-		tempo[oo] = 0.;
-		for ( int k = 0 ; k < number_of_weights_ ; k++ )
-		  if ( weights_poisition_oi_[oo][k] == ii )
-		    tempo[oo] += shared_weights_[0][k]*raw_subject_image_ptr->GetPixel(idx);
-	      }
-	  }
-    }
-  std::cout << "Second step" << std::endl;
-  for ( auto Z = 0 ; Z < O_size_Z ; Z++ )
-    for ( auto Y = 0 ; Y < O_size_Y ; Y++ )
-      for ( auto X = 0 ; X < O_size_X ; X++ )
-	{
-	  Image3DType::IndexType idx = {X, Y, Z};
-	  int oo = X + Y*O_size_X + Z*O_size_X*O_size_Y;
-	  image_out->SetPixel(idx, tempo[oo]);
-	}
+
+//  //  //
+//  // ToDo: remove
+//  // Test matrix multiplication
+//  std::cout << "First step" << std::endl;
+//  double* tempo = new double[Im_size_out];
+//  for ( int t = 0 ; t < Im_size_out  ; t++ )
+//    tempo[t] = 0.;
+//  for ( auto Z = 0 ; Z < Im_size_Z ; Z++ )
+//    {
+//      std::cout << "Z = " << Z << std::endl;
+//      for ( auto Y = 0 ; Y < Im_size_Y ; Y++ )
+//	for ( auto X = 0 ; X < Im_size_X ; X++ )
+//	  {
+//	    Image3DType::IndexType idx = {X, Y, Z};
+//	    int ii = X + Y*Im_size_X + Z*Im_size_X*Im_size_Y;
+//	    for ( int oo = 0 ; oo < Im_size_out ; oo++ )
+//	      {
+//		for ( int k = 0 ; k < number_of_weights_ ; k++ )
+//		  {
+//		    if ( weights_poisition_oi_[oo][k] == ii )
+//		      {
+//			tempo[oo] += shared_weights_[0][k]*raw_subject_image_ptr->GetPixel(idx);
+////			std::cout
+////			  << "weights_poisition_oi_[" <<oo<< "][" <<k<< "] = " << weights_poisition_oi_[oo][k]
+////			  << " ~~ " << ii;
+////			std::cout
+////			  << "shared_weights_[0][k] = " << shared_weights_[0][k]
+////			  << " raw_subject_image_ptr->GetPixel(idx) " << raw_subject_image_ptr->GetPixel(idx)
+////			  << " tempo[oo] = " << tempo[oo]
+////			  << std::endl;
+//		      }
+//		  }
+//	      }
+//	  }
+//    }
+//  std::cout << "Second step" << std::endl;
+//  for ( auto Z = 0 ; Z < O_size_Z ; Z++ )
+//    for ( auto Y = 0 ; Y < O_size_Y ; Y++ )
+//      for ( auto X = 0 ; X < O_size_X ; X++ )
+//	{
+//	  Image3DType::IndexType idx = {X, Y, Z};
+//	  int oo = X + Y*O_size_X + Z*O_size_X*O_size_Y;
+//	  image_out->SetPixel(idx, tempo[oo]);
+//	}
       
 
   //
@@ -305,7 +305,7 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   //nifti_io->SetPixelType( "float" );
   //
   itk::ImageFileWriter< Image3DType >::Pointer writer = itk::ImageFileWriter< Image3DType >::New();
-  writer->SetFileName( "image_test_2.nii.gz" );
+  writer->SetFileName( "image_test.nii.gz" );
   writer->SetInput( image_out );
   //writer->SetImageIO( nifti_io );
   writer->Update();

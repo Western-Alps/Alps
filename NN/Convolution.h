@@ -206,6 +206,16 @@ namespace MAC
     layer_name_{Layer_name}, layer_number_{Layer_number}, window_{Window}
 			       
   {
+    cuda_treatment_.load_kernels( // features
+				 window_->get_number_of_features_in(),
+				 window_->get_number_of_features_out(),
+				 // weights
+				 window_->get_number_of_weights(),
+				 window_->get_shared_weights(),
+				 window_->get_biases(),
+				 // Weights position and transposed matrix
+				 window_->get_weights_position_oi(),
+				 window_->get_weights_position_io() );
   };
   //
   //
@@ -213,7 +223,7 @@ namespace MAC
   template< class G, class A >
     MAC::Convolution< G, A >::Convolution( const std::string Layer_name,
 					   const int         Layer_number,
-					std::shared_ptr< Deconvolutional_window > Window ):
+					   std::shared_ptr< Deconvolutional_window > Window ):
   MAC::NeuralNetwork::NeuralNetwork(),
     layer_name_{Layer_name}, layer_number_{Layer_number}, dec_window_{Window}
 			       
