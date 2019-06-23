@@ -98,10 +98,7 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   //
   // ToDo: tempo
   // Test image
-  FilterType::Pointer 
-    images_filter_cortex     = FilterType::New(),
-    images_filter_ventricles = FilterType::New();
-   Reader3D::Pointer out = Reader3D::New();
+  Reader3D::Pointer out = Reader3D::New();
   out->SetFileName( "/home/cobigo/devel/CPP/Alps/data/tempo11.nii.gz" );
   out->Update();
   Image3DType::RegionType region_out;
@@ -141,16 +138,16 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   std::size_t
     check_output_X = 0,
     check_output_Y = 0,
-    check_output_Z = 0,
-    //
-    Im_size_in  = size_in_[0]*size_in_[1]*size_in_[2],
-    Im_size_out = size_out_[0]*size_out_[1]*size_out_[2];
+    check_output_Z = 0;
   //
-  weights_poisition_oi_ = new std::size_t*[ Im_size_out ];
-  weights_poisition_io_ = new std::size_t*[ Im_size_in ];
+  im_size_in_  = size_in_[0]*size_in_[1]*size_in_[2];
+  im_size_out_ = size_out_[0]*size_out_[1]*size_out_[2];
+  //
+  weights_poisition_oi_ = new std::size_t*[ im_size_out_ ];
+  weights_poisition_io_ = new std::size_t*[ im_size_in_ ];
   //
   // Init the I/O array: weights[in_idx][k] = out_idx
-  for ( std::size_t i = 0 ; i < Im_size_in ; i++ )
+  for ( std::size_t i = 0 ; i < im_size_in_ ; i++ )
     {
       weights_poisition_io_[i] = new std::size_t[number_of_weights_];
       for ( int k = 0 ; k < number_of_weights_ ; k++ )
@@ -162,9 +159,9 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   // Creation of a sparse matrix of weight multiplication between in and out images
   typedef Eigen::Triplet<double> T;
   std::vector<T> tripletList;
-  std::size_t estimation_of_entries = number_of_weights_ * Im_size_out;
+  std::size_t estimation_of_entries = number_of_weights_ * im_size_out_;
   tripletList.reserve(estimation_of_entries);
-  Eigen::SparseMatrix< std::size_t > W_out_in_( Im_size_out, Im_size_in );
+  Eigen::SparseMatrix< std::size_t > W_out_in_( im_size_out_, im_size_in_ );
   W_out_in_.setZero();
   //
   std::size_t output_idx = 0;
@@ -233,22 +230,27 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
       }
 
 
-//  //  //
-//  // ToDo: remove
-//  // Test matrix multiplication
-//  std::cout << "First step" << std::endl;
-//  double* tempo = new double[Im_size_out];
-//  for ( int t = 0 ; t < Im_size_out  ; t++ )
-//    tempo[t] = 0.;
-//  for ( auto Z = 0 ; Z < Im_size_Z ; Z++ )
-//    {
-//      std::cout << "Z = " << Z << std::endl;
-//      for ( auto Y = 0 ; Y < Im_size_Y ; Y++ )
-//	for ( auto X = 0 ; X < Im_size_X ; X++ )
-//	  {
-//	    Image3DType::IndexType idx = {X, Y, Z};
-//	    int ii = X + Y*Im_size_X + Z*Im_size_X*Im_size_Y;
-//	    for ( int oo = 0 ; oo < Im_size_out ; oo++ )
+  //  //
+  // ToDo: remove
+  // Test matrix multiplication
+  std::cout << "First step" << std::endl;
+  image_to_conv = new double[ im_size_in_ ];
+  image_conv    = new double[ im_size_out_ ];
+  double* tempo = new double[im_size_out_];
+  for ( int t = 0 ; t < im_size_out_  ; t++ )
+    {
+      tempo[t] = 0.;
+      image_conv[t] = 0.;
+    }
+  for ( auto Z = 0 ; Z < Im_size_Z ; Z++ )
+    {
+      for ( auto Y = 0 ; Y < Im_size_Y ; Y++ )
+	for ( auto X = 0 ; X < Im_size_X ; X++ )
+	  {
+	    Image3DType::IndexType idx = {X, Y, Z};
+	    int ii = X + Y*Im_size_X + Z*Im_size_X*Im_size_Y;
+	    image_to_conv[ii] =  raw_subject_image_ptr->GetPixel(idx);
+//	    for ( int oo = 0 ; oo < im_size_out_ ; oo++ )
 //	      {
 //		for ( int k = 0 ; k < number_of_weights_ ; k++ )
 //		  {
@@ -264,10 +266,10 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 ////			  << " tempo[oo] = " << tempo[oo]
 ////			  << std::endl;
 //		      }
-//		  }
-//	      }
 //	  }
 //    }
+	  }
+    }
 //  std::cout << "Second step" << std::endl;
 //  for ( auto Z = 0 ; Z < O_size_Z ; Z++ )
 //    for ( auto Y = 0 ; Y < O_size_Y ; Y++ )
@@ -406,6 +408,45 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   std::cout << "origine_out_ " << origine_out_ << std::endl;
   std::cout << "spacing_out_ " << spacing_out_ << std::endl;
   std::cout << "direction_out_ " << direction_out_ << std::endl;
+}
+//
+//
+//
+void
+MAC::Convolutional_window::tempo()
+{
+
+  Reader3D::Pointer out = Reader3D::New();
+  out->SetFileName( "/home/cobigo/devel/CPP/Alps/data/tempo11.nii.gz" );
+  out->Update();
+  Image3DType::IndexType  start = { 0, 0, 0 };
+  Image3DType::RegionType region_out;
+  region_out.SetSize( size_out_ );
+  region_out.SetIndex( start );
+  Image3DType::Pointer image_out = out->GetOutput();
+  image_out->SetRegions( region_out );
+  image_out->Allocate();
+  image_out->FillBuffer( 0.0 );
+  int
+    O_size_X = size_out_[0],
+    O_size_Y = size_out_[1],
+    O_size_Z = size_out_[2];
+
+  for ( auto Z = 0 ; Z < O_size_Z ; Z++ )
+    for ( auto Y = 0 ; Y < O_size_Y ; Y++ )
+      for ( auto X = 0 ; X < O_size_X ; X++ )
+	{
+	  Image3DType::IndexType idx = {X, Y, Z};
+	  int oo = X + Y*O_size_X + Z*O_size_X*O_size_Y;
+	  image_out->SetPixel(idx, image_conv[oo]);
+	}
+
+  
+  itk::ImageFileWriter< Image3DType >::Pointer writer = itk::ImageFileWriter< Image3DType >::New();
+  writer->SetFileName( "image_test_3.nii.gz" );
+  writer->SetInput( image_out );
+  //writer->SetImageIO( nifti_io );
+  writer->Update();
 }
 //
 //

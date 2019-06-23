@@ -134,9 +134,12 @@ namespace MAC
     const Image3DType::PointType     get_origine_out()   const { return origine_out_; };
     const Image3DType::DirectionType get_direction_out() const { return direction_out_; };
     //
-     std::size_t**              get_weights_position_oi() const { return weights_poisition_oi_; };
-     std::size_t**              get_weights_position_io() const { return weights_poisition_io_; };
-    
+    std::size_t                      get_im_size_in() const { return im_size_in_; };
+    std::size_t                      get_im_size_out() const { return im_size_out_; };
+    std::size_t**                    get_weights_position_oi() const { return weights_poisition_oi_; };
+    std::size_t**                    get_weights_position_io() const { return weights_poisition_io_; };
+    // ToDo: to remove
+    void tempo();
     
     //
     // Output feature size
@@ -178,9 +181,15 @@ namespace MAC
     Image3DType::PointType     origine_out_;
     Image3DType::DirectionType direction_out_;
     // Weights position in the Weight matrix
+    std::size_t                im_size_in_;
+    std::size_t                im_size_out_;
     std::size_t**              weights_poisition_oi_;
     std::size_t**              weights_poisition_io_;
 
+  public:
+    // ToDo: to remove
+    double* image_to_conv;
+    double* image_conv;
   };
 }
 #endif

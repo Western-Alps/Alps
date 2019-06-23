@@ -214,8 +214,15 @@ namespace MAC
 				 window_->get_shared_weights(),
 				 window_->get_biases(),
 				 // Weights position and transposed matrix
+				 window_->get_im_size_in(),
+				 window_->get_im_size_out(),
 				 window_->get_weights_position_oi(),
-				 window_->get_weights_position_io() );
+				 window_->get_weights_position_io(),
+				 // ToDo: to remove
+				 window_->image_to_conv,
+				 window_->image_conv );
+    // ToDo: to remove
+    window_->tempo();
   };
   //
   //
