@@ -4,6 +4,7 @@
 //
 //
 #include <iostream>
+#include <stdio.h>
 #include <fstream>
 #include <math.h>  
 #include <map>

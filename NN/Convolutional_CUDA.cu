@@ -39,6 +39,21 @@
 //
 //
 __global__ void
+test_cuda()
+{
+#if __CUDA_ARCH__ >= 200
+  printf("Just a test");
+#endif
+}
+__global__ void cuda_hello()
+{
+  printf("Hello World from GPU!\n");
+
+}
+//
+//
+//
+__global__ void
 convolution_cuda( int  Image_size_in,
 		  int  Image_size_out,
 		  int          Number_of_weights,
@@ -57,8 +72,8 @@ convolution_cuda( int  Image_size_in,
       if (odx == 0)
 	for ( int k = 0 ; k < Number_of_weights ; k++ )
 	  {
-	    //conv += Shared_weights[0][k] * To_conv[ Weights_pos_oi[odx][k] ];
-	    printf(" Odx: %d ~~ %d ", odx,  Weights_pos_oi[k] );
+	    //conv += Shared_weights[0][k] * To_conv[ W0eights_pos_oi[odx][k] ];
+	    printf(" Odx: %d ~~ %d \n", odx, Weights_pos_oi[k] );
 	  }
     }
   //
@@ -114,7 +129,7 @@ MAC::Convolutional_CUDA::load_kernels(// features
   err = cudaMalloc((void **)&d_shared_weights_, Num_of_features_out * sizeof(double*) );
   err = cudaMalloc((void **)&d_shared_biases_,  Num_of_features_out * sizeof(double) );
   // Weights position and transposed matrix
-  err = cudaMalloc((void **)&d_weights_pos_oi_, Im_size_out * Number_of_weights * sizeof(int) );
+  err = cudaMalloc((void **)&d_weights_pos_oi_, 2*27/*Im_size_out * Number_of_weights*/ * sizeof(int) );
 //  //err = cudaMalloc((void **)&d_weights_pos_io_, Im_size_in  * sizeof(double*) );
   if (err != cudaSuccess)
     {
@@ -139,18 +154,18 @@ MAC::Convolutional_CUDA::load_kernels(// features
   cudaMemcpy( d_shared_biases_, Shared_biases, Num_of_features_out * sizeof(double), cudaMemcpyHostToDevice );
   // Weights position
 //  std::cout << "SIZE: " << Im_size_out * Number_of_weights * sizeof(std::size_t) << std::endl;
-  std::size_t* weights_pos_oi = new std::size_t[Im_size_out * Number_of_weights];
-  for ( int o = 0 ; o < Im_size_out ; o++ )
+  int* weights_pos_oi = new int[2*27/*Im_size_out * Number_of_weights*/];
+  for ( int o = 0 ; o < 2/*Im_size_out*/ ; o++ )
     for ( int k = 0 ; k < Number_of_weights ; k++ )
       {
 	size_t idx          = k + o * Number_of_weights;
-	//	std::cout << "Weights_pos_oi[o:"<< o << "][k:"<< k <<"] = " << Weights_pos_oi[o][k]<< std::endl;
-	weights_pos_oi[idx] = Weights_pos_oi[o][k];
-	//	std::cout << "weights_pos_oi[" << idx << "] = " << weights_pos_oi[idx] << std::endl;
+	std::cout << "Weights_pos_oi[o:"<< o << "][k:"<< k <<"] = " << Weights_pos_oi[o][k]<< std::endl;
+	weights_pos_oi[idx] = static_cast< int>( Weights_pos_oi[o][k] );
+	std::cout << "weights_pos_oi[" << idx << "] = " << weights_pos_oi[idx] << std::endl;
       }
 //  for (int k = 0 ; k < Number_of_weights ; k++)
 //    std::cout << weights_pos_oi[k] << std::endl;
-  err = cudaMemcpy( d_weights_pos_oi_, weights_pos_oi, Im_size_out * Number_of_weights * sizeof(int), cudaMemcpyHostToDevice );
+  err = cudaMemcpy( d_weights_pos_oi_, weights_pos_oi, 2*27/*Im_size_out * Number_of_weights*/ * sizeof(int), cudaMemcpyHostToDevice );
   if (err != cudaSuccess)
     {
       fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
@@ -199,7 +214,7 @@ MAC::Convolutional_CUDA::load_kernels(// features
 						       d_to_conv, d_conv,
 						       d_shared_weights_, d_shared_biases_,
 						       d_weights_pos_oi_ );
-  //
+   //
   std::cout << "Copy back the data" << std::endl;
   cudaMemcpy( To_conv,
 	      d_to_conv,
