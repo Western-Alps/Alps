@@ -39,14 +39,14 @@
 //
 //
 __global__ void
-convolution_cuda( std::size_t  Image_size_in,
-		  std::size_t  Image_size_out,
+convolution_cuda( int  Image_size_in,
+		  int  Image_size_out,
 		  int          Number_of_weights,
 		  double*      To_conv,
 		  double*      Conv,
 		  double**     Shared_weights,
 		  double*      Shared_biases,
-		  int * Weights_pos_oi )
+		  int* Weights_pos_oi )
 {
   //
   //
@@ -54,12 +54,12 @@ convolution_cuda( std::size_t  Image_size_in,
   double conv = 0.;
   if ( odx <  Image_size_out )
     {
-      for ( int k = 0 ; k < Number_of_weights ; k++ )
-	{
-	  //conv += Shared_weights[0][k] * To_conv[ Weights_pos_oi[odx][k] ];
-	  if (odx == 0)
+      if (odx == 0)
+	for ( int k = 0 ; k < Number_of_weights ; k++ )
+	  {
+	    //conv += Shared_weights[0][k] * To_conv[ Weights_pos_oi[odx][k] ];
 	    printf(" Odx: %d ~~ %d ", odx,  Weights_pos_oi[k] );
-	}
+	  }
     }
   //
   Conv[odx] = conv;
@@ -138,30 +138,32 @@ MAC::Convolutional_CUDA::load_kernels(// features
   // Biases
   cudaMemcpy( d_shared_biases_, Shared_biases, Num_of_features_out * sizeof(double), cudaMemcpyHostToDevice );
   // Weights position
-  std::cout << "SIZE: " << Im_size_out * Number_of_weights * sizeof(std::size_t) << std::endl;
+//  std::cout << "SIZE: " << Im_size_out * Number_of_weights * sizeof(std::size_t) << std::endl;
   std::size_t* weights_pos_oi = new std::size_t[Im_size_out * Number_of_weights];
   for ( int o = 0 ; o < Im_size_out ; o++ )
     for ( int k = 0 ; k < Number_of_weights ; k++ )
       {
 	size_t idx          = k + o * Number_of_weights;
+	//	std::cout << "Weights_pos_oi[o:"<< o << "][k:"<< k <<"] = " << Weights_pos_oi[o][k]<< std::endl;
 	weights_pos_oi[idx] = Weights_pos_oi[o][k];
+	//	std::cout << "weights_pos_oi[" << idx << "] = " << weights_pos_oi[idx] << std::endl;
       }
-  for (int k = 0 ; k < Number_of_weights ; k++)
-    std::cout << weights_pos_oi[k] << std::endl;
+//  for (int k = 0 ; k < Number_of_weights ; k++)
+//    std::cout << weights_pos_oi[k] << std::endl;
   err = cudaMemcpy( d_weights_pos_oi_, weights_pos_oi, Im_size_out * Number_of_weights * sizeof(int), cudaMemcpyHostToDevice );
   if (err != cudaSuccess)
     {
       fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
       exit(EXIT_FAILURE);
     }
-  std::cout << "SIZE: " << Im_size_out * Number_of_weights * sizeof(std::size_t) << std::endl;
+
 //  for ( std::size_t p = 0 ; p < Im_size_out ; p++)
 //    {
-//      std::size_t *temp_out;
-//      cudaMalloc((void **)&temp_out, Number_of_weights * sizeof(std::size_t) );
+//      int *temp_out;
+//      cudaMalloc((void **)&temp_out, Number_of_weights * sizeof(int) );
 //      // create a master pointer we will move into the pointer to pointer
-//      cudaMemcpy(temp_out, Weights_pos_oi[p], Number_of_weights * sizeof(std::size_t), cudaMemcpyHostToDevice);
-//      cudaMemcpy(&d_weights_pos_oi_[p], &temp_out, sizeof(std::size_t*), cudaMemcpyHostToDevice);
+//      cudaMemcpy(temp_out, Weights_pos_oi[p], Number_of_weights * sizeof(int), cudaMemcpyHostToDevice);
+//      cudaMemcpy(&d_weights_pos_oi_[p], &temp_out, sizeof(int*), cudaMemcpyHostToDevice);
 //      if (err != cudaSuccess)
 //	{
 //	  fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
@@ -191,7 +193,8 @@ MAC::Convolutional_CUDA::load_kernels(// features
     }
   //
   std::cout << "Execute kernel" << std::endl;
-  convolution_cuda<<< Blocks_out, threadsPerBlock >>>( im_size_in_, im_size_out_,
+  convolution_cuda<<< Blocks_out, threadsPerBlock >>>( static_cast< int >(im_size_in_),
+						       static_cast< int >(im_size_out_),
 						       number_of_weights_,
 						       d_to_conv, d_conv,
 						       d_shared_weights_, d_shared_biases_,
