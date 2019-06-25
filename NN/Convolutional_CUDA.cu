@@ -54,38 +54,73 @@ __global__ void cuda_hello()
 //
 //
 __global__ void
-convolution_cuda( int  Image_size_in,
-		  int  Image_size_out,
-		  int          Number_of_weights,
-		  double*      To_conv,
-		  double*      Conv,
-		  double**     Shared_weights,
-		  double*      Shared_biases,
-		  int* Weights_pos_oi )
+convolution_cuda( int      Image_size_in,
+		  int      Image_size_out,
+		  int      Number_of_weights,
+		  double*  To_conv,
+		  double*  Conv,
+		  double** Shared_weights,
+		  double*  Shared_biases,
+		  int*     Weights_pos_oi )
 {
   //
   //
   int odx = blockDim.x * blockIdx.x + threadIdx.x;
-  double conv = 0.;
+  //
   if ( odx <  Image_size_out )
     {
-      if (odx == 0)
-	for ( int k = 0 ; k < Number_of_weights ; k++ )
-	  {
-	    //conv += Shared_weights[0][k] * To_conv[ W0eights_pos_oi[odx][k] ];
-	    printf(" Odx: %d ~~ %d \n", odx, Weights_pos_oi[k] );
-	  }
+      double conv = 0.;
+      Conv[odx]   = 0.;
+      //
+      for ( int k = 0 ; k < Number_of_weights ; k++ )
+	{
+	  int idx = k + odx * Number_of_weights;
+	  conv += Shared_weights[0][k] * To_conv[ Weights_pos_oi[idx] ];
+	}
+      //
+      
+      Conv[odx] = conv + Shared_biases[0];
     }
+}
+//
+//
+//
+__global__ void
+transpose_convolution_cuda( int      Image_size_in,
+			    int      Image_size_out,
+			    int      Number_of_weights,
+			    double*  To_deconv,
+			    double*  Deconv,
+			    double** Shared_weights,
+			    double*  Shared_biases,
+			    int*     Weights_pos_io )
+{
   //
-  Conv[odx] = conv;
+  //
+  int odx = blockDim.x * blockIdx.x + threadIdx.x;
+  //
+  if ( odx <  Image_size_out )
+    {
+      double deconv = 0.;
+      Deconv[odx]    = 0.;
+      //
+      for ( int k = 0 ; k < Number_of_weights ; k++ )
+	{
+	  int idx = k + odx * Number_of_weights;
+	  if ( Weights_pos_io[idx] == 999999999 )
+	    deconv += Shared_weights[0][k] * To_deconv[ Weights_pos_io[idx] ];
+	}
+      //
+      
+      Deconv[odx] = deconv + Shared_biases[0];
+    }
 }
 //
 //
 //
 __host__ 
 MAC::Convolutional_CUDA::Convolutional_CUDA()
-{
-}
+{}
 //
 //
 //
@@ -129,8 +164,8 @@ MAC::Convolutional_CUDA::load_kernels(// features
   err = cudaMalloc((void **)&d_shared_weights_, Num_of_features_out * sizeof(double*) );
   err = cudaMalloc((void **)&d_shared_biases_,  Num_of_features_out * sizeof(double) );
   // Weights position and transposed matrix
-  err = cudaMalloc((void **)&d_weights_pos_oi_, 2*27/*Im_size_out * Number_of_weights*/ * sizeof(int) );
-//  //err = cudaMalloc((void **)&d_weights_pos_io_, Im_size_in  * sizeof(double*) );
+  err = cudaMalloc((void **)&d_weights_pos_oi_, Im_size_out * Number_of_weights * sizeof(int) );
+  err = cudaMalloc((void **)&d_weights_pos_io_, Im_size_in  * Number_of_weights * sizeof(double) );
   if (err != cudaSuccess)
     {
       fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
@@ -153,75 +188,65 @@ MAC::Convolutional_CUDA::load_kernels(// features
   // Biases
   cudaMemcpy( d_shared_biases_, Shared_biases, Num_of_features_out * sizeof(double), cudaMemcpyHostToDevice );
   // Weights position
-//  std::cout << "SIZE: " << Im_size_out * Number_of_weights * sizeof(std::size_t) << std::endl;
-  int* weights_pos_oi = new int[2*27/*Im_size_out * Number_of_weights*/];
-  for ( int o = 0 ; o < 2/*Im_size_out*/ ; o++ )
+  int* weights_pos_oi = new int[Im_size_out * Number_of_weights];
+  int* weights_pos_io = new int[Im_size_in * Number_of_weights];
+  //
+  for ( std::size_t o = 0 ; o < Im_size_out ; o++ )
     for ( int k = 0 ; k < Number_of_weights ; k++ )
       {
-	size_t idx          = k + o * Number_of_weights;
-	std::cout << "Weights_pos_oi[o:"<< o << "][k:"<< k <<"] = " << Weights_pos_oi[o][k]<< std::endl;
-	weights_pos_oi[idx] = static_cast< int>( Weights_pos_oi[o][k] );
-	std::cout << "weights_pos_oi[" << idx << "] = " << weights_pos_oi[idx] << std::endl;
+	size_t odx          = k + o * Number_of_weights;
+	weights_pos_oi[odx] = static_cast< int>( Weights_pos_oi[o][k] );
       }
-//  for (int k = 0 ; k < Number_of_weights ; k++)
-//    std::cout << weights_pos_oi[k] << std::endl;
-  err = cudaMemcpy( d_weights_pos_oi_, weights_pos_oi, 2*27/*Im_size_out * Number_of_weights*/ * sizeof(int), cudaMemcpyHostToDevice );
+  //
+  for ( std::size_t i = 0 ; i < Im_size_in ; i++ )
+    for ( int k = 0 ; k < Number_of_weights ; k++ )
+      {
+	size_t idx          = k + i * Number_of_weights;
+	weights_pos_io[idx] = static_cast< int>( Weights_pos_io[i][k] );
+      }
+  //
+  err = cudaMemcpy( d_weights_pos_oi_, weights_pos_oi, Im_size_out * Number_of_weights * sizeof(int), cudaMemcpyHostToDevice );
+  err = cudaMemcpy( d_weights_pos_io_, weights_pos_io, Im_size_in  * Number_of_weights * sizeof(int), cudaMemcpyHostToDevice );
   if (err != cudaSuccess)
     {
       fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
       exit(EXIT_FAILURE);
     }
-
-//  for ( std::size_t p = 0 ; p < Im_size_out ; p++)
+//  //
+//  // test on conv
+//  double* d_to_conv;
+//  double* d_conv;
+//  //
+//  err = cudaMalloc((void **)&d_to_conv,   Im_size_in  * sizeof(double) );
+//  err = cudaMalloc((void **)&d_conv,      Im_size_out * sizeof(double) );
+//  //
+//  cudaMemcpy( d_to_conv, To_conv, Im_size_in  * sizeof(double), cudaMemcpyHostToDevice);
+//  cudaMemcpy( d_conv,    Conv,    Im_size_out * sizeof(double), cudaMemcpyHostToDevice);
+//  //
+//  // 1. check on the device
+//  int threadsPerBlock = THREADSPERBLOCK;
+//  int Blocks_out      = (( Im_size_out ) + threadsPerBlock - 1) / threadsPerBlock;
+//  //
+//  if (err != cudaSuccess)
 //    {
-//      int *temp_out;
-//      cudaMalloc((void **)&temp_out, Number_of_weights * sizeof(int) );
-//      // create a master pointer we will move into the pointer to pointer
-//      cudaMemcpy(temp_out, Weights_pos_oi[p], Number_of_weights * sizeof(int), cudaMemcpyHostToDevice);
-//      cudaMemcpy(&d_weights_pos_oi_[p], &temp_out, sizeof(int*), cudaMemcpyHostToDevice);
-//      if (err != cudaSuccess)
-//	{
-//	  fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
-//	  exit(EXIT_FAILURE);
-//	}
+//      fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
+//      exit(EXIT_FAILURE);
 //    }
-
-  //
-  // test on conv
-  double* d_to_conv;
-  double* d_conv;
-  //
-  err = cudaMalloc((void **)&d_to_conv,   Im_size_in  * sizeof(double) );
-  err = cudaMalloc((void **)&d_conv,      Im_size_out * sizeof(double) );
-  //
-  cudaMemcpy( d_to_conv, To_conv, Im_size_in  * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy( d_conv,    Conv,    Im_size_out * sizeof(double), cudaMemcpyHostToDevice);
-  //
-  // 1. check on the device
-  int threadsPerBlock = THREADSPERBLOCK;
-  int Blocks_out      = (( Im_size_out ) + threadsPerBlock - 1) / threadsPerBlock;
-  //
-  if (err != cudaSuccess)
-    {
-      fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
-      exit(EXIT_FAILURE);
-    }
-  //
-  std::cout << "Execute kernel" << std::endl;
-  convolution_cuda<<< Blocks_out, threadsPerBlock >>>( static_cast< int >(im_size_in_),
-						       static_cast< int >(im_size_out_),
-						       number_of_weights_,
-						       d_to_conv, d_conv,
-						       d_shared_weights_, d_shared_biases_,
-						       d_weights_pos_oi_ );
-   //
-  std::cout << "Copy back the data" << std::endl;
-  cudaMemcpy( To_conv,
-	      d_to_conv,
-	      Im_size_out * sizeof(double), cudaMemcpyDeviceToHost );
-  //
-  cudaFree( d_to_conv );
-  cudaFree( d_conv );
+//  //
+//  std::cout << "Execute kernel" << std::endl;
+//  convolution_cuda<<< Blocks_out, threadsPerBlock >>>( static_cast< int >(im_size_in_),
+//						       static_cast< int >(im_size_out_),
+//						       number_of_weights_,
+//						       d_to_conv, d_conv,
+//						       d_shared_weights_, d_shared_biases_,
+//						       d_weights_pos_oi_ );
+//   //
+//  std::cout << "Copy back the data" << std::endl;
+//  cudaMemcpy( Conv, d_conv,
+//	      Im_size_out * sizeof(double), cudaMemcpyDeviceToHost );
+//  //
+//  cudaFree( d_to_conv );
+//  cudaFree( d_conv );
 };
 //
 //
