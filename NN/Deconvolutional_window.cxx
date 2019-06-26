@@ -53,29 +53,47 @@ MAC::Deconvolutional_window::Deconvolutional_window( const std::string Name,
 
   //
   // Prepare the dimensions I/O
+  // WARNING: information should be reverse from the convolution
   //
 
   //
   // Input dimension
-  // ToDo: at this point we take only one input modality. Several input modalities
-  //       would need to generalize the kernel to 4 dimensions
   size_in_       = Conv_wind->get_size_out();
   origine_in_    = Conv_wind->get_origine_out();
   spacing_in_    = Conv_wind->get_spacing_out();
   direction_in_  = Conv_wind->get_direction_out();
-  //
   // Output dimensions
-  size_out_       = Conv_wind->get_size_in();
-  origine_out_    = Conv_wind->get_origine_in();
-  spacing_out_    = Conv_wind->get_spacing_in();
-  direction_out_  = Conv_wind->get_direction_in();
+  size_out_      = Conv_wind->get_size_in();
+  origine_out_   = Conv_wind->get_origine_in();
+  spacing_out_   = Conv_wind->get_spacing_in();
+  direction_out_ = Conv_wind->get_direction_in();
+  //
+  // Transfer the weight matrix
+  im_size_in_    = size_in_[0]*size_in_[1]*size_in_[2];
+  im_size_out_   = size_out_[0]*size_out_[1]*size_out_[2];
+  //
+  weights_poisition_oi_ = new std::size_t*[ im_size_out_ ];
+  weights_poisition_io_ = new std::size_t*[ im_size_in_ ];
+  //
+  for ( std::size_t i = 0 ; i < im_size_in_ ; i++ )
+    {
+      weights_poisition_io_[i] = new std::size_t[number_of_weights_];
+      for ( int k = 0 ; k < number_of_weights_ ; k++ )
+	weights_poisition_io_[i][k] = ( Conv_wind->get_weights_position_oi() )[i][k];
+    }
+  //
+  for ( std::size_t o = 0 ; o < im_size_out_ ; o++ )
+    {
+      weights_poisition_oi_[o] = new std::size_t[number_of_weights_];
+      for ( int k = 0 ; k < number_of_weights_ ; k++ )
+	weights_poisition_oi_[o][k] = ( Conv_wind->get_weights_position_io() )[o][k];
+    }
 }
 //
 //
 void
 MAC::Deconvolutional_window::print()
-{
-}
+{}
 //
 //
 MAC::Deconvolutional_window::~Deconvolutional_window()

@@ -83,7 +83,6 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   origine_in_    = raw_subject_image_ptr->GetOrigin();
   spacing_in_    = raw_subject_image_ptr->GetSpacing();
   direction_in_  = raw_subject_image_ptr->GetDirection();
-  //
   // Output dimensions
   size_out_       = feature_size( size_in_ );
   origine_out_    = feature_orig( size_in_, spacing_in_, origine_in_ );
