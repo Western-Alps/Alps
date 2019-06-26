@@ -157,7 +157,7 @@ namespace MAC
       //
       // Convolution window
       std::shared_ptr< Convolutional_window >   window_;
-      // Convolution window
+      // Deconvolution window
       std::shared_ptr< Deconvolutional_window > dec_window_;
 
       //
@@ -221,8 +221,6 @@ namespace MAC
 				 // ToDo: to remove
 				 window_->image_to_conv,
 				 window_->image_conv );
-    // ToDo: to remove
-    window_->tempo();
   };
   //
   //

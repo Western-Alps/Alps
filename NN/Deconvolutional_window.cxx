@@ -1,5 +1,8 @@
-#include "Deconvolutional_window.h"
 #include <random>
+#include <Eigen/Sparse>
+//
+#include "Deconvolutional_window.h"
+#include "MACLoadDataSet.h"
 
 
 
@@ -18,6 +21,7 @@ MAC::Deconvolutional_window::Deconvolutional_window( const std::string Name,
   stride_                       = nullptr;
   padding_                      = nullptr;
   //
+  // reverse the order of features
   number_of_features_in_  = Conv_wind->get_number_of_features_out();
   number_of_features_out_ = Conv_wind->get_number_of_features_in();
 
@@ -26,13 +30,21 @@ MAC::Deconvolutional_window::Deconvolutional_window( const std::string Name,
   //
   
   //
+  // Weights
   number_of_weights_ = Conv_wind->get_number_of_weights();
-  // ToDo: here we will take the transposed matrix of the tensor
+  // Get the weights from the convolution window
+  shared_weights_ = new double*[ number_of_features_in_ ];
+  //
+  for ( int feature = 0 ; feature < number_of_features_in_ ; feature++ )
+    {
+      shared_weights_[feature] = new double[ number_of_weights_ ];
+      for ( int w = 0 ; w < number_of_weights_ ; w++ )
+	shared_weights_[feature][w] = ( Conv_wind->get_shared_weights() )[feature][w];
+    }
   // Initialize the biases
   std::default_random_engine generator;
   std::uniform_real_distribution<double> distribution( -1.0, 1.0 );
   // initialization
-  shared_weights_ = nullptr;
   shared_biases_  = new double[ number_of_features_out_ ];
   //
   for ( std::size_t feature = 0 ; feature < number_of_features_out_ ; feature++ )
@@ -63,17 +75,6 @@ MAC::Deconvolutional_window::Deconvolutional_window( const std::string Name,
 void
 MAC::Deconvolutional_window::print()
 {
-  //
-  // check the number of weights
-  std::cout << "number of weights: " << number_of_weights_ << std::endl;
-  // Check the indexes:
-  for ( auto u : weight_indexes_ )
-    std::cout << "Indexes: " << u << std::endl;
-  // Check the values of the weights
-  for ( int w = 0 ; w < number_of_weights_  ; w++ )
-    std::cout << weights_[w] << " ";
-  //
-  std::cout << std::endl;
 }
 //
 //

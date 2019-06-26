@@ -90,24 +90,47 @@ namespace MAC
   public:
     //
     // Constructor
-    Deconvolutional_window();
+    explicit Deconvolutional_window();
     //
     // Constructor
-    Deconvolutional_window( const std::string,
-			    std::shared_ptr< Convolutional_window > );
+    explicit Deconvolutional_window( const std::string,
+				       std::shared_ptr< Convolutional_window > );
     //
     // Destructor
     virtual ~Deconvolutional_window();
     
     
   public:
+    // 
+    // Functions
+    virtual void print();
+
     //
     // Accessors
-    virtual void print();
+    //
     // Save the weightd
     virtual void save_weights(){};
     // Save the weightd
     virtual void load_weights(){};
+    //
+    // from the class
+    const std::size_t get_number_of_features_in()  const { return number_of_features_in_;};
+    const std::size_t get_number_of_features_out() const { return number_of_features_out_;};
+    // Image information input layer
+    const Image3DType::SizeType      get_size_in()      const { return size_in_; };
+    const Image3DType::SpacingType   get_spacing_in()   const { return spacing_in_; };
+    const Image3DType::PointType     get_origine_in()   const { return origine_in_; };
+    const Image3DType::DirectionType get_direction_in() const { return direction_in_; };
+    // Image information output layer
+    const Image3DType::SizeType      get_size_out()      const { return size_out_; };
+    const Image3DType::SpacingType   get_spacing_out()   const { return spacing_out_; };
+    const Image3DType::PointType     get_origine_out()   const { return origine_out_; };
+    const Image3DType::DirectionType get_direction_out() const { return direction_out_; };
+    //
+    std::size_t                      get_im_size_in() const { return im_size_in_; };
+    std::size_t                      get_im_size_out() const { return im_size_out_; };
+    std::size_t**                    get_weights_position_oi() const { return weights_poisition_oi_; };
+    std::size_t**                    get_weights_position_io() const { return weights_poisition_io_; };
 
 
   private:
@@ -122,9 +145,8 @@ namespace MAC
     //
     // Outputs
     // Number of features: 2,4,8,16,...,1024
-    std::size_t number_of_features_in_;
-    std::size_t number_of_features_out_;
-    //
+    std::size_t                number_of_features_in_;
+    std::size_t                number_of_features_out_;
     // Image information input layer
     Image3DType::SizeType      size_in_;
     Image3DType::SpacingType   spacing_in_;
@@ -135,6 +157,11 @@ namespace MAC
     Image3DType::SpacingType   spacing_out_;
     Image3DType::PointType     origine_out_;
     Image3DType::DirectionType direction_out_;
+    // Weights position in the Weight matrix
+    std::size_t                im_size_in_;
+    std::size_t                im_size_out_;
+    std::size_t**              weights_poisition_oi_;
+    std::size_t**              weights_poisition_io_;
   };
 }
 #endif

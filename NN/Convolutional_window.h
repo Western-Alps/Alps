@@ -85,22 +85,22 @@ namespace MAC
   public:
     //
     // Constructor
-    Convolutional_window();
+    explicit Convolutional_window();
     //
     // Constructor
     // WARNING: This constructor is targetting the first
     // convolution. Subsequent window must take a window as
     // input.
-    Convolutional_window( const std::string, std::shared_ptr< Convolutional_window >,
-			  const int*, const int*, const int*,
-			  const int );
+    explicit Convolutional_window( const std::string, std::shared_ptr< Convolutional_window >,
+				   const int*, const int*, const int*,
+				   const int );
     //
     // Constructor
     // WARNING: This constructor is for subsequent window.
     // It comes after a first convolutional window.
-    Convolutional_window( const std::string,
-			  const int*, const int*, const int*,
-			  const int );
+    explicit Convolutional_window( const std::string,
+				   const int*, const int*, const int*,
+				   const int );
     //
     // Destructor
     virtual ~Convolutional_window();
@@ -114,7 +114,6 @@ namespace MAC
     //
     // Accessors
     //
-    // Mother class
     // Save the weights
     virtual void save_weights();
     // Save the weights
@@ -138,8 +137,6 @@ namespace MAC
     std::size_t                      get_im_size_out() const { return im_size_out_; };
     std::size_t**                    get_weights_position_oi() const { return weights_poisition_oi_; };
     std::size_t**                    get_weights_position_io() const { return weights_poisition_io_; };
-    // ToDo: to remove
-    void tempo();
     
     //
     // Output feature size
@@ -167,9 +164,8 @@ namespace MAC
     //
     // Outputs
     // Number of features: 2,4,8,16,...,1024
-    std::size_t number_of_features_in_;
-    std::size_t number_of_features_out_;
-    //
+    std::size_t                number_of_features_in_;
+    std::size_t                number_of_features_out_;
     // Image information input layer
     Image3DType::SizeType      size_in_;
     Image3DType::SpacingType   spacing_in_;

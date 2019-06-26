@@ -270,15 +270,6 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 //    }
 	  }
     }
-//  std::cout << "Second step" << std::endl;
-//  for ( auto Z = 0 ; Z < O_size_Z ; Z++ )
-//    for ( auto Y = 0 ; Y < O_size_Y ; Y++ )
-//      for ( auto X = 0 ; X < O_size_X ; X++ )
-//	{
-//	  Image3DType::IndexType idx = {X, Y, Z};
-//	  int oo = X + Y*O_size_X + Z*O_size_X*O_size_Y;
-//	  image_out->SetPixel(idx, tempo[oo]);
-//	}
       
 
   //
@@ -413,58 +404,8 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 //
 //
 void
-MAC::Convolutional_window::tempo()
-{
-
-  Reader3D::Pointer out = Reader3D::New();
-  out->SetFileName( "/home/cobigo/devel/CPP/Alps/data/tempo11.nii.gz" );
-  out->Update();
-  Image3DType::IndexType  start = { 0, 0, 0 };
-  Image3DType::RegionType region_out;
-  region_out.SetSize( size_out_ );
-  region_out.SetIndex( start );
-  Image3DType::Pointer image_out = out->GetOutput();
-  image_out->SetRegions( region_out );
-  image_out->Allocate();
-  image_out->FillBuffer( 0.0 );
-  int
-    O_size_X = size_out_[0],
-    O_size_Y = size_out_[1],
-    O_size_Z = size_out_[2];
-
-  for ( auto Z = 0 ; Z < O_size_Z ; Z++ )
-    for ( auto Y = 0 ; Y < O_size_Y ; Y++ )
-      for ( auto X = 0 ; X < O_size_X ; X++ )
-	{
-	  Image3DType::IndexType idx = {X, Y, Z};
-	  int oo = X + Y*O_size_X + Z*O_size_X*O_size_Y;
-	  image_out->SetPixel(idx, image_conv[oo]);
-	}
-
-  
-  itk::ImageFileWriter< Image3DType >::Pointer writer = itk::ImageFileWriter< Image3DType >::New();
-  writer->SetFileName( "image_test_3.nii.gz" );
-  writer->SetInput( image_out );
-  //writer->SetImageIO( nifti_io );
-  writer->Update();
-}
-//
-//
-//
-void
 MAC::Convolutional_window::print()
 {
-  //
-  // check the number of weights
-  std::cout << "number of weights: " << number_of_weights_ << std::endl;
-  // Check the indexes:
-  for ( auto u : weight_indexes_ )
-    std::cout << "Indexes: " << u << std::endl;
-  // Check the values of the weights
-  for ( int w = 0 ; w < number_of_weights_  ; w++ )
-    std::cout << weights_[w] << " ";
-  //
-  std::cout << std::endl;
 }
 //
 //

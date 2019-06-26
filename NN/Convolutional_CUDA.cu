@@ -205,8 +205,10 @@ MAC::Convolutional_CUDA::load_kernels(// features
 	weights_pos_io[idx] = static_cast< int>( Weights_pos_io[i][k] );
       }
   //
-  err = cudaMemcpy( d_weights_pos_oi_, weights_pos_oi, Im_size_out * Number_of_weights * sizeof(int), cudaMemcpyHostToDevice );
-  err = cudaMemcpy( d_weights_pos_io_, weights_pos_io, Im_size_in  * Number_of_weights * sizeof(int), cudaMemcpyHostToDevice );
+  err = cudaMemcpy( d_weights_pos_oi_, weights_pos_oi, 
+		    Im_size_out * Number_of_weights * sizeof(int), cudaMemcpyHostToDevice );
+  err = cudaMemcpy( d_weights_pos_io_, weights_pos_io, 
+		    Im_size_in  * Number_of_weights * sizeof(int), cudaMemcpyHostToDevice );
   if (err != cudaSuccess)
     {
       fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
@@ -253,16 +255,14 @@ MAC::Convolutional_CUDA::load_kernels(// features
 //
 __host__ void
 MAC::Convolutional_CUDA::forward()
-{
-};
+{};
 //
 //
 //
 __host__ void
 MAC::Convolutional_CUDA::backward( std::map< std::string, Neurons_type >& Neurons,
 				   const Functions& Activation_func )
-{
-};
+{};
 //
 //
 //
