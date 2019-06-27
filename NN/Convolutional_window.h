@@ -138,10 +138,6 @@ namespace MAC
     std::size_t**                    get_weights_position_oi() const { return weights_poisition_oi_; };
     std::size_t**                    get_weights_position_io() const { return weights_poisition_io_; };
     
-    //
-    // Output feature size
-    size_t number_of_features( const int ) const {return number_of_features_out_;};
-
   private:
     // This function creates the size of the output feature 
     // following each direction Dim.
@@ -157,9 +153,9 @@ namespace MAC
     // Inputs
     std::shared_ptr< Convolutional_window > previouse_conv_window_;
     // Half window
-    int*                                    convolution_half_window_size_;
-    int*                                    stride_;
-    int*                                    padding_;
+    int*                                    convolution_half_window_size_{nullptr};
+    int*                                    stride_{nullptr};
+    int*                                    padding_{nullptr};
 
     //
     // Outputs
@@ -177,15 +173,15 @@ namespace MAC
     Image3DType::PointType     origine_out_;
     Image3DType::DirectionType direction_out_;
     // Weights position in the Weight matrix
-    std::size_t                im_size_in_;
-    std::size_t                im_size_out_;
-    std::size_t**              weights_poisition_oi_;
-    std::size_t**              weights_poisition_io_;
-
-  public:
-    // ToDo: to remove
-    double* image_to_conv;
-    double* image_conv;
+    std::size_t                im_size_in_{0};
+    std::size_t                im_size_out_{0};
+    std::size_t**              weights_poisition_oi_{nullptr};
+    std::size_t**              weights_poisition_io_{nullptr};
+//toRm
+//toRm  public:
+//toRm    // ToDo: to remove
+//toRm    double* image_to_conv;
+//toRm    double* image_conv;
   };
 }
 #endif

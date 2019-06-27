@@ -16,13 +16,16 @@ MAC::Deconvolutional_window::Deconvolutional_window( const std::string Name,
 						     std::shared_ptr< MAC::Convolutional_window > Conv_wind ) : Weights(Name), previouse_conv_window_{Conv_wind}
 {
   //
+  // ToDo: Check Conv_wind exist
+  
+  //
   // members
   convolution_half_window_size_ = nullptr;
   stride_                       = nullptr;
   padding_                      = nullptr;
   //
   // reverse the order of features
-  number_of_features_in_  = Conv_wind->get_number_of_features_out();
+  number_of_features_     = number_of_features_in_  = Conv_wind->get_number_of_features_out();
   number_of_features_out_ = Conv_wind->get_number_of_features_in();
 
   //
@@ -35,7 +38,7 @@ MAC::Deconvolutional_window::Deconvolutional_window( const std::string Name,
   // Get the weights from the convolution window
   shared_weights_ = new double*[ number_of_features_in_ ];
   //
-  for ( int feature = 0 ; feature < number_of_features_in_ ; feature++ )
+  for ( std::size_t feature = 0 ; feature < number_of_features_in_ ; feature++ )
     {
       shared_weights_[feature] = new double[ number_of_weights_ ];
       for ( int w = 0 ; w < number_of_weights_ ; w++ )
@@ -62,11 +65,21 @@ MAC::Deconvolutional_window::Deconvolutional_window( const std::string Name,
   origine_in_    = Conv_wind->get_origine_out();
   spacing_in_    = Conv_wind->get_spacing_out();
   direction_in_  = Conv_wind->get_direction_out();
+  std::cout << "In Deconv construc1" << std::endl;
+  std::cout << "size_in_ " << size_in_ << std::endl;
+  std::cout << "origine_in_ " << origine_in_ << std::endl;
+  std::cout << "spacing_in_ " << spacing_in_ << std::endl;
+  std::cout << "direction_in_ " << direction_in_ << std::endl;
   // Output dimensions
   size_out_      = Conv_wind->get_size_in();
   origine_out_   = Conv_wind->get_origine_in();
   spacing_out_   = Conv_wind->get_spacing_in();
   direction_out_ = Conv_wind->get_direction_in();
+  std::cout << "Out Deconv construc1" << std::endl;
+  std::cout << "size_out_ " << size_out_ << std::endl;
+  std::cout << "origine_out_ " << origine_out_ << std::endl;
+  std::cout << "spacing_out_ " << spacing_out_ << std::endl;
+  std::cout << "direction_out_ " << direction_out_ << std::endl;
   //
   // Transfer the weight matrix
   im_size_in_    = size_in_[0]*size_in_[1]*size_in_[2];
@@ -74,20 +87,20 @@ MAC::Deconvolutional_window::Deconvolutional_window( const std::string Name,
   //
   weights_poisition_oi_ = new std::size_t*[ im_size_out_ ];
   weights_poisition_io_ = new std::size_t*[ im_size_in_ ];
-  //
-  for ( std::size_t i = 0 ; i < im_size_in_ ; i++ )
-    {
-      weights_poisition_io_[i] = new std::size_t[number_of_weights_];
-      for ( int k = 0 ; k < number_of_weights_ ; k++ )
-	weights_poisition_io_[i][k] = ( Conv_wind->get_weights_position_oi() )[i][k];
-    }
-  //
-  for ( std::size_t o = 0 ; o < im_size_out_ ; o++ )
-    {
-      weights_poisition_oi_[o] = new std::size_t[number_of_weights_];
-      for ( int k = 0 ; k < number_of_weights_ ; k++ )
-	weights_poisition_oi_[o][k] = ( Conv_wind->get_weights_position_io() )[o][k];
-    }
+ //
+ for ( std::size_t i = 0 ; i < im_size_in_ ; i++ )
+   {
+     weights_poisition_io_[i] = new std::size_t[number_of_weights_];
+     for ( int k = 0 ; k < number_of_weights_ ; k++ )
+       weights_poisition_io_[i][k] = ( Conv_wind->get_weights_position_oi() )[i][k];
+     }
+ //
+ for ( std::size_t o = 0 ; o < im_size_out_ ; o++ )
+   {
+     weights_poisition_oi_[o] = new std::size_t[number_of_weights_];
+     for ( int k = 0 ; k < number_of_weights_ ; k++ )
+       weights_poisition_oi_[o][k] = ( Conv_wind->get_weights_position_io() )[o][k];
+   }
 }
 //
 //
@@ -98,6 +111,8 @@ MAC::Deconvolutional_window::print()
 //
 MAC::Deconvolutional_window::~Deconvolutional_window()
 {
+  //
+  // Window
   if (convolution_half_window_size_)
     delete [] convolution_half_window_size_;
   convolution_half_window_size_ = nullptr;
@@ -107,4 +122,28 @@ MAC::Deconvolutional_window::~Deconvolutional_window()
   if (padding_)
     delete [] padding_;
   padding_ = nullptr;
+  // Weights position matrices
+  if (weights_poisition_oi_)
+    {
+      for (std::size_t o = 0 ; o < im_size_out_ ; o++)
+	if ( weights_poisition_oi_[o] )
+	  {
+	    delete [] weights_poisition_oi_[o];
+	    weights_poisition_oi_[o] = nullptr;
+	  }
+      delete [] weights_poisition_oi_;
+      weights_poisition_oi_ = nullptr;
+    }
+  //
+  if (weights_poisition_io_)
+    {
+      for (std::size_t i = 0 ; i < im_size_in_ ; i++)
+	if ( weights_poisition_io_[i] )
+	  {
+	    delete [] weights_poisition_io_[i];
+	    weights_poisition_io_[i] = nullptr;
+	  }
+      delete [] weights_poisition_io_;
+      weights_poisition_io_ = nullptr;
+    }
 }

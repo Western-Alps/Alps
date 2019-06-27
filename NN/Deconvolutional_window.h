@@ -138,9 +138,9 @@ namespace MAC
     // Inputs
     std::shared_ptr< Convolutional_window > previouse_conv_window_;
     // Half window
-    int*                                    convolution_half_window_size_;
-    int*                                    stride_;
-    int*                                    padding_;
+    int*                                    convolution_half_window_size_{nullptr};
+    int*                                    stride_{nullptr};
+    int*                                    padding_{nullptr};
 
     //
     // Outputs
@@ -160,8 +160,8 @@ namespace MAC
     // Weights position in the Weight matrix
     std::size_t                im_size_in_;
     std::size_t                im_size_out_;
-    std::size_t**              weights_poisition_oi_;
-    std::size_t**              weights_poisition_io_;
+    std::size_t**              weights_poisition_oi_{nullptr};
+    std::size_t**              weights_poisition_io_{nullptr};
   };
 }
 #endif

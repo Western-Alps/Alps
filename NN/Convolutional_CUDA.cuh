@@ -58,8 +58,8 @@ namespace MAC
 			 const int,
 			 double**, double*,
 			 std::size_t,  std::size_t,
-			 std::size_t**,  std::size_t**,
-			 double*, double* );
+			 std::size_t**,  std::size_t**/*,
+							double*, double* */ );
       
       //
       // Forward/Backward propagation

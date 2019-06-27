@@ -40,14 +40,16 @@ namespace MAC
     //
     // Destructor
     // ToDo: clean the pointers
-    virtual ~Weights(){};
+    virtual ~Weights();
 
     //
     // Accessors
-    const double* get_weights() const { return weights_; }
-    double** get_shared_weights() { return shared_weights_; }
-    double*  get_biases() { return shared_biases_; }
+    const int get_number_of_weights() const { return number_of_weights_;};
     const std::vector< int >& get_weight_indexes() const { return weight_indexes_; }
+    const double*             get_weights() const { return weights_; }
+    // Convolution
+    double**                  get_shared_weights() { return shared_weights_; }
+    double*                   get_shared_biases() { return shared_biases_; }
 
   public:
     //
@@ -57,8 +59,6 @@ namespace MAC
     virtual void save_weights(){};
     // Save the weightd
     virtual void load_weights(){};
-    // Get the number of weights
-    const int get_number_of_weights() const { return number_of_weights_;};
 
     
     //
@@ -80,12 +80,14 @@ namespace MAC
     std::vector< int >  weight_indexes_;
     // weights
     double*             weights_;
+    //
+    // Convolution
+    // Number of features
+    int                 number_of_features_{0};
     // weights
-    double**            shared_weights_;
+    double**            shared_weights_{nullptr};
     // biases
-    double*             shared_biases_;
-//    //! Unique instance
-//    static Weights *weights_instance_;
+    double*             shared_biases_{nullptr};
   };
 }
 #endif

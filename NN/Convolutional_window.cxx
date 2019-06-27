@@ -30,13 +30,9 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
       stride_[d]                       = Striding[d];
       padding_[d]                      = 0;
     }
-  //memcpy ( convolution_half_window_size_, Conv_half_window, 3 * sizeof(int) );
-  //memcpy ( stride_, Striding, 3 * sizeof(int) );
-  //memcpy ( padding_, {0,0,0}, 3*sizeof(int) );
-  //padding_ = nullptr; // ToDo padding dev
   //
   number_of_features_in_  = 1;
-  number_of_features_out_ = Num_of_features;
+  number_of_features_     = number_of_features_out_ = Num_of_features;
 
   //
   // Initialization of the weights
@@ -83,38 +79,48 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   origine_in_    = raw_subject_image_ptr->GetOrigin();
   spacing_in_    = raw_subject_image_ptr->GetSpacing();
   direction_in_  = raw_subject_image_ptr->GetDirection();
+  std::cout << "In construc1" << std::endl;
+  std::cout << "size_in_ " << size_in_ << std::endl;
+  std::cout << "origine_in_ " << origine_in_ << std::endl;
+  std::cout << "spacing_in_ " << spacing_in_ << std::endl;
+  std::cout << "direction_in_ " << direction_in_ << std::endl;
   // Output dimensions
   size_out_       = feature_size( size_in_ );
   origine_out_    = feature_orig( size_in_, spacing_in_, origine_in_ );
   spacing_out_    = raw_subject_image_ptr->GetSpacing();
   direction_out_  = raw_subject_image_ptr->GetDirection();
+  std::cout << "Out construc1" << std::endl;
+  std::cout << "size_out_ " << size_out_ << std::endl;
+  std::cout << "origine_out_ " << origine_out_ << std::endl;
+  std::cout << "spacing_out_ " << spacing_out_ << std::endl;
+  std::cout << "direction_out_ " << direction_out_ << std::endl;
   //
   // Prepare the weights matrices
-  Image3DType::IndexType  start = { 0, 0, 0 };
-  Image3DType::RegionType region;
-  region.SetSize( size_in_ );
-  region.SetIndex( start );
-  //
-  // ToDo: tempo
-  // Test image
-  Reader3D::Pointer out = Reader3D::New();
-  out->SetFileName( "/home/cobigo/devel/CPP/Alps/data/tempo11.nii.gz" );
-  out->Update();
-  Image3DType::RegionType region_out;
-  region_out.SetSize( size_out_ );
-  region_out.SetIndex( start );
-  Image3DType::Pointer image_out = out->GetOutput();
-  image_out->SetRegions( region_out );
-  image_out->Allocate();
-  image_out->FillBuffer( 0.0 );
-  long int
-    X_o = 0,
-    Y_o = 0,
-    Z_o = 0;
-  // ToDo: tempo
-  //Reader3D::Pointer reader = Reader3D::New();
-  //reader->SetFileName( raw_subject_image_ptr/*->GetOutput()->GetFileName()*/ );
-  //reader->Update();
+//toRm  Image3DType::IndexType  start = { 0, 0, 0 };
+//toRm  Image3DType::RegionType region;
+//toRm  region.SetSize( size_in_ );
+//toRm  region.SetIndex( start );
+//toRm  //
+//toRm  // ToDo: tempo
+//toRm  // Test image
+//toRm  Reader3D::Pointer out = Reader3D::New();
+//toRm  out->SetFileName( "/home/cobigo/devel/CPP/Alps/data/tempo11.nii.gz" );
+//toRm  out->Update();
+//toRm  Image3DType::RegionType region_out;
+//toRm  region_out.SetSize( size_out_ );
+//toRm  region_out.SetIndex( start );
+//toRm  Image3DType::Pointer image_out = out->GetOutput();
+//toRm  image_out->SetRegions( region_out );
+//toRm  image_out->Allocate();
+//toRm  image_out->FillBuffer( 0.0 );
+//toRm  long int
+//toRm    X_o = 0,
+//toRm    Y_o = 0,
+//toRm    Z_o = 0;
+//toRm  // ToDo: tempo
+//toRm  //Reader3D::Pointer reader = Reader3D::New();
+//toRm  //reader->SetFileName( raw_subject_image_ptr/*->GetOutput()->GetFileName()*/ );
+//toRm  //reader->Update();
   //
   // Loop over the image
   int
@@ -125,10 +131,6 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
     Im_size_X = size_in_[0],
     Im_size_Y = size_in_[1],
     Im_size_Z = size_in_[2],
-    //
-    O_size_X = size_out_[0],
-    O_size_Y = size_out_[1],
-    O_size_Z = size_out_[2],
     //
     stride_X = stride_[0],
     stride_Y = stride_[1],
@@ -151,6 +153,7 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
       weights_poisition_io_[i] = new std::size_t[number_of_weights_];
       for ( int k = 0 ; k < number_of_weights_ ; k++ )
 	// adding an unreachable position in case the position is empty
+	// Do not chose zero or negative values
 	weights_poisition_io_[i][k] = 999999999;
     }
   //
@@ -167,15 +170,13 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   for ( auto Z = half_wind_Z ; Z < Im_size_Z - half_wind_Z ; Z = Z + stride_Z )
     {
       // double check output dimension
-      check_output_Z++;
-      check_output_Y = 0;
-      Y_o = 0; 
+      check_output_Z++; check_output_Y = 0;
+//toRm      Y_o = 0; 
       for ( auto Y = half_wind_Y ; Y < Im_size_Y - half_wind_Y ; Y = Y + stride_Y )
 	{
 	  // double check output dimension
-	  check_output_Y++;
-	  check_output_X = 0;
-	  X_o = 0; 
+	  check_output_Y++; check_output_X = 0;
+//toRm	  X_o = 0; 
 	  for ( auto X = half_wind_X ; X < Im_size_X - half_wind_X ; X = X + stride_X )
 	    {
 	      // double check output dimension
@@ -184,8 +185,8 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 	      int index = 0;
 	      weights_poisition_oi_[ output_idx ] = new std::size_t[ number_of_weights_ ];
 	      // ToDo: tempo
-	      double conv = 0.;
-	      Image3DType::IndexType iidx = {X_o++, Y_o, Z_o};
+//toRm	      double conv = 0.;
+//toRm	      Image3DType::IndexType iidx = {X_o++, Y_o, Z_o};
 		      
 	      //
 	      for ( int z = -half_wind_Z ; z < half_wind_Z + 1 ; z++ )
@@ -195,10 +196,10 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 		      std::size_t in_idx = (X + x) + (Y + y)*Im_size_X + (Z + z)*Im_size_X*Im_size_Y;
 		      weights_poisition_oi_[output_idx][index] = in_idx;
 		      // we keep the same index to not have zero value in the sparse matrix
-		      // ToDo: tempo
-		      Image3DType::IndexType idx = {(X + x), (Y + y), (Z + z)};
-		      conv += shared_weights_[0][index++]*raw_subject_image_ptr->GetPixel(idx);
-		      tripletList.push_back(T( output_idx, in_idx, index ));
+//toRm		      // ToDo: tempo
+//toRm		      Image3DType::IndexType idx = {(X + x), (Y + y), (Z + z)};
+//toRm		      conv += shared_weights_[0][index++]*raw_subject_image_ptr->GetPixel(idx);
+		      tripletList.push_back(T( output_idx, in_idx, ++index ));
 		      //std::cout
 		      //<< "index: " << index-1 << " (" << X + x << ", " << Y + y 
 		      //<< ", " << Z + z << ") -- (" << output_idx
@@ -207,12 +208,12 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 		    }
 	      //
 	      output_idx++;
-	      // ToDo: tempo
-	      image_out->SetPixel(iidx, conv);
+//toRm	      // ToDo: tempo
+//toRm	      image_out->SetPixel(iidx, conv);
 	    }
-	  Y_o++;
+//toRm	  Y_o++;
 	}
-      Z_o++;
+//toRm      Z_o++;
     }
   // Fill the sparse matrix
   W_out_in_.setFromTriplets( tripletList.begin(), tripletList.end() );
@@ -229,46 +230,46 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
       }
 
 
-  //  //
-  // ToDo: remove
-  // Test matrix multiplication
-  std::cout << "First step" << std::endl;
-  image_to_conv = new double[ im_size_in_ ];
-  image_conv    = new double[ im_size_out_ ];
-  double* tempo = new double[im_size_out_];
-  for ( int t = 0 ; t < im_size_out_  ; t++ )
-    {
-      tempo[t] = 0.;
-      image_conv[t] = 0.;
-    }
-  for ( auto Z = 0 ; Z < Im_size_Z ; Z++ )
-    {
-      for ( auto Y = 0 ; Y < Im_size_Y ; Y++ )
-	for ( auto X = 0 ; X < Im_size_X ; X++ )
-	  {
-	    Image3DType::IndexType idx = {X, Y, Z};
-	    int ii = X + Y*Im_size_X + Z*Im_size_X*Im_size_Y;
-	    image_to_conv[ii] =  raw_subject_image_ptr->GetPixel(idx);
-//	    for ( int oo = 0 ; oo < im_size_out_ ; oo++ )
-//	      {
-//		for ( int k = 0 ; k < number_of_weights_ ; k++ )
-//		  {
-//		    if ( weights_poisition_oi_[oo][k] == ii )
-//		      {
-//			tempo[oo] += shared_weights_[0][k]*raw_subject_image_ptr->GetPixel(idx);
-////			std::cout
-////			  << "weights_poisition_oi_[" <<oo<< "][" <<k<< "] = " << weights_poisition_oi_[oo][k]
-////			  << " ~~ " << ii;
-////			std::cout
-////			  << "shared_weights_[0][k] = " << shared_weights_[0][k]
-////			  << " raw_subject_image_ptr->GetPixel(idx) " << raw_subject_image_ptr->GetPixel(idx)
-////			  << " tempo[oo] = " << tempo[oo]
-////			  << std::endl;
-//		      }
-//	  }
-//    }
-	  }
-    }
+//toRm  //  //
+//toRm  // ToDo: remove
+//toRm  // Test matrix multiplication
+//toRm  std::cout << "First step" << std::endl;
+//toRm  image_to_conv = new double[ im_size_in_ ];
+//toRm  image_conv    = new double[ im_size_out_ ];
+//toRm  double* tempo = new double[im_size_out_];
+//toRm  for ( int t = 0 ; t < im_size_out_  ; t++ )
+//toRm    {
+//toRm      tempo[t] = 0.;
+//toRm      image_conv[t] = 0.;
+//toRm    }
+//toRm  for ( auto Z = 0 ; Z < Im_size_Z ; Z++ )
+//toRm    {
+//toRm      for ( auto Y = 0 ; Y < Im_size_Y ; Y++ )
+//toRm	for ( auto X = 0 ; X < Im_size_X ; X++ )
+//toRm	  {
+//toRm	    Image3DType::IndexType idx = {X, Y, Z};
+//toRm	    int ii = X + Y*Im_size_X + Z*Im_size_X*Im_size_Y;
+//toRm	    image_to_conv[ii] =  raw_subject_image_ptr->GetPixel(idx);
+//toRm//	    for ( int oo = 0 ; oo < im_size_out_ ; oo++ )
+//toRm//	      {
+//toRm//		for ( int k = 0 ; k < number_of_weights_ ; k++ )
+//toRm//		  {
+//toRm//		    if ( weights_poisition_oi_[oo][k] == ii )
+//toRm//		      {
+//toRm//			tempo[oo] += shared_weights_[0][k]*raw_subject_image_ptr->GetPixel(idx);
+//toRm////			std::cout
+//toRm////			  << "weights_poisition_oi_[" <<oo<< "][" <<k<< "] = " << weights_poisition_oi_[oo][k]
+//toRm////			  << " ~~ " << ii;
+//toRm////			std::cout
+//toRm////			  << "shared_weights_[0][k] = " << shared_weights_[0][k]
+//toRm////			  << " raw_subject_image_ptr->GetPixel(idx) " << raw_subject_image_ptr->GetPixel(idx)
+//toRm////			  << " tempo[oo] = " << tempo[oo]
+//toRm////			  << std::endl;
+//toRm//		      }
+//toRm//	  }
+//toRm//    }
+//toRm	  }
+//toRm    }
       
 
   //
@@ -290,17 +291,17 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 			       ITK_LOCATION );
     }
 
-  //
-  // ToDo: tempo
-  // Test images
-  //itk::NiftiImageIO::Pointer nifti_io = itk::NiftiImageIO::New();
-  //nifti_io->SetPixelType( "float" );
-  //
-  itk::ImageFileWriter< Image3DType >::Pointer writer = itk::ImageFileWriter< Image3DType >::New();
-  writer->SetFileName( "image_test.nii.gz" );
-  writer->SetInput( image_out );
-  //writer->SetImageIO( nifti_io );
-  writer->Update();
+//toRm  //
+//toRm  // ToDo: tempo
+//toRm  // Test images
+//toRm  //itk::NiftiImageIO::Pointer nifti_io = itk::NiftiImageIO::New();
+//toRm  //nifti_io->SetPixelType( "float" );
+//toRm  //
+//toRm  itk::ImageFileWriter< Image3DType >::Pointer writer = itk::ImageFileWriter< Image3DType >::New();
+//toRm  writer->SetFileName( "image_test.nii.gz" );
+//toRm  writer->SetInput( image_out );
+//toRm  //writer->SetImageIO( nifti_io );
+//toRm  writer->Update();
 }
 //
 //
@@ -326,28 +327,12 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
     }
   //
   number_of_features_in_  = Conv_wind->get_number_of_features_out();
-  number_of_features_out_ = Num_of_features;
+  number_of_features_     = number_of_features_out_ = Num_of_features;
 
   //
   // Initialization of the weights
   //
-  
-  // The dimensions of the window must be odd! We are taking in account the center.
-  // 3 dimensions for x,y and z;
-  // To complete the kernel size, we need to know how many feature maps we had in the
-  // previouse round.
-  //
-  for ( int i = 0 ; i < 3 ; i++ )
-    if ( Conv_half_window[i] % 2 == 0  )
-      {
-	std::string mess = "The dimension of the window must be odd";
-	mess += " dimension " + std::to_string( i );
-	mess += " value is: " + std::to_string( Conv_half_window[i] );
-	//
-	throw MAC::MACException( __FILE__, __LINE__,
-				 mess.c_str(),
-				 ITK_LOCATION );
-      }
+
   //
   // WARNING: the bias represents index 0!
   number_of_weights_ = 
@@ -382,7 +367,7 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   origine_in_    = Conv_wind->get_origine_out();  
   spacing_in_    = Conv_wind->get_spacing_out();  
   direction_in_  = Conv_wind->get_direction_out();
-  std::cout << "In" << std::endl;
+  std::cout << "In construc2" << std::endl;
   std::cout << "size_in_ " << size_in_ << std::endl;
   std::cout << "origine_in_ " << origine_in_ << std::endl;
   std::cout << "spacing_in_ " << spacing_in_ << std::endl;
@@ -393,11 +378,113 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   origine_out_    = feature_orig( size_in_, spacing_in_, origine_in_ );
   spacing_out_    = Conv_wind->get_spacing_out();
   direction_out_  = Conv_wind->get_direction_out();
-  std::cout << "OUT" << std::endl;
+  std::cout << "Out construc2" << std::endl;
   std::cout << "size_out_ " << size_out_ << std::endl;
   std::cout << "origine_out_ " << origine_out_ << std::endl;
   std::cout << "spacing_out_ " << spacing_out_ << std::endl;
   std::cout << "direction_out_ " << direction_out_ << std::endl;
+  //
+  // Loop over the image
+  int
+    half_wind_X = convolution_half_window_size_[0],
+    half_wind_Y = convolution_half_window_size_[1],
+    half_wind_Z = convolution_half_window_size_[2],
+    //
+    Im_size_X = size_in_[0],
+    Im_size_Y = size_in_[1],
+    Im_size_Z = size_in_[2],
+    //
+    stride_X = stride_[0],
+    stride_Y = stride_[1],
+    stride_Z = stride_[2];
+  //
+  std::size_t
+    check_output_X = 0,
+    check_output_Y = 0,
+    check_output_Z = 0;
+  //
+  im_size_in_  = size_in_[0]*size_in_[1]*size_in_[2];
+  im_size_out_ = size_out_[0]*size_out_[1]*size_out_[2];
+  //
+  weights_poisition_oi_ = new std::size_t*[ im_size_out_ ];
+  weights_poisition_io_ = new std::size_t*[ im_size_in_ ];
+  //
+  // Init the I/O array: weights[in_idx][k] = out_idx
+  for ( std::size_t i = 0 ; i < im_size_in_ ; i++ )
+    {
+      weights_poisition_io_[i] = new std::size_t[number_of_weights_];
+      for ( int k = 0 ; k < number_of_weights_ ; k++ )
+	// adding an unreachable position in case the position is empty
+	// Do not chose zero or negative values
+	weights_poisition_io_[i][k] = 999999999;
+    }
+  //
+  // weights[out_idx][k] = in_idx
+  // Creation of a sparse matrix of weight multiplication between in and out images
+  typedef Eigen::Triplet<double> T;
+  std::vector<T> tripletList;
+  std::size_t estimation_of_entries = number_of_weights_ * im_size_out_;
+  tripletList.reserve(estimation_of_entries);
+  Eigen::SparseMatrix< std::size_t > W_out_in_( im_size_out_, im_size_in_ );
+  W_out_in_.setZero();
+  //
+  std::size_t output_idx = 0;
+  for ( auto Z = half_wind_Z ; Z < Im_size_Z - half_wind_Z ; Z = Z + stride_Z )
+    {
+      // double check output dimension
+      check_output_Z++; check_output_Y = 0;
+      for ( auto Y = half_wind_Y ; Y < Im_size_Y - half_wind_Y ; Y = Y + stride_Y )
+	{
+	  // double check output dimension
+	  check_output_Y++; check_output_X = 0;
+	  for ( auto X = half_wind_X ; X < Im_size_X - half_wind_X ; X = X + stride_X )
+	    {
+	      // double check output dimension
+	      check_output_X++;
+	      // run through the convolution window
+	      int index = 0;
+	      weights_poisition_oi_[ output_idx ] = new std::size_t[ number_of_weights_ ];
+	      //
+	      for ( int z = -half_wind_Z ; z < half_wind_Z + 1 ; z++ )
+		for ( int y = -half_wind_Y ; y < half_wind_Y + 1 ; y++ )
+		  for ( int x = -half_wind_X ; x < half_wind_X + 1 ; x++ )
+		    {
+		      std::size_t in_idx = (X + x) + (Y + y)*Im_size_X + (Z + z)*Im_size_X*Im_size_Y;
+		      weights_poisition_oi_[output_idx][index] = in_idx;
+		      // we keep the same index to not have zero value in the sparse matrix
+		      tripletList.push_back(T( output_idx, in_idx, ++index ));
+		    }
+	      //
+	      output_idx++;
+	    }
+	}
+    }
+  // Fill the sparse matrix
+  W_out_in_.setFromTriplets( tripletList.begin(), tripletList.end() );
+  //
+  for ( int k = 0 ; k < W_out_in_.outerSize() ; ++k )
+    for ( Eigen::SparseMatrix< std::size_t >::InnerIterator it( W_out_in_, k ) ; it ; ++it )
+	weights_poisition_io_[it.col()][it.value()-1] = it.row();
+      
+
+  //
+  //
+  if ( check_output_X != size_out_[0] ||
+       check_output_Y != size_out_[1] ||
+       check_output_Z != size_out_[2]  )
+    {
+      std::string mess = "There is a dimension issue with the output: ";
+      mess += "( " + std::to_string( check_output_X ) ;
+      mess += ", " + std::to_string( check_output_Y ) ;
+      mess += ", " + std::to_string( check_output_Z ) + ") != ";
+      mess += "( " + std::to_string( size_out_[0] ) ;
+      mess += ", " + std::to_string( size_out_[1] ) ;
+      mess += ", " + std::to_string( size_out_[2] ) + ").";
+      //
+      throw MAC::MACException( __FILE__, __LINE__,
+			       mess.c_str(),
+			       ITK_LOCATION );
+    }
 }
 //
 //
@@ -494,7 +581,8 @@ MAC::Convolutional_window::feature_orig( const Image3DType::SizeType    Input_si
 //
 MAC::Convolutional_window::~Convolutional_window()
 {
-  // ToDo: pointer to pointer free
+  //
+  // Window
   if (convolution_half_window_size_)
     delete [] convolution_half_window_size_;
   convolution_half_window_size_ = nullptr;
@@ -504,16 +592,28 @@ MAC::Convolutional_window::~Convolutional_window()
   if (padding_)
     delete [] padding_;
   padding_ = nullptr;
-  if (shared_weights_)
-    delete [] shared_weights_;
-  shared_weights_ = nullptr;
-  if (shared_biases_)
-    delete [] shared_biases_;
-  shared_biases_ = nullptr;
+  // Weights position matrices
   if (weights_poisition_oi_)
-    delete [] weights_poisition_oi_;
-  weights_poisition_oi_ = nullptr;
+    {
+      for (std::size_t o = 0 ; o < im_size_out_ ; o++)
+	if ( weights_poisition_oi_[o] )
+	  {
+	    delete [] weights_poisition_oi_[o];
+	    weights_poisition_oi_[o] = nullptr;
+	  }
+      delete [] weights_poisition_oi_;
+      weights_poisition_oi_ = nullptr;
+    }
+  //
   if (weights_poisition_io_)
-    delete [] weights_poisition_io_;
-  weights_poisition_io_ = nullptr;
+    {
+      for (std::size_t i = 0 ; i < im_size_in_ ; i++)
+	if ( weights_poisition_io_[i] )
+	  {
+	    delete [] weights_poisition_io_[i];
+	    weights_poisition_io_[i] = nullptr;
+	  }
+      delete [] weights_poisition_io_;
+      weights_poisition_io_ = nullptr;
+    }
 }

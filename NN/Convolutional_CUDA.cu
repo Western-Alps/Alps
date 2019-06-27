@@ -136,9 +136,9 @@ MAC::Convolutional_CUDA::load_kernels(// features
 				      std::size_t         Im_size_in,
 				      std::size_t         Im_size_out,
 				      std::size_t**       Weights_pos_oi,
-				      std::size_t**       Weights_pos_io,
+				      std::size_t**       Weights_pos_io/*,
 				      // ToDo: to remove
-				      double* To_conv, double* Conv )
+				      double* To_conv, double* Conv*/ )
 {
   //
   // Initialization

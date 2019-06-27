@@ -206,21 +206,21 @@ namespace MAC
     layer_name_{Layer_name}, layer_number_{Layer_number}, window_{Window}
 			       
   {
-    cuda_treatment_.load_kernels( // features
-				 window_->get_number_of_features_in(),
-				 window_->get_number_of_features_out(),
-				 // weights
-				 window_->get_number_of_weights(),
-				 window_->get_shared_weights(),
-				 window_->get_biases(),
-				 // weights position and transposed matrix
-				 window_->get_im_size_in(),
-				 window_->get_im_size_out(),
-				 window_->get_weights_position_oi(),
-				 window_->get_weights_position_io(),
-				 // ToDo: to remove
-				 window_->image_to_conv,
-				 window_->image_conv );
+//    cuda_treatment_.load_kernels( // features
+//				 window_->get_number_of_features_in(),
+//				 window_->get_number_of_features_out(),
+//				 // weights
+//				 window_->get_number_of_weights(),
+//				 window_->get_shared_weights(),
+//				 window_->get_biases(),
+//				 // weights position and transposed matrix
+//				 window_->get_im_size_in(),
+//				 window_->get_im_size_out(),
+//				 window_->get_weights_position_oi(),
+//				 window_->get_weights_position_io()/*,
+//				 // ToDo: to remove
+//				 window_->image_to_conv,
+//				 window_->image_conv*/ );
   };
   //
   //
@@ -233,20 +233,20 @@ namespace MAC
     layer_name_{Layer_name}, layer_number_{Layer_number}, dec_window_{Window}
 			       
   {
-    cuda_treatment_.load_kernels( // features
-				 dec_window_->get_number_of_features_in(),
-				 dec_window_->get_number_of_features_out(),
-				 // weights
-				 dec_window_->get_number_of_weights(),
-				 dec_window_->get_shared_weights(),
-				 dec_window_->get_biases(),
-				 // weights position and transposed matrix
-				 dec_window_->get_im_size_in(),
-				 dec_window_->get_im_size_out(),
-				 dec_window_->get_weights_position_oi(),
-				 dec_window_->get_weights_position_io(),
-				 // ToDo: to remove
-				 nullptr, nullptr );
+//    cuda_treatment_.load_kernels( // features
+//				 dec_window_->get_number_of_features_in(),
+//				 dec_window_->get_number_of_features_out(),
+//				 // weights
+//				 dec_window_->get_number_of_weights(),
+//				 dec_window_->get_shared_weights(),
+//				 dec_window_->get_biases(),
+//				 // weights position and transposed matrix
+//				 dec_window_->get_im_size_in(),
+//				 dec_window_->get_im_size_out(),
+//				 dec_window_->get_weights_position_oi(),
+//				 dec_window_->get_weights_position_io()/*,
+//				 // ToDo: to remove
+//				 nullptr, nullptr */);
   };
   //
   //
