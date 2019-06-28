@@ -16,7 +16,7 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
   //
   // Neural network anatomy
   //
-  using ConvolutionAE = MAC::ConvolutionalAutoEncoder_layer< Activation_sigmoid >;
+  //using ConvolutionAE = MAC::ConvolutionalAutoEncoder_layer< Activation_sigmoid >;
   using Conv_layer    = MAC::Convolution< SGD, Activation_sigmoid >;
 
   //
@@ -120,6 +120,10 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
 //  
 //  mr_nn_.add( nn_0 );
 //  mr_nn_.add( nn_1 );
+  mr_nn_.add( convlayer_0 );
+  mr_nn_.add( convlayer_1 );
+  mr_nn_.add( deconvlayer_1 );
+  mr_nn_.add( deconvlayer_0 );
 
 
   //MAC::Singleton::instance()->get_subjects()[0].write_clone();
@@ -146,5 +150,5 @@ MAC::Mont_Maudit_builder::forward( Subject& Sub, const Weights& W )
 void
 MAC::Mont_Maudit_builder::backward()
 {
-  mr_nn_.backward();
+  //mr_nn_.backward();
 };

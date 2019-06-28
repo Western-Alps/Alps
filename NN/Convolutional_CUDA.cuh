@@ -54,12 +54,29 @@ namespace MAC
       //
       // Initialization
       __host__
-      void load_kernels( const std::size_t, const std::size_t,
-			 const int,
-			 double**, double*,
-			 std::size_t,  std::size_t,
-			 std::size_t**,  std::size_t**/*,
+      void load_convolution_kernels( const std::size_t, const std::size_t,
+				     const int,
+				     double**, double*,
+				     std::size_t,  std::size_t,
+				     std::size_t**,  std::size_t**/*,
 							double*, double* */ );
+      //
+      //
+      __host__
+      void load_deconvolution_kernels( const std::size_t, const std::size_t,
+				       const int,
+				       double**, double*,
+				       std::size_t,  std::size_t,
+				       std::size_t**,  std::size_t**/*,
+							double*, double* */ );
+      //
+      //
+      __host__
+      void load_feature_maps( double**  );
+      //
+      //
+      __host__
+      void convolution( double**, const Functions& );
       
       //
       // Forward/Backward propagation
@@ -76,17 +93,20 @@ namespace MAC
 
       //
       // features
-      std::size_t     number_of_features_in_{0};
-      std::size_t     number_of_features_out_{0};
+      std::size_t   number_of_features_in_{0};
+      std::size_t   number_of_features_out_{0};
       // weights
-      int             number_of_weights_{0};
-      double**      d_shared_weights_{NULL};
-      double*       d_shared_biases_{NULL};
+      int           number_of_weights_{0};
+      double**    d_shared_weights_{NULL};
+      double*     d_shared_biases_{NULL};
       // Weights position and transposed matrix
-      std::size_t     im_size_in_{0};
-      std::size_t     im_size_out_{0};
-      int*  d_weights_pos_oi_{NULL};
-      std::size_t** d_weights_pos_io_{NULL};
+      std::size_t   im_size_in_{0};
+      std::size_t   im_size_out_{0};
+      int*        d_weights_pos_oi_{NULL};
+      int*        d_weights_pos_io_{NULL};
+      // previouse feature maps
+      double**    d_previouse_feature_maps_{NULL};
+      double*     d_next_feature_maps_{NULL};
     };
 }
 #endif

@@ -79,21 +79,21 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   origine_in_    = raw_subject_image_ptr->GetOrigin();
   spacing_in_    = raw_subject_image_ptr->GetSpacing();
   direction_in_  = raw_subject_image_ptr->GetDirection();
-  std::cout << "In construc1" << std::endl;
-  std::cout << "size_in_ " << size_in_ << std::endl;
-  std::cout << "origine_in_ " << origine_in_ << std::endl;
-  std::cout << "spacing_in_ " << spacing_in_ << std::endl;
-  std::cout << "direction_in_ " << direction_in_ << std::endl;
+  //std::cout << "In construc1" << std::endl;
+  //std::cout << "size_in_ " << size_in_ << std::endl;
+  //std::cout << "origine_in_ " << origine_in_ << std::endl;
+  //std::cout << "spacing_in_ " << spacing_in_ << std::endl;
+  //std::cout << "direction_in_ " << direction_in_ << std::endl;
   // Output dimensions
   size_out_       = feature_size( size_in_ );
   origine_out_    = feature_orig( size_in_, spacing_in_, origine_in_ );
   spacing_out_    = raw_subject_image_ptr->GetSpacing();
   direction_out_  = raw_subject_image_ptr->GetDirection();
-  std::cout << "Out construc1" << std::endl;
-  std::cout << "size_out_ " << size_out_ << std::endl;
-  std::cout << "origine_out_ " << origine_out_ << std::endl;
-  std::cout << "spacing_out_ " << spacing_out_ << std::endl;
-  std::cout << "direction_out_ " << direction_out_ << std::endl;
+  //std::cout << "Out construc1" << std::endl;
+  //std::cout << "size_out_ " << size_out_ << std::endl;
+  //std::cout << "origine_out_ " << origine_out_ << std::endl;
+  //std::cout << "spacing_out_ " << spacing_out_ << std::endl;
+  //std::cout << "direction_out_ " << direction_out_ << std::endl;
   //
   // Prepare the weights matrices
 //toRm  Image3DType::IndexType  start = { 0, 0, 0 };
@@ -367,22 +367,22 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   origine_in_    = Conv_wind->get_origine_out();  
   spacing_in_    = Conv_wind->get_spacing_out();  
   direction_in_  = Conv_wind->get_direction_out();
-  std::cout << "In construc2" << std::endl;
-  std::cout << "size_in_ " << size_in_ << std::endl;
-  std::cout << "origine_in_ " << origine_in_ << std::endl;
-  std::cout << "spacing_in_ " << spacing_in_ << std::endl;
-  std::cout << "direction_in_ " << direction_in_ << std::endl;
+  //std::cout << "In construc2" << std::endl;
+  //std::cout << "size_in_ " << size_in_ << std::endl;
+  //std::cout << "origine_in_ " << origine_in_ << std::endl;
+  //std::cout << "spacing_in_ " << spacing_in_ << std::endl;
+  //std::cout << "direction_in_ " << direction_in_ << std::endl;
   //
   // Output dimensions
   size_out_       = feature_size( size_in_ );
   origine_out_    = feature_orig( size_in_, spacing_in_, origine_in_ );
   spacing_out_    = Conv_wind->get_spacing_out();
   direction_out_  = Conv_wind->get_direction_out();
-  std::cout << "Out construc2" << std::endl;
-  std::cout << "size_out_ " << size_out_ << std::endl;
-  std::cout << "origine_out_ " << origine_out_ << std::endl;
-  std::cout << "spacing_out_ " << spacing_out_ << std::endl;
-  std::cout << "direction_out_ " << direction_out_ << std::endl;
+  //std::cout << "Out construc2" << std::endl;
+  //std::cout << "size_out_ " << size_out_ << std::endl;
+  //std::cout << "origine_out_ " << origine_out_ << std::endl;
+  //std::cout << "spacing_out_ " << spacing_out_ << std::endl;
+  //std::cout << "direction_out_ " << direction_out_ << std::endl;
   //
   // Loop over the image
   int
@@ -492,6 +492,38 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 void
 MAC::Convolutional_window::print()
 {
+}
+//
+//
+//
+void
+MAC::Convolutional_window::check_match( Image3DType::SizeType Size_1,
+					 Image3DType::SizeType Size_2 )
+{
+  try
+    {
+      if ( Size_1[0] != Size_2[0] ||
+	   Size_1[1] != Size_2[1] ||
+	   Size_1[2] != Size_2[2]  )
+	{
+	  std::string mess = "There is a dimension issue with the output: ";
+	  mess += "( " + std::to_string( Size_1[0] ) ;
+	  mess += ", " + std::to_string( Size_1[1] ) ;
+	  mess += ", " + std::to_string( Size_1[2] ) + ") != ";
+	  mess += "( " + std::to_string( Size_2[0] ) ;
+	  mess += ", " + std::to_string( Size_2[1] ) ;
+	  mess += ", " + std::to_string( Size_2[2] ) + ").";
+	  //
+	  throw MAC::MACException( __FILE__, __LINE__,
+				   mess.c_str(),
+				   ITK_LOCATION );
+	}
+    }
+  catch( itk::ExceptionObject & err )
+    {
+      std::cerr << err << std::endl;
+      exit(-1);
+    }
 }
 //
 //

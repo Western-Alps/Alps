@@ -104,6 +104,9 @@ namespace MAC
     // 
     // Functions
     virtual void print();
+    // Check we have the right image as input
+    void         check_match( Image3DType::SizeType,
+			       Image3DType::SizeType);
 
     //
     // Accessors

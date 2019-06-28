@@ -48,7 +48,7 @@ namespace MAC
       virtual void initialization();
       //
       // get the layer name
-      virtual std::string get_layer_name(){ return std::string("Monte Rosa neural network.");};
+      virtual std::string get_layer_name(){ return std::string("Mont Maudit neural network.");};
       //
       // get the layer name
       virtual Layer get_layer_type(){ return Mont_Maudit_layer;};

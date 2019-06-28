@@ -112,12 +112,12 @@ main( const int argc, const char **argv )
 	      // Main object
 	      MAC::Mont_Maudit_builder network;
 	      //// Forward
-	      //network.forward( MAC::Singleton::instance()->get_subjects()[0] );
+	      network.forward( MAC::Singleton::instance()->get_subjects()[0] );
 	      //network.forward( MAC::Singleton::instance()->get_subjects()[1] );
 	      //network.forward( MAC::Singleton::instance()->get_subjects()[2] );
 	      //network.forward( MAC::Singleton::instance()->get_subjects()[3] );
 	      ////
-	      //std::cout << "Epoque energy: " << network.get_energy() << std::endl;
+	      std::cout << "Epoque energy: " << network.get_energy() << std::endl;
 	      //// Backward
 	      //network.backward();
 
