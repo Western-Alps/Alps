@@ -96,7 +96,7 @@ convolution_cuda( int      Num_features_in,
 	    //  printf("~ %d %d %d %f %d %f %f ~", odx, k, feature, Shared_weights[Feature_out][k], Weights_pos_oi[idx], To_conv[feature][ Weights_pos_oi[idx] ], conv );
 	  }
       //
-      Conv[odx] = /*activation.f(*/ conv + Shared_biases[Feature_out] /*)*/;
+      Conv[odx] = activation.f( conv + Shared_biases[Feature_out] );
     }
 }
 //
@@ -132,7 +132,7 @@ transpose_convolution_cuda( int      Num_features_in,
 	      deconv += Shared_weights[feature][k] * To_deconv[feature][ Weights_pos_io[idx] ];
 	  }
       //
-      Deconv[odx] = /*activation.f(*/ deconv + Shared_biases[Feature_out] /*)*/;
+      Deconv[odx] = activation.f( deconv + Shared_biases[Feature_out] );
     }
 }
 //
