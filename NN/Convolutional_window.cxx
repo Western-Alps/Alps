@@ -195,6 +195,13 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 		    {
 		      std::size_t in_idx = (X + x) + (Y + y)*Im_size_X + (Z + z)*Im_size_X*Im_size_Y;
 		      weights_poisition_oi_[output_idx][index] = in_idx;
+
+//toRm		      Image3DType::IndexType idx = {(X + x), (Y + y), (Z + z)};
+//toRm		      std::cout
+//toRm			<< "idx " << idx 
+//toRm			<< " ~~ in_idx" << in_idx
+//toRm			<< " ~~ raw_subject_image_ptr->GetPixel(idx) " << raw_subject_image_ptr->GetPixel(idx) 
+//toRm			<< std::endl;
 		      // we keep the same index to not have zero value in the sparse matrix
 //toRm		      // ToDo: tempo
 //toRm		      Image3DType::IndexType idx = {(X + x), (Y + y), (Z + z)};
@@ -215,6 +222,12 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 	}
 //toRm      Z_o++;
     }
+  //
+//  for ( int o = 0 ; o < im_size_out_  ; o++ )
+//    for ( int k = 0 ; k < number_of_weights_; k++ )
+//    std::cout
+//      << "weights_poisition_oi_[" << o << "]["<< k << "] = " << weights_poisition_oi_[o][k]
+//      << std::endl;
   // Fill the sparse matrix
   W_out_in_.setFromTriplets( tripletList.begin(), tripletList.end() );
   //
@@ -228,6 +241,12 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 	  //<< std::endl;
 	weights_poisition_io_[it.col()][it.value()-1] = it.row();
       }
+  //
+//  for ( int i = 0 ; i < im_size_in_  ; i++ )
+//    for ( int k = 0 ; k < number_of_weights_ ; k++ )
+//      std::cout
+//	<< "weights_poisition_io_[" << i << "]["<< k << "] = " << weights_poisition_io_[i][k]
+//	<< std::endl;
 
 
 //toRm  //  //

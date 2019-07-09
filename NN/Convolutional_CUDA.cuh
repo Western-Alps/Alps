@@ -77,6 +77,10 @@ namespace MAC
       //
       __host__
       void convolution( double**, const Functions& );
+      //
+      //
+      __host__
+      void transpose_convolution( double**, const Functions& );
       
       //
       // Forward/Backward propagation

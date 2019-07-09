@@ -57,11 +57,11 @@ namespace MAC
 
       //
       // Accessors
-      const std::vector< Image3DType::Pointer >& get_modalities_ITK_images() const
+      const std::vector< Image3DType::Pointer >&  get_modalities_ITK_images() const
       {
 	return modalities_ITK_images_;
       }
-      const std::vector< Image3DType::Pointer >& get_modality_targets_ITK_images() const
+      const std::vector< Image3DType::Pointer >&  get_modality_targets_ITK_images() const
       {
 	return modality_targets_ITK_images_;
       }
@@ -69,15 +69,15 @@ namespace MAC
       {
 	return modality_images_size_;
       }
-      const std::vector< Image3DType::Pointer >& get_clone_modalities_images() const
+      const std::vector< Image3DType::Pointer >&  get_clone_modalities_images() const
       {
 	return clone_modalities_images_;
       }
-      std::string get_subject_name() const
+      std::string                                 get_subject_name() const
 	{
 	  return name_;
 	}
-      int get_subject_label() const
+      int                                         get_subject_label() const
 	{
 	  return label_;
 	}
@@ -86,6 +86,10 @@ namespace MAC
       void set_subject_name( std::string Name )
       {
 	name_ = Name;
+      }
+      void set_clone_modalities_images( std::vector< Image3DType::Pointer >& Imgs )
+      {
+	clone_modalities_images_ = Imgs;
       }
 
       //

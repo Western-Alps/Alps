@@ -92,14 +92,24 @@ MAC::Deconvolutional_window::Deconvolutional_window( const std::string Name,
    {
      weights_poisition_io_[i] = new std::size_t[number_of_weights_];
      for ( int k = 0 ; k < number_of_weights_ ; k++ )
-       weights_poisition_io_[i][k] = ( Conv_wind->get_weights_position_oi() )[i][k];
+       {
+	 weights_poisition_io_[i][k] = ( Conv_wind->get_weights_position_oi() )[i][k];
+	 //std::cout
+	 //  << "weights_poisition_io_[" << i << "]["<< k << "] = " << weights_poisition_io_[i][k]
+	 //  << std::endl;
+       }
      }
  //
  for ( std::size_t o = 0 ; o < im_size_out_ ; o++ )
    {
      weights_poisition_oi_[o] = new std::size_t[number_of_weights_];
      for ( int k = 0 ; k < number_of_weights_ ; k++ )
-       weights_poisition_oi_[o][k] = ( Conv_wind->get_weights_position_io() )[o][k];
+       {
+	 weights_poisition_oi_[o][k] = ( Conv_wind->get_weights_position_io() )[o][k];
+	 //std::cout
+	 //  << "weights_poisition_oi_[" << o << "]["<< k << "] = " << weights_poisition_oi_[o][k]
+	 //  << std::endl;
+       }
    }
 }
 //

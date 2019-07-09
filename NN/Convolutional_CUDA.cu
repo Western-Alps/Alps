@@ -83,7 +83,8 @@ convolution_cuda( int      Num_features_in,
   //
   if ( odx <  Image_size_out )
     {
-      double conv = 0.;
+      double   conv = 0.;
+      Conv[odx]     = 0.;
       Activate activation;
       //
       for ( int feature = 0 ; feature < Num_features_in; feature++ )
@@ -91,6 +92,8 @@ convolution_cuda( int      Num_features_in,
 	  {
 	    int idx = k + odx * Number_of_weights;
 	    conv += Shared_weights[Feature_out][k] * To_conv[feature][ Weights_pos_oi[idx] ];
+	    //if ( Weights_pos_oi[idx] == 371232 )
+	    //  printf("~ %d %d %d %f %d %f %f ~", odx, k, feature, Shared_weights[Feature_out][k], Weights_pos_oi[idx], To_conv[feature][ Weights_pos_oi[idx] ], conv );
 	  }
       //
       Conv[odx] = /*activation.f(*/ conv + Shared_biases[Feature_out] /*)*/;
@@ -99,11 +102,13 @@ convolution_cuda( int      Num_features_in,
 //
 //
 //
+template< typename Activate >
 __global__ void
-transpose_convolution_cuda( int      Image_size_in,
+transpose_convolution_cuda( int      Num_features_in,
+			    int      Feature_out,
 			    int      Image_size_out,
 			    int      Number_of_weights,
-			    double*  To_deconv,
+			    double** To_deconv,
 			    double*  Deconv,
 			    double** Shared_weights,
 			    double*  Shared_biases,
@@ -116,17 +121,18 @@ transpose_convolution_cuda( int      Image_size_in,
   if ( odx <  Image_size_out )
     {
       double deconv = 0.;
-      Deconv[odx]    = 0.;
+      Deconv[odx]   = 0.;
+      Activate activation;
       //
-      for ( int k = 0 ; k < Number_of_weights ; k++ )
-	{
-	  int idx = k + odx * Number_of_weights;
-	  if ( Weights_pos_io[idx] != 999999999 )
-	    deconv += Shared_weights[0][k] * To_deconv[ Weights_pos_io[idx] ];
-	}
+      for ( int feature = 0 ; feature < Num_features_in; feature++ )
+	for ( int k = 0 ; k < Number_of_weights ; k++ )
+	  {
+	    int idx = k + odx * Number_of_weights;
+	    if ( Weights_pos_io[idx] != 999999999 )
+	      deconv += Shared_weights[feature][k] * To_deconv[feature][ Weights_pos_io[idx] ];
+	  }
       //
-      
-      Deconv[odx] = deconv + Shared_biases[0];
+      Deconv[odx] = /*activation.f(*/ deconv + Shared_biases[Feature_out] /*)*/;
     }
 }
 //
@@ -174,6 +180,13 @@ MAC::Convolutional_CUDA::load_convolution_kernels(// features
   number_of_weights_      = Number_of_weights;
   im_size_in_             = Im_size_in;
   im_size_out_            = Im_size_out;
+  // free the the device
+  err = cudaDeviceReset();
+  if (err != cudaSuccess)
+    {
+      fprintf(stderr, "Failed to deinitialize the device! error=%s\n", cudaGetErrorString(err));
+      exit(EXIT_FAILURE);
+    }
   // Start allocation
   err = cudaMalloc((void **)&d_shared_weights_, Num_of_features_out * sizeof(double*) );
   err = cudaMalloc((void **)&d_shared_biases_,  Num_of_features_out * sizeof(double) );
@@ -203,7 +216,7 @@ MAC::Convolutional_CUDA::load_convolution_kernels(// features
   cudaMemcpy( d_shared_biases_, Shared_biases, Num_of_features_out * sizeof(double), cudaMemcpyHostToDevice );
   // Weights position
   int* weights_pos_oi = new int[Im_size_out * Number_of_weights];
-  int* weights_pos_io = new int[Im_size_in * Number_of_weights];
+  int* weights_pos_io = new int[Im_size_in  * Number_of_weights];
   //
   for ( std::size_t o = 0 ; o < Im_size_out ; o++ )
     for ( int k = 0 ; k < Number_of_weights ; k++ )
@@ -279,9 +292,7 @@ MAC::Convolutional_CUDA::load_deconvolution_kernels(// features
 						    std::size_t         Im_size_in,
 						    std::size_t         Im_size_out,
 						    std::size_t**       Weights_pos_oi,
-						    std::size_t**       Weights_pos_io/*,
-				      // ToDo: to remove
-				      double* To_conv, double* Conv*/ )
+						    std::size_t**       Weights_pos_io )
 {
   //
   // Initialization
@@ -303,6 +314,13 @@ MAC::Convolutional_CUDA::load_deconvolution_kernels(// features
   number_of_weights_      = Number_of_weights;
   im_size_in_             = Im_size_in;
   im_size_out_            = Im_size_out;
+  // free the the device
+  err = cudaDeviceReset();
+  if (err != cudaSuccess)
+    {
+      fprintf(stderr, "Failed to deinitialize the device! error=%s\n", cudaGetErrorString(err));
+      exit(EXIT_FAILURE);
+    }
   // Start allocation
   err = cudaMalloc((void **)&d_shared_weights_, Num_of_features_in * sizeof(double*) );
   err = cudaMalloc((void **)&d_shared_biases_,  Num_of_features_out * sizeof(double) );
@@ -386,7 +404,7 @@ MAC::Convolutional_CUDA::load_feature_maps( double** Prev_feature_maps )
       cudaMalloc((void **)&temp_feature, im_size_in_ * sizeof(double) );
       // create a master pointer we will move into the pointer to pointer
       cudaMemcpy( temp_feature, Prev_feature_maps[p],
-		  number_of_weights_ * sizeof(double), cudaMemcpyHostToDevice );
+		  im_size_in_ * sizeof(double), cudaMemcpyHostToDevice );
       //
       cudaMemcpy(&d_previouse_feature_maps_[p], &temp_feature,
 		 sizeof(double*), cudaMemcpyHostToDevice);
@@ -406,13 +424,13 @@ MAC::Convolutional_CUDA::load_feature_maps( double** Prev_feature_maps )
   int threadsPerBlock = THREADSPERBLOCK;
   int Blocks_out      = (( im_size_out_ ) + threadsPerBlock - 1) / threadsPerBlock;
   fill_with_zeros<<< Blocks_out, threadsPerBlock >>>( im_size_out_,
-						     d_next_feature_maps_ );
+						      d_next_feature_maps_ );
 }
 //
 //
 //
 __host__ void
-MAC::Convolutional_CUDA::convolution( double** Next_feature_maps,
+MAC::Convolutional_CUDA::convolution( double**         Next_feature_maps,
 				      const Functions& Activation_func )
 {
   std::cout << "Convolutional_CUDA -- Run the convolution." << std::endl;
@@ -460,6 +478,83 @@ MAC::Convolutional_CUDA::convolution( double** Next_feature_maps,
 	  {
 	    // 2.1. convolution
 	    convolution_cuda< MAC::Activation_sigmoid ><<< numBlocks, threadsPerBlock >>>
+	      ( static_cast< int >(number_of_features_in_),
+		static_cast< int >(feature),
+		static_cast< int >(im_size_out_),
+		number_of_weights_,
+		d_previouse_feature_maps_,
+		d_next_feature_maps_,
+		d_shared_weights_, d_shared_biases_,
+		d_weights_pos_oi_ );
+	    // 2.2 move the feature map back
+	    cudaMemcpy( Next_feature_maps[feature], d_next_feature_maps_,
+			im_size_out_ * sizeof(double), cudaMemcpyDeviceToHost );
+	    // 2.3 reset the feature map
+	    fill_with_zeros<<< numBlocks, threadsPerBlock >>>
+	      ( im_size_out_, d_next_feature_maps_ );
+	  }
+	break;
+      }
+    case Func::UNDETERMINED:
+    default:
+      {
+	fprintf(stderr, "Wrong activation function.\n");
+	exit(EXIT_FAILURE);
+      }
+    }
+}
+//
+//
+//
+__host__ void
+MAC::Convolutional_CUDA::transpose_convolution( double**         Next_feature_maps,
+						const Functions& Activation_func )
+{
+  std::cout << "Convolutional_CUDA -- Run the deconvolution." << std::endl;
+  //
+  // 1. check on the device and load the 
+  int threadsPerBlock = THREADSPERBLOCK;
+  int numBlocks       = (( im_size_out_ ) + threadsPerBlock - 1) / threadsPerBlock;
+  cudaError_t err = cudaGetLastError();
+  if (err != cudaSuccess)
+    {
+      fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
+      exit(EXIT_FAILURE);
+    }
+  
+  //
+  // 2. Convolution and move the maps
+  switch( Activation_func.get_function_name() )
+    {
+    case Func::F_TANH:
+      {
+	for ( std::size_t feature = 0 ; feature < number_of_features_out_; feature++ )
+	  {
+	    // 2.1. convolution
+	    transpose_convolution_cuda< MAC::Activation_tanh ><<< numBlocks, threadsPerBlock >>>
+	      ( static_cast< int >(number_of_features_in_),
+		static_cast< int >(feature),
+		static_cast< int >(im_size_out_),
+		number_of_weights_,
+		d_previouse_feature_maps_,
+		d_next_feature_maps_,
+		d_shared_weights_, d_shared_biases_,
+		d_weights_pos_oi_ );
+	    // 2.2 move the feature map back
+	    cudaMemcpy( Next_feature_maps[feature], d_next_feature_maps_,
+			im_size_out_ * sizeof(double), cudaMemcpyDeviceToHost );
+	    // 2.3 reset the feature map
+	    fill_with_zeros<<< numBlocks, threadsPerBlock >>>
+	      ( im_size_out_, d_next_feature_maps_ );
+	  }
+	break;
+      }
+    case Func::F_SIGMOID:
+      {
+	for ( std::size_t feature = 0 ; feature < number_of_features_out_; feature++ )
+	  {
+	    // 2.1. convolution
+	    transpose_convolution_cuda< MAC::Activation_sigmoid ><<< numBlocks, threadsPerBlock >>>
 	      ( static_cast< int >(number_of_features_in_),
 		static_cast< int >(feature),
 		static_cast< int >(im_size_out_),
