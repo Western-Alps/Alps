@@ -14,6 +14,7 @@
 // Eigen
 //
 #include <Eigen/Sparse>
+using IOWeights = Eigen::Triplet< double >;
 //
 // ITK
 //
@@ -145,6 +146,7 @@ namespace MAC
     std::size_t**                    get_weights_position_io() const { return weights_poisition_io_; };
     //
     const Eigen::SparseMatrix< std::size_t >& get_W_out_in() const {return W_out_in_; };
+    const std::vector< IOWeights >            get_triplet_oiw() const {return triplet_oiw_; };
     
   private:
     // This function creates the size of the output feature 
@@ -187,6 +189,7 @@ namespace MAC
     std::size_t**              weights_poisition_io_{nullptr};
     // Complete matrix
     Eigen::SparseMatrix< std::size_t > W_out_in_;
+    std::vector< IOWeights >           triplet_oiw_;
   };
 }
 #endif

@@ -265,7 +265,7 @@ namespace MAC
 	      // Cuda treatment
 	      //
 	      Convolutional_CUDA cuda_treatment;
-
+	      //
 	      switch( layer_type_ )
 		{
 		case Conv_layer:
@@ -309,7 +309,7 @@ namespace MAC
 			while( !image_iter.IsAtEnd() )
 			  {
 			    //
-			    Image3DType::IndexType idx = image_iter.GetIndex();
+			    //Image3DType::IndexType idx = image_iter.GetIndex();
 			    prev_features_to_device[prev][ current_position++ ] = image_iter.Value();
 			    //
 			    ++image_iter;
@@ -524,46 +524,139 @@ namespace MAC
 	  else /*CPU*/
 	    {
 	      //
-	      // 1. Load information
-	      num_of_previous_features_            = window_->get_number_of_features_in();
-	      num_of_next_features_                = window_->get_number_of_features_out();
-	      im_size_prev                         = window_->get_im_size_in();
-	      im_size_next                         = window_->get_im_size_out();
-	      Eigen::SparseMatrix< std::size_t > W = window_->get_W_out_in();
-	      double** feature_weights             = window_->get_shared_weights();               
-	      double*  feature_biases              = window_->get_shared_biases();               
-	      
-	      //
-	      // 2. Create the weights matrices
-	      std::vector< Eigen::SparseMatrix< double > > feature_W( num_of_next_features_ );
-	      // resize the matrix
-	      for ( int f = 0 ; f < num_of_next_features_ ; f++ )
-		feature_W[f].resize( im_size_prev, im_size_next );
-	      //
-	      for ( int k = 0 ; k < W.outerSize() ; ++k )
-		for ( Eigen::SparseMatrix< std::size_t >::InnerIterator it( W, k ) ; it ; ++it )
-		  for ( int f = 0 ; f < num_of_next_features_ ; f++ )
-		    {
-		      feature_W[f].coeffRef( it.row(), it.col() ) = feature_weights[f][it.value()-1];
-		      //std::cout
-		      //	<< " it.value() " << it.value()
-		      //	<< " it.row(): "  << it.row()   // row index
-		      //	<< " it.col(): "  << it.col()   // col index 
-		      //	<< std::endl;
-		    }
-	      std::cout << "Done" << std::endl;
+	      switch( layer_type_ )
+		{
+		case Conv_layer:
+		  {
+		    // 1. Load information
+		    num_of_previous_features_            = window_->get_number_of_features_in();
+		    num_of_next_features_                = window_->get_number_of_features_out();
+		    im_size_prev                         = window_->get_im_size_in();
+		    im_size_next                         = window_->get_im_size_out();
+		    Eigen::SparseMatrix< std::size_t > W = window_->get_W_out_in();
+		    std::vector< IOWeights > triplet_oiw     = window_->get_triplet_oiw();
+		    double**                 feature_weights = window_->get_shared_weights();               
+		    double*                  feature_biases  = window_->get_shared_biases();               
+		    //
+		    convolution_images_.resize( num_of_next_features_ );
 
+		    //
+		    // 2. Create the weights matrices
+		    std::vector< Eigen::SparseMatrix< double > > feature_W( num_of_next_features_ );
+		    // resize the matrix and allocate memory
+		    for ( int f = 0 ; f < num_of_next_features_ ; f++ )
+		      {
+			feature_W[f].resize( im_size_next, im_size_prev );
+			feature_W[f].setFromTriplets( triplet_oiw.begin(), triplet_oiw.end(),
+						      [] (const int&,const int& in) { return static_cast<double>(0.); } );
+		      }
+		    // Create the W matrices for each features
+		    for ( int k = 0 ; k < W.outerSize() ; ++k )
+		      for ( Eigen::SparseMatrix< std::size_t >::InnerIterator it( W, k ) ; it ; ++it )
+			for ( int f = 0 ; f < num_of_next_features_ ; f++ )
+			  {
+			    feature_W[f].coeffRef( it.row(), it.col() ) = feature_weights[f][it.value()-1];
+			    //std::cout
+			    //	<< " feature: " << f
+			    //	<< " it.value() " << feature_weights[f][ it.value() - 1 ]
+			    //	<< " it.value() " << feature_W[f].coeff( it.row(), it.col() )
+			    //	<< " it.row(): "  << it.row()   // row index
+			    //	<< " it.col(): "  << it.col()   // col index 
+			    //	<< std::endl;
+			  }
+		    
+		    //
+		    // 3. Convolution
+		    // 3.1. Load the images and create a vector
+		    std::vector< Eigen::VectorXd > prev_features_to_device( num_of_previous_features_ );
+		    // load the images into a vector
+		    for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ )
+		      {
+			// ToDo: Is it the right order for z in [Z1,Zn]; y in [Y1,Yn]; x in [X1,Xn]
+			itk::ImageRegionIterator< Image3DType > image_iter( curr_images[prev], region );
+			prev_features_to_device[prev].resize( im_size_prev );
+			//
+			std::size_t current_position = 0;
+			while( !image_iter.IsAtEnd() )
+			  {
+			    //
+			    prev_features_to_device[prev][ current_position++ ] = image_iter.Value();
+			    ++image_iter;
+			  }
+		      }
+		    // 3.2. Create the new feature maps with convolution
+		    Image3DType::SizeType      size_out       = window_->get_size_out();
+		    Image3DType::PointType     origine_out    = window_->get_origine_out();
+		    Image3DType::SpacingType   spacing_out    = window_->get_spacing_out();
+		    Image3DType::DirectionType direction_out  = window_->get_direction_out();
+		    //
+		    Image3DType::RegionType region_out;
+		    region_out.SetSize( size_out );
+		    region_out.SetIndex( start );
+		    //
+		    std::vector< Eigen::VectorXd > next_features_to_device( num_of_next_features_ );
+		    for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
+		      {
+			next_features_to_device[mod].resize(im_size_next);
+			// Duplicate the image
+			Image3DType::Pointer records = Image3DType::New();
+			// image filter
+			FilterType::Pointer images_filter;
+			images_filter = FilterType::New();
+			//
+			images_filter->SetOutputSpacing( spacing_out );
+			images_filter->ChangeSpacingOn();
+			images_filter->SetOutputOrigin( origine_out );
+			images_filter->ChangeOriginOn();
+			images_filter->SetOutputDirection( direction_out );
+			images_filter->ChangeDirectionOn();
+			//
+			records->SetRegions( region_out );
+			records->Allocate();
+			records->FillBuffer( 0.0 );
+			images_filter->SetInput( records );
+			images_filter->Update();
+			//
+			convolution_images_[mod] = images_filter->GetOutput();
+			//
+			// Convolution
+			for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ )
+			  next_features_to_device[mod] += feature_W[mod] * prev_features_to_device[prev];
+			//
+			// Create the output images
+			int feature_idx = 0;
+			itk::ImageRegionIterator< Image3DType > convolution_iter( convolution_images_[mod], region_out );
+			while( !convolution_iter.IsAtEnd() )
+			  {
+			    // ToDo: Add the activation and the bias
+			    convolution_iter.Set( next_features_to_device[mod][feature_idx++] );
+			    ++convolution_iter;
+			  }
+		      }
+		    //
+		    write();
+		    Sub.set_clone_modalities_images( convolution_images_ );
 
-	      //
-	      // 3. Convolution
+		    //
+		    //
+		    break;
+		  }
+		case Deconv_layer:
+		  {
+		    
+		    break;
+		  }
+		case Unknown:
+		default:
+		  {
+		    std::string mess = "The type of layer is not defined for: ";
+		    mess += layer_name_ + ".\n";
+		    throw MAC::MACException( __FILE__, __LINE__,
+					     mess.c_str(),
+					     ITK_LOCATION );
 
-	      // 3.1. Load the images and create a vector
-
-	      // 3.2. Matrix multiplication
-
-	      //
-	      // 4. Create the output images
-	      
+		  }
+		}
 	    }
 	}
       catch( itk::ExceptionObject & err )

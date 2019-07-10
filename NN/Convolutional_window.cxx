@@ -159,10 +159,8 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   //
   // weights[out_idx][k] = in_idx
   // Creation of a sparse matrix of weight multiplication between in and out images
-  typedef Eigen::Triplet<double> T;
-  std::vector<T> tripletList;
   std::size_t estimation_of_entries = number_of_weights_ * im_size_out_;
-  tripletList.reserve(estimation_of_entries);
+  triplet_oiw_.reserve(estimation_of_entries);
   W_out_in_.resize( im_size_out_, im_size_in_ );
   W_out_in_.setZero();
   //
@@ -206,7 +204,7 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 //toRm		      // ToDo: tempo
 //toRm		      Image3DType::IndexType idx = {(X + x), (Y + y), (Z + z)};
 //toRm		      conv += shared_weights_[0][index++]*raw_subject_image_ptr->GetPixel(idx);
-		      tripletList.push_back(T( output_idx, in_idx, ++index ));
+		      triplet_oiw_.push_back( IOWeights( output_idx, in_idx, ++index ) );
 		      //std::cout
 		      //<< "index: " << index-1 << " (" << X + x << ", " << Y + y 
 		      //<< ", " << Z + z << ") -- (" << output_idx
@@ -229,7 +227,7 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 //      << "weights_poisition_oi_[" << o << "]["<< k << "] = " << weights_poisition_oi_[o][k]
 //      << std::endl;
   // Fill the sparse matrix
-  W_out_in_.setFromTriplets( tripletList.begin(), tripletList.end() );
+  W_out_in_.setFromTriplets( triplet_oiw_.begin(), triplet_oiw_.end() );
   //
   for ( int k = 0 ; k < W_out_in_.outerSize() ; ++k )
     for ( Eigen::SparseMatrix< std::size_t >::InnerIterator it( W_out_in_, k ) ; it ; ++it )
@@ -440,10 +438,8 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   //
   // weights[out_idx][k] = in_idx
   // Creation of a sparse matrix of weight multiplication between in and out images
-  typedef Eigen::Triplet<double> T;
-  std::vector<T> tripletList;
   std::size_t estimation_of_entries = number_of_weights_ * im_size_out_;
-  tripletList.reserve(estimation_of_entries);
+  triplet_oiw_.reserve(estimation_of_entries);
   Eigen::SparseMatrix< std::size_t > W_out_in_( im_size_out_, im_size_in_ );
   W_out_in_.setZero();
   //
@@ -471,7 +467,7 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 		      std::size_t in_idx = (X + x) + (Y + y)*Im_size_X + (Z + z)*Im_size_X*Im_size_Y;
 		      weights_poisition_oi_[output_idx][index] = in_idx;
 		      // we keep the same index to not have zero value in the sparse matrix
-		      tripletList.push_back(T( output_idx, in_idx, ++index ));
+		      triplet_oiw_.push_back( IOWeights( output_idx, in_idx, ++index ) );
 		    }
 	      //
 	      output_idx++;
@@ -479,7 +475,7 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 	}
     }
   // Fill the sparse matrix
-  W_out_in_.setFromTriplets( tripletList.begin(), tripletList.end() );
+  W_out_in_.setFromTriplets( triplet_oiw_.begin(), triplet_oiw_.end() );
   //
   for ( int k = 0 ; k < W_out_in_.outerSize() ; ++k )
     for ( Eigen::SparseMatrix< std::size_t >::InnerIterator it( W_out_in_, k ) ; it ; ++it )
