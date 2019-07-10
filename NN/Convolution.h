@@ -17,6 +17,10 @@
 #include <thrust/host_vector.h>
 #include "Convolutional_CUDA.cuh"
 //
+// Eigen
+//
+#include <Eigen/Sparse>
+//
 // ITK
 //
 #include <itkSize.h>
@@ -255,7 +259,7 @@ namespace MAC
 	    im_size_next;
 
 	  
-	  if ( true /* CUDA */)
+	  if ( false /* CUDA */)
 	    {
 	      //
 	      // Cuda treatment
@@ -519,7 +523,47 @@ namespace MAC
 	    }
 	  else /*CPU*/
 	    {
-	      // ToDo: Use the Eigen sparse Matrices system to validate CUDA
+	      //
+	      // 1. Load information
+	      num_of_previous_features_            = window_->get_number_of_features_in();
+	      num_of_next_features_                = window_->get_number_of_features_out();
+	      im_size_prev                         = window_->get_im_size_in();
+	      im_size_next                         = window_->get_im_size_out();
+	      Eigen::SparseMatrix< std::size_t > W = window_->get_W_out_in();
+	      double** feature_weights             = window_->get_shared_weights();               
+	      double*  feature_biases              = window_->get_shared_biases();               
+	      
+	      //
+	      // 2. Create the weights matrices
+	      std::vector< Eigen::SparseMatrix< double > > feature_W( num_of_next_features_ );
+	      // resize the matrix
+	      for ( int f = 0 ; f < num_of_next_features_ ; f++ )
+		feature_W[f].resize( im_size_prev, im_size_next );
+	      //
+	      for ( int k = 0 ; k < W.outerSize() ; ++k )
+		for ( Eigen::SparseMatrix< std::size_t >::InnerIterator it( W, k ) ; it ; ++it )
+		  for ( int f = 0 ; f < num_of_next_features_ ; f++ )
+		    {
+		      feature_W[f].coeffRef( it.row(), it.col() ) = feature_weights[f][it.value()-1];
+		      //std::cout
+		      //	<< " it.value() " << it.value()
+		      //	<< " it.row(): "  << it.row()   // row index
+		      //	<< " it.col(): "  << it.col()   // col index 
+		      //	<< std::endl;
+		    }
+	      std::cout << "Done" << std::endl;
+
+
+	      //
+	      // 3. Convolution
+
+	      // 3.1. Load the images and create a vector
+
+	      // 3.2. Matrix multiplication
+
+	      //
+	      // 4. Create the output images
+	      
 	    }
 	}
       catch( itk::ExceptionObject & err )

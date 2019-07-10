@@ -9,7 +9,12 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <random>//
+#include <random>
+//
+// Eigen
+//
+#include <Eigen/Sparse>
+//
 // ITK
 //
 #include <itkSize.h>
@@ -134,7 +139,8 @@ namespace MAC
     std::size_t                      get_im_size_out() const { return im_size_out_; };
     std::size_t**                    get_weights_position_oi() const { return weights_poisition_oi_; };
     std::size_t**                    get_weights_position_io() const { return weights_poisition_io_; };
-
+    //
+    const Eigen::SparseMatrix< std::size_t >& get_W_out_in() const {return W_out_in_; };
 
   private:
     // 
@@ -165,6 +171,8 @@ namespace MAC
     std::size_t                im_size_out_;
     std::size_t**              weights_poisition_oi_{nullptr};
     std::size_t**              weights_poisition_io_{nullptr};
+    // Complete matrix
+    Eigen::SparseMatrix< std::size_t > W_out_in_;
   };
 }
 #endif

@@ -163,7 +163,7 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   std::vector<T> tripletList;
   std::size_t estimation_of_entries = number_of_weights_ * im_size_out_;
   tripletList.reserve(estimation_of_entries);
-  Eigen::SparseMatrix< std::size_t > W_out_in_( im_size_out_, im_size_in_ );
+  W_out_in_.resize( im_size_out_, im_size_in_ );
   W_out_in_.setZero();
   //
   std::size_t output_idx = 0;
