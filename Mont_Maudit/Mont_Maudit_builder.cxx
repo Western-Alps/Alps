@@ -48,7 +48,7 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
   int half_window_1[3]  = {3 /*x*/,3 /*y*/,3 /*z*/};
   int stride_1[3]       = {2 /*x*/,2 /*y*/,2 /*z*/};
   int padding_1[3]      = {0 /*x*/,0 /*y*/,0 /*z*/};
-  int number_features_1 = 8;
+  int number_features_1 = 10;
   //
   std::shared_ptr< MAC::Convolutional_window > Conv_weights_1 = 
     std::make_shared< MAC::Convolutional_window >( "Conv_weights_1.dat", /* weights for the layer */
@@ -71,14 +71,15 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
   //
   std::shared_ptr< NeuralNetwork > deconvlayer_1 =
     std::make_shared< Conv_layer >( "deconv_layer_1", 1, Deconv_weights_1 );
-//  //
-//  // Layer 0
-//  // Deconvolution takes the Convolution window "Conv_weights_0"
-//  std::shared_ptr< MAC::Deconvolutional_window > Deconv_weights_0 = 
-//    std::make_shared< MAC::Deconvolutional_window >( "Conv_weights_0.dat", Conv_weights_0 );
-//  //
-//  std::shared_ptr< NeuralNetwork > deconvlayer_0 =
-//    std::make_shared< Conv_layer >( "deconv_layer_0", 0, Deconv_weights_0 );
+  //
+  // Layer 0
+  // Deconvolution takes the Convolution window "Conv_weights_0"
+  std::shared_ptr< MAC::Deconvolutional_window > Deconv_weights_0 = 
+    std::make_shared< MAC::Deconvolutional_window >( "Conv_weights_0.dat", Conv_weights_0 );
+  //
+  std::shared_ptr< NeuralNetwork > deconvlayer_0 =
+    std::make_shared< Conv_layer >( "deconv_layer_0", 0, Deconv_weights_0,
+				    true /* Cost function calculation */);
 
   
   //
@@ -88,7 +89,7 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
   mr_nn_.add( convlayer_0 );
   mr_nn_.add( convlayer_1 );
   mr_nn_.add( deconvlayer_1 );
-  //mr_nn_.add( deconvlayer_0 );
+  mr_nn_.add( deconvlayer_0 );
 
 
   //MAC::Singleton::instance()->get_subjects()[0].write_clone();

@@ -96,7 +96,7 @@ convolution_cuda( int      Num_features_in,
 	    //  printf("~ %d %d %d %f %d %f %f ~", odx, k, feature, Shared_weights[Feature_out][k], Weights_pos_oi[idx], To_conv[feature][ Weights_pos_oi[idx] ], conv );
 	  }
       //
-      Conv[odx] = activation.f( conv + Shared_biases[Feature_out] );
+      Conv[odx]       = /*activation.f(*/ conv + Shared_biases[Feature_out] /*)*/;
     }
 }
 //
@@ -132,7 +132,7 @@ transpose_convolution_cuda( int      Num_features_in,
 	      deconv += Shared_weights[feature][k] * To_deconv[feature][ Weights_pos_io[idx] ];
 	  }
       //
-      Deconv[odx] = activation.f( deconv + Shared_biases[Feature_out] );
+      Deconv[odx] = /*activation.f(*/ deconv + Shared_biases[Feature_out] /*)*/;
     }
 }
 //
@@ -241,41 +241,6 @@ MAC::Convolutional_CUDA::load_convolution_kernels(// features
       fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
       exit(EXIT_FAILURE);
     }
-//toRm  //
-//toRm  // test on conv
-//toRm  double* d_to_conv;
-//toRm  double* d_conv;
-//toRm  //
-//toRm  err = cudaMalloc((void **)&d_to_conv,   Im_size_in  * sizeof(double) );
-//toRm  err = cudaMalloc((void **)&d_conv,      Im_size_out * sizeof(double) );
-//toRm  //
-//toRm  cudaMemcpy( d_to_conv, To_conv, Im_size_in  * sizeof(double), cudaMemcpyHostToDevice);
-//toRm  cudaMemcpy( d_conv,    Conv,    Im_size_out * sizeof(double), cudaMemcpyHostToDevice);
-//toRm  //
-//toRm  // 1. check on the device
-//toRm  int threadsPerBlock = THREADSPERBLOCK;
-//toRm  int Blocks_out      = (( Im_size_out ) + threadsPerBlock - 1) / threadsPerBlock;
-//toRm  //
-//toRm  if (err != cudaSuccess)
-//toRm    {
-//toRm      fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
-//toRm      exit(EXIT_FAILURE);
-//toRm    }
-//toRm  //
-//toRm  std::cout << "Execute kernel" << std::endl;
-//toRm  convolution_cuda<<< Blocks_out, threadsPerBlock >>>( static_cast< int >(im_size_in_),
-//toRm						       static_cast< int >(im_size_out_),
-//toRm						       number_of_weights_,
-//toRm						       d_to_conv, d_conv,
-//toRm						       d_shared_weights_, d_shared_biases_,
-//toRm						       d_weights_pos_oi_ );
-//toRm   //
-//toRm  std::cout << "Copy back the data" << std::endl;
-//toRm  cudaMemcpy( Conv, d_conv,
-//toRm	      Im_size_out * sizeof(double), cudaMemcpyDeviceToHost );
-//toRm  //
-//toRm  cudaFree( d_to_conv );
-//toRm  cudaFree( d_conv );
 };
 //
 //
@@ -417,7 +382,9 @@ MAC::Convolutional_CUDA::load_feature_maps( double** Prev_feature_maps )
 
   //
   // 2. Allocation space for the next features on the GPU
-  err = cudaMalloc( (void **)&d_next_feature_maps_, im_size_out_ * sizeof(double) );
+  err = cudaMalloc( (void **)&d_next_feature_maps_,    im_size_out_ * sizeof(double) );
+  err = cudaMalloc( (void **)&d_next_activation_maps_, im_size_out_ * sizeof(double) );
+  err = cudaMalloc( (void **)&d_target_maps_,          im_size_out_ * sizeof(double) );
 
   //
   // 3. Fill the next features with zeros
@@ -425,12 +392,16 @@ MAC::Convolutional_CUDA::load_feature_maps( double** Prev_feature_maps )
   int Blocks_out      = (( im_size_out_ ) + threadsPerBlock - 1) / threadsPerBlock;
   fill_with_zeros<<< Blocks_out, threadsPerBlock >>>( im_size_out_,
 						      d_next_feature_maps_ );
+  fill_with_zeros<<< Blocks_out, threadsPerBlock >>>( im_size_out_,
+						      d_next_activation_maps_ );
+  fill_with_zeros<<< Blocks_out, threadsPerBlock >>>( im_size_out_, d_target_maps_ );
 }
 //
 //
 //
 __host__ void
 MAC::Convolutional_CUDA::convolution( double**         Next_feature_maps,
+				      double**         Next_activation_maps,
 				      const Functions& Activation_func )
 {
   std::cout << "Convolutional_CUDA -- Run the convolution." << std::endl;

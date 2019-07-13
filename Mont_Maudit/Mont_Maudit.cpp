@@ -119,7 +119,7 @@ main( const int argc, const char **argv )
 	      ////
 	      std::cout << "Epoque energy: " << network.get_energy() << std::endl;
 	      //// Backward
-	      //network.backward();
+	      network.backward();
 
 	      /////////
 	      // End //
