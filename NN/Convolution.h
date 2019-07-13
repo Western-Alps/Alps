@@ -61,8 +61,8 @@ using ShrinkImageFilterType = itk::ShrinkImageFilter < Image3DType, Image3DType 
 #include "Subject.h"
 #include "NeuralNetwork.h"
 #include "Weights.h"
-#include "Convolutional_window.h"
-#include "Deconvolutional_window.h"
+//#include "Convolutional_window.h"
+//#include "Deconvolutional_window.h"
 //
 // CUDA
 //
@@ -72,14 +72,13 @@ using ShrinkImageFilterType = itk::ShrinkImageFilter < Image3DType, Image3DType 
 //
 namespace MAC
 {
-  enum Convolution_type {Unknown, Conv_layer, Deconv_layer};
   /** \class Convolution
    *
    * \brief 
    * 
    * 
    */
-  template< class Grad, class ActivationFunction  >
+  template< class Grad, class ActivationFunction, class ConvDeconv  >
     class Convolution : public NeuralNetwork
     {
 
@@ -88,14 +87,14 @@ namespace MAC
       /** Constructor. */
       Convolution( const std::string,
 		   const int, 
-		   std::shared_ptr< Convolutional_window >,
+		   ConvDeconv,
 		   bool  Compute_cost_function_ = false );
-      /** Constructor. */
-      Convolution( const std::string,
-		   const int, 
-		   std::shared_ptr< Deconvolutional_window >,
-		   bool  Compute_cost_function_ = false );
-      /** Destructor */
+//      /** Constructor. */
+//      Convolution( const std::string,
+//		   const int, 
+//		   std::shared_ptr< Deconvolutional_window >,
+//		   bool  Compute_cost_function_ = false );
+//      /** Destructor */
       virtual ~Convolution();
 
       //
@@ -143,6 +142,13 @@ namespace MAC
 	  }
       };
 
+    private:
+      //
+      // GPU treatment
+      void forward_GPU( Subject& );
+      // CPU treatment
+      void forward_CPU( Subject& );
+
     protected:
       //
       // Inputs
@@ -150,7 +156,7 @@ namespace MAC
       
       // 
       // Convolution type
-      Convolution_type layer_type_{Unknown};
+      Weight_type layer_type_{Unknown};
       // Convolutional layer's name
       std::string layer_name_;
       // layer energy (Cost function)
@@ -161,9 +167,9 @@ namespace MAC
 
       //
       // Convolution window
-      std::shared_ptr< Convolutional_window >   window_;
-      // Deconvolution window
-      std::shared_ptr< Deconvolutional_window > dec_window_;
+      ConvDeconv window_;
+//      // Deconvolution window
+//      std::shared_ptr< Deconvolutional_window > dec_window_;
 
       //
       //
@@ -201,522 +207,46 @@ namespace MAC
   //
   //
   //
-  template< class G, class A >
-    MAC::Convolution< G, A >::Convolution( const std::string   Layer_name,
-					   const int           Layer_number,
-					   std::shared_ptr< Convolutional_window > Window,
-					   bool  Compute_cost_function_ ):
+  template< class G, class A, class CD >
+    MAC::Convolution< G, A, CD >::Convolution( const std::string   Layer_name,
+					       const int           Layer_number,
+					       CD                  Window,
+					       bool  Compute_cost_function_ ):
   MAC::NeuralNetwork::NeuralNetwork(),
-    layer_name_{Layer_name}, compute_cost_function_{Compute_cost_function_}, layer_number_{Layer_number}, window_{Window}, dec_window_{nullptr}
+    layer_name_{Layer_name}, compute_cost_function_{Compute_cost_function_}, layer_number_{Layer_number}, window_{Window}
 			       
   {
-    layer_type_ = Conv_layer;
+    layer_type_ = Window->get_layer_type();;
   };
+//ToRm  //
+//ToRm  //
+//ToRm  //
+//ToRm  template< class G, class A, class CD >
+//ToRm    MAC::Convolution< G, A, CD >::Convolution( const std::string Layer_name,
+//ToRm					   const int         Layer_number,
+//ToRm					   std::shared_ptr< Deconvolutional_window > Window,
+//ToRm					   bool  Compute_cost_function_ ):
+//ToRm  MAC::NeuralNetwork::NeuralNetwork(),
+//ToRm    layer_name_{Layer_name}, compute_cost_function_{Compute_cost_function_}, layer_number_{Layer_number}, window_{nullptr}, dec_window_{Window}
+//ToRm			       
+//ToRm  { 
+//ToRm    layer_type_ = Deconv_layer;
+//ToRm  };
   //
   //
   //
-  template< class G, class A >
-    MAC::Convolution< G, A >::Convolution( const std::string Layer_name,
-					   const int         Layer_number,
-					   std::shared_ptr< Deconvolutional_window > Window,
-					   bool  Compute_cost_function_ ):
-  MAC::NeuralNetwork::NeuralNetwork(),
-    layer_name_{Layer_name}, compute_cost_function_{Compute_cost_function_}, layer_number_{Layer_number}, window_{nullptr}, dec_window_{Window}
-			       
-  { 
-    layer_type_ = Deconv_layer;
-  };
-  //
-  //
-  //
-  template< class G, class A > void
-    MAC::Convolution< G, A >::forward( Subject& Sub, const Weights& WW )
+  template< class G, class A, class CD > void
+    MAC::Convolution< G, A, CD >::forward( Subject& Sub, const Weights& WW )
     {
       try
 	{
-	  std::cout << "Go fwd " << layer_name_ << " " << layer_type_ << std::endl;
-
 	  //
-	  // Convolution
 	  //
-
-	  //
-	  // Subject informations
-	  const std::vector< Image3DType::Pointer > curr_images = Sub.get_clone_modalities_images();
-	  std::string subject_name = Sub.get_subject_name();
-	  std::cout << "subject_name " << subject_name << std::endl;
-	  //
-	  // Images information
-	  Image3DType::IndexType  start = { 0, 0, 0 };
-	  Image3DType::Pointer    raw_subject_image_ptr = curr_images[0];
-	  //
-	  size_lu_       = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
-	  origine_lu_    = raw_subject_image_ptr->GetOrigin();
-	  spacing_lu_    = raw_subject_image_ptr->GetSpacing();
-	  direction_lu_  = raw_subject_image_ptr->GetDirection();
-	  //
-	  Image3DType::RegionType region;
-	  region.SetSize( size_lu_ );
-	  region.SetIndex( start );
-	  //
-	  std::size_t
-	    im_size_prev,
-	    im_size_next;
-
-	  
 	  if ( true /* CUDA */)
-	    {
-	      //
-	      // Cuda treatment
-	      //
-	      Convolutional_CUDA cuda_treatment;
-	      //
-	      switch( layer_type_ )
-		{
-		case Conv_layer:
-		  {
-		    //
-		    // 1. Load the data and initialize the GPU device
-		    num_of_previous_features_ = window_->get_number_of_features_in();
-		    num_of_next_features_     = window_->get_number_of_features_out();
-		    im_size_prev              = window_->get_im_size_in();
-		    im_size_next              = window_->get_im_size_out();
-		    convolution_images_.resize( num_of_next_features_ );
-		    // Check the dimensions of images with the window
-		    window_->check_match( size_lu_, window_->get_size_in() );
-		    // load the data
-		    cuda_treatment.load_convolution_kernels( // features
-							    window_->get_number_of_features_in(),
-							    window_->get_number_of_features_out(),
-							    // weights
-							    window_->get_number_of_weights(),
-							    window_->get_shared_weights(),
-							    window_->get_shared_biases(),
-							    // weights position and transposed matrix
-							    window_->get_im_size_in(),
-							    window_->get_im_size_out(),
-							    window_->get_weights_position_oi(),
-							    window_->get_weights_position_io()/*,
-											      // ToDo: to remove
-											      window_->image_to_conv,
-											      window_->image_conv*/ );
-		    //
-		    // 2. access the previouse feature maps and load it on the GPU device
-		    double** prev_features_to_device = new double*[ num_of_previous_features_ ];
-		    // Loop over the previous features image
-		    for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ )
-		      {
-			// ToDo: Is it the right order for z in [Z1,Zn]; y in [Y1,Yn]; x in [X1,Xn]
-			itk::ImageRegionIterator< Image3DType > image_iter( curr_images[prev], region );
-			prev_features_to_device[prev] = new double[im_size_prev];
-			//
-			std::size_t current_position = 0;
-			while( !image_iter.IsAtEnd() )
-			  {
-			    //
-			    //Image3DType::IndexType idx = image_iter.GetIndex();
-			    prev_features_to_device[prev][ current_position++ ] = image_iter.Value();
-			    //
-			    ++image_iter;
-			  }
-		      }
-		    // Load images on the device
-		    cuda_treatment.load_feature_maps( prev_features_to_device );
-		    // clean up
-		    for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ )
-		      {
-			delete [] prev_features_to_device[prev];
-			prev_features_to_device[prev] = nullptr;
-		      }
-		    delete [] prev_features_to_device;
-		    prev_features_to_device = nullptr;
-
-		    //
-		    // 3. Create the new feature maps with convolution
-		    Image3DType::SizeType      size_out       = window_->get_size_out();
-		    Image3DType::PointType     origine_out    = window_->get_origine_out();
-		    Image3DType::SpacingType   spacing_out    = window_->get_spacing_out();
-		    Image3DType::DirectionType direction_out  = window_->get_direction_out();
-		    //
-		    Image3DType::RegionType region_out;
-		    region_out.SetSize( size_out );
-		    region_out.SetIndex( start );
-		    //
-		    double** next_features_to_device   = new double*[num_of_next_features_];
-		    double** next_activation_to_device = new double*[num_of_next_features_];
-		    for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
-		      {
-			//
-			//
-			next_features_to_device[mod]   = new double[im_size_next];
-			next_activation_to_device[mod] = new double[im_size_next];
-			
-			//
-			// Duplicate the image
-			Image3DType::Pointer records = Image3DType::New();
-			// image filter
-			FilterType::Pointer images_filter;
-			images_filter = FilterType::New();
-			//
-			images_filter->SetOutputSpacing( spacing_out );
-			images_filter->ChangeSpacingOn();
-			images_filter->SetOutputOrigin( origine_out );
-			images_filter->ChangeOriginOn();
-			images_filter->SetOutputDirection( direction_out );
-			images_filter->ChangeDirectionOn();
-			//
-			records->SetRegions( region_out );
-			records->Allocate();
-			records->FillBuffer( 0.0 );
-			images_filter->SetInput( records );
-			images_filter->Update();
-			//
-			convolution_images_[mod] = images_filter->GetOutput();
-		      }
-		    
-		    //
-		    // Convolution on GPU
-		    cuda_treatment.convolution( next_features_to_device,
-						next_activation_to_device,
-						activation_ );
-		    //
-		    // Write the image back
-		    for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
-		      {
-			int feature_idx = 0;
-			itk::ImageRegionIterator< Image3DType > convolution_iter( convolution_images_[mod], region_out );
-			while( !convolution_iter.IsAtEnd() )
-			  {
-			    convolution_iter.Set( next_features_to_device[mod][feature_idx++] );
-			    ++convolution_iter;
-			  }
-		      }
-		    //
-		    write();
-		    Sub.set_clone_modalities_images( convolution_images_ );
-		    //
-		    //
-		    break;
-		  }
-		case Deconv_layer:
-		  {
-		    //
-		    // 1. Load the data and initialize the GPU device
-		    num_of_previous_features_ = dec_window_->get_number_of_features_in();
-		    num_of_next_features_     = dec_window_->get_number_of_features_out();
-		    im_size_prev              = dec_window_->get_im_size_in();
-		    im_size_next              = dec_window_->get_im_size_out();
-		    convolution_images_.resize( num_of_next_features_ );
-		    // Check the dimensions of images with the window
-		    dec_window_->check_match( size_lu_, dec_window_->get_size_in() );
-		    // load the data
-		    cuda_treatment.load_deconvolution_kernels( // features
-							      dec_window_->get_number_of_features_in(),
-							      dec_window_->get_number_of_features_out(),
-							      // weights
-							      dec_window_->get_number_of_weights(),
-							      dec_window_->get_shared_weights(),
-							      dec_window_->get_shared_biases(),
-							      // weights position and transposed matrix
-							      dec_window_->get_im_size_in(),
-							      dec_window_->get_im_size_out(),
-							      dec_window_->get_weights_position_oi(),
-							      dec_window_->get_weights_position_io() );
-		    
-
-		    //
-		    // 2. access the previouse feature maps and load it on the GPU device
-		    double** prev_features_to_device = new double*[ num_of_previous_features_ ];
-		    // Loop over the previous features image
-		    for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ )
-		      {
-			// ToDo: Is it the right order for z in [Z1,Zn]; y in [Y1,Yn]; x in [X1,Xn]
-			itk::ImageRegionIterator< Image3DType > image_iter( curr_images[prev], region );
-			prev_features_to_device[prev] = new double[im_size_prev];
-			//
-			std::size_t current_position = 0;
-			while( !image_iter.IsAtEnd() )
-			  {
-			    //
-			    Image3DType::IndexType idx = image_iter.GetIndex();
-			    prev_features_to_device[prev][ current_position++ ] = image_iter.Value();
-			    //
-			    ++image_iter;
-			  }
-		      }
-		    // Load images on the device
-		    cuda_treatment.load_feature_maps( prev_features_to_device );
-		    // clean up
-		    for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ )
-		      {
-			delete [] prev_features_to_device[prev];
-			prev_features_to_device[prev] = nullptr;
-		      }
-		    delete [] prev_features_to_device;
-		    prev_features_to_device = nullptr;
-
-		    //
-		    // 3. Create the new feature maps with convolution
-		    Image3DType::SizeType      size_out       = dec_window_->get_size_out();
-		    Image3DType::PointType     origine_out    = dec_window_->get_origine_out();
-		    Image3DType::SpacingType   spacing_out    = dec_window_->get_spacing_out();
-		    Image3DType::DirectionType direction_out  = dec_window_->get_direction_out();
-		    //
-		    Image3DType::RegionType region_out;
-		    region_out.SetSize( size_out );
-		    region_out.SetIndex( start );
-		    //
-		    double** next_features_to_device = new double*[num_of_next_features_];
-		    for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
-		      {
-			//
-			//
-			next_features_to_device[mod] = new double[im_size_next];
-			
-			//
-			// Duplicate the image
-			Image3DType::Pointer records = Image3DType::New();
-			// image filter
-			FilterType::Pointer images_filter;
-			images_filter = FilterType::New();
-			//
-			images_filter->SetOutputSpacing( spacing_out );
-			images_filter->ChangeSpacingOn();
-			images_filter->SetOutputOrigin( origine_out );
-			images_filter->ChangeOriginOn();
-			images_filter->SetOutputDirection( direction_out );
-			images_filter->ChangeDirectionOn();
-			//
-			records->SetRegions( region_out );
-			records->Allocate();
-			records->FillBuffer( 0.0 );
-			images_filter->SetInput( records );
-			images_filter->Update();
-			//
-			convolution_images_[mod] = images_filter->GetOutput();
-		      }
-		    
-		    //
-		    // Convolution on GPU
-		    cuda_treatment.transpose_convolution( next_features_to_device, activation_ );
-		    //
-		    // Write the image back
-		    for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
-		      {
-			int feature_idx = 0;
-			itk::ImageRegionIterator< Image3DType > convolution_iter( convolution_images_[mod], region_out );
-			while( !convolution_iter.IsAtEnd() )
-			  {
-			    convolution_iter.Set( next_features_to_device[mod][feature_idx++] );
-			    ++convolution_iter;
-			  }
-		      }
-		    //
-		    write();
-		    Sub.set_clone_modalities_images( convolution_images_ );
-		    //
-		    //
-		    break;
-		  }
-		case Unknown:
-		default:
-		  {
-		    std::string mess = "The type of layer is not defined for: ";
-		    mess += layer_name_ + ".\n";
-		    throw MAC::MACException( __FILE__, __LINE__,
-					     mess.c_str(),
-					     ITK_LOCATION );
-
-		  }
-		}
-	    }
+	    forward_GPU( Sub );
 	  else /*CPU*/
-	    {
-	      //
-	      switch( layer_type_ )
-		{
-		case Conv_layer:
-		  {
-		    // 1. Load information
-		    num_of_previous_features_            = window_->get_number_of_features_in();
-		    num_of_next_features_                = window_->get_number_of_features_out();
-		    im_size_prev                         = window_->get_im_size_in();
-		    im_size_next                         = window_->get_im_size_out();
-		    Eigen::SparseMatrix< std::size_t > W = window_->get_W_out_in();
-		    std::vector< IOWeights > triplet_oiw     = window_->get_triplet_oiw();
-		    double**                 feature_weights = window_->get_shared_weights();               
-		    double*                  feature_biases  = window_->get_shared_biases();               
-		    //
-		    convolution_images_.resize( num_of_next_features_ );
+	    forward_CPU( Sub );
 
-		    //
-		    // 2. Create the weights matrices
-		    std::vector< Eigen::SparseMatrix< double > > feature_W( num_of_next_features_ );
-		    // resize the matrix and allocate memory
-		    for ( int f = 0 ; f < num_of_next_features_ ; f++ )
-		      {
-			feature_W[f].resize( im_size_next, im_size_prev );
-			feature_W[f].setFromTriplets( triplet_oiw.begin(), triplet_oiw.end(),
-						      [] (const int&,const int& in) { return static_cast<double>(0.); } );
-		      }
-		    // Create the W matrices for each features
-		    for ( int k = 0 ; k < W.outerSize() ; ++k )
-		      for ( Eigen::SparseMatrix< std::size_t >::InnerIterator it( W, k ) ; it ; ++it )
-			for ( int f = 0 ; f < num_of_next_features_ ; f++ )
-			  {
-			    feature_W[f].coeffRef( it.row(), it.col() ) = feature_weights[f][it.value()-1];
-			    //std::cout
-			    //	<< " feature: " << f
-			    //	<< " it.value() " << feature_weights[f][ it.value() - 1 ]
-			    //	<< " it.value() " << feature_W[f].coeff( it.row(), it.col() )
-			    //	<< " it.row(): "  << it.row()   // row index
-			    //	<< " it.col(): "  << it.col()   // col index 
-			    //	<< std::endl;
-			  }
-		    
-		    //
-		    // 3. Convolution
-		    // 3.1. Load the images and create a vector
-		    std::vector< Eigen::VectorXd > prev_features_to_device( num_of_previous_features_ );
-		    // load the images into a vector
-		    for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ )
-		      {
-			// ToDo: Is it the right order for z in [Z1,Zn]; y in [Y1,Yn]; x in [X1,Xn]
-			itk::ImageRegionIterator< Image3DType > image_iter( curr_images[prev], region );
-			prev_features_to_device[prev].resize( im_size_prev );
-			//
-			std::size_t current_position = 0;
-			while( !image_iter.IsAtEnd() )
-			  {
-			    //
-			    prev_features_to_device[prev][ current_position++ ] = image_iter.Value();
-			    ++image_iter;
-			  }
-		      }
-		    // 3.2. Create the new feature maps with convolution
-		    Image3DType::SizeType      size_out       = window_->get_size_out();
-		    Image3DType::PointType     origine_out    = window_->get_origine_out();
-		    Image3DType::SpacingType   spacing_out    = window_->get_spacing_out();
-		    Image3DType::DirectionType direction_out  = window_->get_direction_out();
-		    //
-		    Image3DType::RegionType region_out;
-		    region_out.SetSize( size_out );
-		    region_out.SetIndex( start );
-		    //
-		    std::vector< Eigen::VectorXd > next_features_to_device( num_of_next_features_ );
-		    for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
-		      {
-			next_features_to_device[mod].resize(im_size_next);
-			// Duplicate the image
-			Image3DType::Pointer records = Image3DType::New();
-			// image filter
-			FilterType::Pointer images_filter;
-			images_filter = FilterType::New();
-			//
-			images_filter->SetOutputSpacing( spacing_out );
-			images_filter->ChangeSpacingOn();
-			images_filter->SetOutputOrigin( origine_out );
-			images_filter->ChangeOriginOn();
-			images_filter->SetOutputDirection( direction_out );
-			images_filter->ChangeDirectionOn();
-			//
-			records->SetRegions( region_out );
-			records->Allocate();
-			records->FillBuffer( 0.0 );
-			images_filter->SetInput( records );
-			images_filter->Update();
-			//
-			convolution_images_[mod] = images_filter->GetOutput();
-			//
-			// Convolution
-			for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ )
-			  next_features_to_device[mod] += feature_W[mod] * prev_features_to_device[prev];
-			//
-			// Create the output images
-			int feature_idx = 0;
-			itk::ImageRegionIterator< Image3DType > convolution_iter( convolution_images_[mod], region_out );
-			while( !convolution_iter.IsAtEnd() )
-			  {
-			    // ToDo: Add the activation and the bias
-			    convolution_iter.Set( next_features_to_device[mod][feature_idx++] );
-			    ++convolution_iter;
-			  }
-		      }
-		    //
-		    write();
-		    Sub.set_clone_modalities_images( convolution_images_ );
-
-		    //
-		    //
-		    break;
-		  }
-		case Deconv_layer:
-		  {
-		    
-		    break;
-		  }
-		case Unknown:
-		default:
-		  {
-		    std::string mess = "The type of layer is not defined for: ";
-		    mess += layer_name_ + ".\n";
-		    throw MAC::MACException( __FILE__, __LINE__,
-					     mess.c_str(),
-					     ITK_LOCATION );
-
-		  }
-		}
-	    }
-
-	  //
-	  // Cost function calculation
-	  if ( compute_cost_function_ )
-	    {
-	      //
-	      // 1. Check output and target matches
-	      // Retrive the new dimensions of the output image
-	      const std::vector< Image3DType::Pointer > new_images = Sub.get_clone_modalities_images();
-	      // Images information
-	      Image3DType::IndexType  new_start = { 0, 0, 0 };
-	      Image3DType::Pointer    new_image_ptr = new_images[0];
-	      //
-	      size_lu_       = new_image_ptr->GetLargestPossibleRegion().GetSize();
-	      origine_lu_    = new_image_ptr->GetOrigin();
-	      spacing_lu_    = new_image_ptr->GetSpacing();
-	      direction_lu_  = new_image_ptr->GetDirection();
-	      //
-	      Image3DType::RegionType new_region;
-	      region.SetSize( size_lu_ );
-	      region.SetIndex( start );
-	      //
-	      // Get target images' dimensions
-	      const std::vector< Image3DType::Pointer > tgt_images = Sub.get_modality_targets_ITK_images();
-	      // Images information
-	      Image3DType::Pointer subject_tgt_ptr = tgt_images[0];
-	      //
-	      Image3DType::SizeType size_tgt_ = subject_tgt_ptr->GetLargestPossibleRegion().GetSize();
-	      // ToDo: mv the match function into the convolution
-	      // Check the dimensions of images with the window
-	      window_->check_match( size_lu_, size_tgt_ );
-		    
-	      //
-	      // 2. 
-	      
-	    }
-	}
-      catch( itk::ExceptionObject & err )
-	{
-	  std::cerr << err << std::endl;
-	}
-    };
-//  //
-//  //
-//  //
-//  template< class G, class A > double
-//    MAC::Convolution< G, A >::get_energy() 
-//    {
-//      try
-//	{
 //	  //
 //	  // Cost function calculation
 //	  if ( compute_cost_function_ )
@@ -746,23 +276,460 @@ namespace MAC
 //	      Image3DType::SizeType size_tgt_ = subject_tgt_ptr->GetLargestPossibleRegion().GetSize();
 //	      // ToDo: mv the match function into the convolution
 //	      // Check the dimensions of images with the window
-//	      //window_->check_match( size_lu_, size_tgt_ );
+//	      window_->check_match( size_lu_, size_tgt_ );
 //		    
 //	      //
 //	      // 2. 
 //	      
 //	    }
-//	}
-//      catch( itk::ExceptionObject & err )
-//	{
-//	  std::cerr << err << std::endl;
-//	}
-//    }
+	}
+      catch( itk::ExceptionObject & err )
+	{
+	  std::cerr << err << std::endl;
+	}
+    };
   //
   //
   //
-  template< class G, class A >
-    MAC::Convolution< G, A >::~Convolution() 
+  template< class G, class A, class CD > void
+    MAC::Convolution< G, A, CD >::forward_GPU( Subject& Sub )
+    {
+      try
+	{
+	  std::cout << "Go fwd GPU " << layer_name_ << " " << layer_type_ << std::endl;
+
+	  //
+	  // Convolution
+	  //
+
+	  //
+	  // Subject informations
+	  const std::vector< Image3DType::Pointer > curr_images = Sub.get_clone_modalities_images();
+	  std::string subject_name = Sub.get_subject_name();
+	  std::cout << "subject_name " << subject_name << std::endl;
+	  //
+	  // Images information
+	  Image3DType::IndexType  start = { 0, 0, 0 };
+	  Image3DType::Pointer    raw_subject_image_ptr = curr_images[0];
+	  //
+	  size_lu_       = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
+	  origine_lu_    = raw_subject_image_ptr->GetOrigin();
+	  spacing_lu_    = raw_subject_image_ptr->GetSpacing();
+	  direction_lu_  = raw_subject_image_ptr->GetDirection();
+	  //
+	  Image3DType::RegionType region;
+	  region.SetSize( size_lu_ );
+	  region.SetIndex( start );
+	  //
+	  std::size_t
+	    im_size_prev,
+	    im_size_next;
+
+	  
+	  //
+	  // Cuda treatment
+	  //
+	  Convolutional_CUDA cuda_treatment;
+
+	  //
+	  // 1. Load the data and initialize the GPU device
+	  num_of_previous_features_ = window_->get_number_of_features_in();
+	  num_of_next_features_     = window_->get_number_of_features_out();
+	  im_size_prev              = window_->get_im_size_in();
+	  im_size_next              = window_->get_im_size_out();
+	  convolution_images_.resize( num_of_next_features_ );
+	  // Check the dimensions of images with the window
+	  window_->check_match( size_lu_, window_->get_size_in() );
+	  // load the data
+	  switch( layer_type_ )
+	    {
+	    case Conv_layer:
+	      {
+		cuda_treatment.load_convolution_kernels( // features
+							window_->get_number_of_features_in(),
+							window_->get_number_of_features_out(),
+							// weights
+							window_->get_number_of_weights(),
+							window_->get_shared_weights(),
+							window_->get_shared_biases(),
+							// weights position and transposed matrix
+							window_->get_im_size_in(),
+							window_->get_im_size_out(),
+							window_->get_weights_position_oi(),
+							window_->get_weights_position_io() );
+		//
+		break;
+	      }
+	    case Deconv_layer:
+	      {
+		cuda_treatment.load_deconvolution_kernels( // features
+							  window_->get_number_of_features_in(),
+							  window_->get_number_of_features_out(),
+							  // weights
+							  window_->get_number_of_weights(),
+							  window_->get_shared_weights(),
+							  window_->get_shared_biases(),
+							  // weights position and transposed matrix
+							  window_->get_im_size_in(),
+							  window_->get_im_size_out(),
+							  window_->get_weights_position_oi(),
+							  window_->get_weights_position_io() );
+		//
+		break;
+	      }
+	    default:
+	      {
+		std::string mess = "The type of layer is not defined for: ";
+		mess += layer_name_ + ".\n";
+		throw MAC::MACException( __FILE__, __LINE__,
+					 mess.c_str(),
+					 ITK_LOCATION );
+		
+	      }
+	    }
+
+	  //
+	  // 2. access the previouse feature maps and load it on the GPU device
+	  double** prev_features_to_device = new double*[ num_of_previous_features_ ];
+	  // Loop over the previous features image
+	  for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ )
+	    {
+	      // ToDo: Is it the right order for z in [Z1,Zn]; y in [Y1,Yn]; x in [X1,Xn]
+	      itk::ImageRegionIterator< Image3DType > image_iter( curr_images[prev], region );
+	      prev_features_to_device[prev] = new double[im_size_prev];
+	      //
+	      std::size_t current_position = 0;
+	      while( !image_iter.IsAtEnd() )
+		{
+		  //
+		  //Image3DType::IndexType idx = image_iter.GetIndex();
+		  prev_features_to_device[prev][ current_position++ ] = image_iter.Value();
+		  //
+		  ++image_iter;
+		}
+	    }
+	  // Load images on the device
+	  cuda_treatment.load_feature_maps( prev_features_to_device );
+	  // clean up
+	  for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ )
+	    {
+	      delete [] prev_features_to_device[prev];
+	      prev_features_to_device[prev] = nullptr;
+	    }
+	  delete [] prev_features_to_device;
+	  prev_features_to_device = nullptr;
+	  
+	  //
+	  // 3. Create the new feature maps with convolution
+	  Image3DType::SizeType      size_out       = window_->get_size_out();
+	  Image3DType::PointType     origine_out    = window_->get_origine_out();
+	  Image3DType::SpacingType   spacing_out    = window_->get_spacing_out();
+	  Image3DType::DirectionType direction_out  = window_->get_direction_out();
+	  //
+	  Image3DType::RegionType region_out;
+	  region_out.SetSize( size_out );
+	  region_out.SetIndex( start );
+	  //
+	  double** next_features_to_device   = new double*[num_of_next_features_];
+	  double** next_activation_to_device = new double*[num_of_next_features_];
+	  for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
+	    {
+	      //
+	      //
+	      next_features_to_device[mod]   = new double[im_size_next];
+	      next_activation_to_device[mod] = new double[im_size_next];
+	      
+	      //
+	      // Duplicate the image
+	      Image3DType::Pointer records = Image3DType::New();
+	      // image filter
+	      FilterType::Pointer images_filter;
+	      images_filter = FilterType::New();
+	      //
+	      images_filter->SetOutputSpacing( spacing_out );
+	      images_filter->ChangeSpacingOn();
+	      images_filter->SetOutputOrigin( origine_out );
+	      images_filter->ChangeOriginOn();
+	      images_filter->SetOutputDirection( direction_out );
+	      images_filter->ChangeDirectionOn();
+	      //
+	      records->SetRegions( region_out );
+	      records->Allocate();
+	      records->FillBuffer( 0.0 );
+	      images_filter->SetInput( records );
+	      images_filter->Update();
+	      //
+	      convolution_images_[mod] = images_filter->GetOutput();
+	    }
+		    
+	  //
+	  // Convolution on GPU
+	  switch( layer_type_ )
+	    {
+	    case Conv_layer:
+	      {
+		cuda_treatment.convolution( next_features_to_device,
+					    next_activation_to_device,
+					    activation_ );
+		//
+		break;
+	      }
+	    case Deconv_layer:
+	      {
+		cuda_treatment.transpose_convolution( next_features_to_device,
+						      activation_ );
+		//
+		break;
+	      }
+	    default:
+	      {
+		std::string mess = "The type of layer is not defined for: ";
+		mess += layer_name_ + ".\n";
+		throw MAC::MACException( __FILE__, __LINE__,
+					 mess.c_str(),
+					 ITK_LOCATION );
+		
+	      }
+	    }
+	  //
+	  // Write the image back
+	  for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
+	    {
+	      int feature_idx = 0;
+	      itk::ImageRegionIterator< Image3DType > convolution_iter( convolution_images_[mod], region_out );
+	      while( !convolution_iter.IsAtEnd() )
+		{
+		  convolution_iter.Set( next_features_to_device[mod][feature_idx++] );
+		  ++convolution_iter;
+		}
+	    }
+	  //
+	  write();
+	  Sub.set_clone_modalities_images( convolution_images_ );
+	  
+//	  //
+//	  // Cost function calculation
+//	  if ( compute_cost_function_ )
+//	    {
+//	      //
+//	      // 1. Check output and target matches
+//	      // Retrive the new dimensions of the output image
+//	      const std::vector< Image3DType::Pointer > new_images = Sub.get_clone_modalities_images();
+//	      // Images information
+//	      Image3DType::IndexType  new_start = { 0, 0, 0 };
+//	      Image3DType::Pointer    new_image_ptr = new_images[0];
+//	      //
+//	      size_lu_       = new_image_ptr->GetLargestPossibleRegion().GetSize();
+//	      origine_lu_    = new_image_ptr->GetOrigin();
+//	      spacing_lu_    = new_image_ptr->GetSpacing();
+//	      direction_lu_  = new_image_ptr->GetDirection();
+//	      //
+//	      Image3DType::RegionType new_region;
+//	      region.SetSize( size_lu_ );
+//	      region.SetIndex( start );
+//	      //
+//	      // Get target images' dimensions
+//	      const std::vector< Image3DType::Pointer > tgt_images = Sub.get_modality_targets_ITK_images();
+//	      // Images information
+//	      Image3DType::Pointer subject_tgt_ptr = tgt_images[0];
+//	      //
+//	      Image3DType::SizeType size_tgt_ = subject_tgt_ptr->GetLargestPossibleRegion().GetSize();
+//	      // ToDo: mv the match function into the convolution
+//	      // Check the dimensions of images with the window
+//	      window_->check_match( size_lu_, size_tgt_ );
+//		    
+//	      //
+//	      // 2. 
+//	      
+//	    }
+	}
+      catch( itk::ExceptionObject & err )
+	{
+	  std::cerr << err << std::endl;
+	}
+    };
+  //
+  //
+  //
+  template< class G, class A, class CD > void
+    MAC::Convolution< G, A, CD >::forward_CPU( Subject& Sub )
+    {
+      try
+	{
+	  std::cout << "Go fwd CPU " << layer_name_ << " " << layer_type_ << std::endl;
+
+	  //
+	  // Convolution
+	  //
+
+	  //
+	  // Subject informations
+	  const std::vector< Image3DType::Pointer > curr_images = Sub.get_clone_modalities_images();
+	  std::string subject_name = Sub.get_subject_name();
+	  std::cout << "subject_name " << subject_name << std::endl;
+	  //
+	  // Images information
+	  Image3DType::IndexType  start = { 0, 0, 0 };
+	  Image3DType::Pointer    raw_subject_image_ptr = curr_images[0];
+	  //
+	  size_lu_       = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
+	  origine_lu_    = raw_subject_image_ptr->GetOrigin();
+	  spacing_lu_    = raw_subject_image_ptr->GetSpacing();
+	  direction_lu_  = raw_subject_image_ptr->GetDirection();
+	  //
+	  Image3DType::RegionType region;
+	  region.SetSize( size_lu_ );
+	  region.SetIndex( start );
+	  //
+	  std::size_t
+	    im_size_prev,
+	    im_size_next;
+
+	  //
+	  switch( layer_type_ )
+	    {
+	    case Conv_layer:
+	      {
+		// 1. Load information
+		num_of_previous_features_            = window_->get_number_of_features_in();
+		num_of_next_features_                = window_->get_number_of_features_out();
+		im_size_prev                         = window_->get_im_size_in();
+		im_size_next                         = window_->get_im_size_out();
+		Eigen::SparseMatrix< std::size_t > W = window_->get_W_out_in();
+		std::vector< IOWeights > triplet_oiw     = window_->get_triplet_oiw();
+		double**                 feature_weights = window_->get_shared_weights();               
+		double*                  feature_biases  = window_->get_shared_biases();               
+		//
+		convolution_images_.resize( num_of_next_features_ );
+		
+		//
+		// 2. Create the weights matrices
+		std::vector< Eigen::SparseMatrix< double > > feature_W( num_of_next_features_ );
+		// resize the matrix and allocate memory
+		for ( int f = 0 ; f < num_of_next_features_ ; f++ )
+		  {
+		    feature_W[f].resize( im_size_next, im_size_prev );
+		    feature_W[f].setFromTriplets( triplet_oiw.begin(), triplet_oiw.end(),
+						  [] (const int&,const int& in) { return static_cast<double>(0.); } );
+		  }
+		// Create the W matrices for each features
+		for ( int k = 0 ; k < W.outerSize() ; ++k )
+		  for ( Eigen::SparseMatrix< std::size_t >::InnerIterator it( W, k ) ; it ; ++it )
+		    for ( int f = 0 ; f < num_of_next_features_ ; f++ )
+		      {
+			feature_W[f].coeffRef( it.row(), it.col() ) = feature_weights[f][it.value()-1];
+			//std::cout
+			//	<< " feature: " << f
+			//	<< " it.value() " << feature_weights[f][ it.value() - 1 ]
+			//	<< " it.value() " << feature_W[f].coeff( it.row(), it.col() )
+			//	<< " it.row(): "  << it.row()   // row index
+			//	<< " it.col(): "  << it.col()   // col index 
+			//	<< std::endl;
+		      }
+		
+		//
+		// 3. Convolution
+		// 3.1. Load the images and create a vector
+		std::vector< Eigen::VectorXd > prev_features_to_device( num_of_previous_features_ );
+		// load the images into a vector
+		for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ )
+		  {
+		    // ToDo: Is it the right order for z in [Z1,Zn]; y in [Y1,Yn]; x in [X1,Xn]
+		    itk::ImageRegionIterator< Image3DType > image_iter( curr_images[prev], region );
+		    prev_features_to_device[prev].resize( im_size_prev );
+		    //
+		    std::size_t current_position = 0;
+		    while( !image_iter.IsAtEnd() )
+		      {
+			    //
+			prev_features_to_device[prev][ current_position++ ] = image_iter.Value();
+			++image_iter;
+		      }
+		  }
+		// 3.2. Create the new feature maps with convolution
+		Image3DType::SizeType      size_out       = window_->get_size_out();
+		Image3DType::PointType     origine_out    = window_->get_origine_out();
+		Image3DType::SpacingType   spacing_out    = window_->get_spacing_out();
+		Image3DType::DirectionType direction_out  = window_->get_direction_out();
+		//
+		Image3DType::RegionType region_out;
+		region_out.SetSize( size_out );
+		region_out.SetIndex( start );
+		//
+		std::vector< Eigen::VectorXd > next_features_to_device( num_of_next_features_ );
+		for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
+		  {
+		    next_features_to_device[mod].resize(im_size_next);
+		    // Duplicate the image
+		    Image3DType::Pointer records = Image3DType::New();
+		    // image filter
+		    FilterType::Pointer images_filter;
+		    images_filter = FilterType::New();
+			//
+		    images_filter->SetOutputSpacing( spacing_out );
+		    images_filter->ChangeSpacingOn();
+		    images_filter->SetOutputOrigin( origine_out );
+		    images_filter->ChangeOriginOn();
+		    images_filter->SetOutputDirection( direction_out );
+		    images_filter->ChangeDirectionOn();
+		    //
+		    records->SetRegions( region_out );
+		    records->Allocate();
+		    records->FillBuffer( 0.0 );
+		    images_filter->SetInput( records );
+		    images_filter->Update();
+		    //
+		    convolution_images_[mod] = images_filter->GetOutput();
+		    //
+		    // Convolution
+		    for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ )
+		      next_features_to_device[mod] += feature_W[mod] * prev_features_to_device[prev];
+		    //
+		    // Create the output images
+		    int feature_idx = 0;
+		    itk::ImageRegionIterator< Image3DType > convolution_iter( convolution_images_[mod], region_out );
+		    while( !convolution_iter.IsAtEnd() )
+		      {
+			// ToDo: Add the activation and the bias
+			convolution_iter.Set( next_features_to_device[mod][feature_idx++] );
+			++convolution_iter;
+		      }
+		  }
+		//
+		write();
+		Sub.set_clone_modalities_images( convolution_images_ );
+		
+		//
+		//
+		    break;
+	      }
+	    case Deconv_layer:
+	      {
+		
+		break;
+	      }
+	    case Unknown:
+	    default:
+	      {
+		std::string mess = "The type of layer is not defined for: ";
+		mess += layer_name_ + ".\n";
+		throw MAC::MACException( __FILE__, __LINE__,
+					 mess.c_str(),
+					 ITK_LOCATION );
+		
+	      }
+	    }
+	}
+      catch( itk::ExceptionObject & err )
+	{
+	  std::cerr << err << std::endl;
+	}
+    };
+  //
+  //
+  //
+  template< class G, class A, class CD >
+    MAC::Convolution< G, A, CD >::~Convolution() 
     {
     }
 }

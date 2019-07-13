@@ -117,9 +117,11 @@ namespace MAC
     // Accessors
     //
     // Save the weightd
-    virtual void save_weights(){};
+    virtual        void        save_weights(){};
     // Save the weightd
-    virtual void load_weights(){};
+    virtual        void        load_weights(){};
+    // type of Window
+    virtual inline Weight_type get_layer_type(){ return Deconv_layer; };
     //
     // from the class
     const std::size_t get_number_of_features_in()  const { return number_of_features_in_;};
@@ -141,6 +143,7 @@ namespace MAC
     std::size_t**                    get_weights_position_io() const { return weights_poisition_io_; };
     //
     const Eigen::SparseMatrix< std::size_t >& get_W_out_in() const {return W_out_in_; };
+    const std::vector< IOWeights >            get_triplet_oiw() const {return triplet_oiw_; };
 
   private:
     // 
@@ -173,6 +176,7 @@ namespace MAC
     std::size_t**              weights_poisition_io_{nullptr};
     // Complete matrix
     Eigen::SparseMatrix< std::size_t > W_out_in_;
+    std::vector< IOWeights >           triplet_oiw_;
   };
 }
 #endif

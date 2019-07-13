@@ -21,6 +21,10 @@
  */
 namespace MAC
 {
+  enum Weight_type
+  { Unknown,
+    Conv_layer,
+    Deconv_layer };
   /*! \class Weights
    * \brief class representing the shared weight between all the neural networks layers.
    *
@@ -54,11 +58,13 @@ namespace MAC
   public:
     //
     // Accessors
-    virtual void print();
+    virtual        void        print();
     // Save the weightd
-    virtual void save_weights(){};
+    virtual        void        save_weights(){};
     // Save the weightd
-    virtual void load_weights(){};
+    virtual        void        load_weights(){};
+    // layer type
+    virtual inline Weight_type get_layer_type(){ return Unknown; };
 
     
     //

@@ -17,7 +17,8 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
   // Neural network anatomy
   //
   //using ConvolutionAE = MAC::ConvolutionalAutoEncoder_layer< Activation_sigmoid >;
-  using Conv_layer    = MAC::Convolution< SGD, Activation_sigmoid >;
+  using Conv_layer   = MAC::Convolution< SGD, Activation_sigmoid, std::shared_ptr< MAC::Convolutional_window   > >;
+  using Deconv_layer = MAC::Convolution< SGD, Activation_sigmoid, std::shared_ptr< MAC::Deconvolutional_window > >;
 
   //
   // Encoding Convolutional layers
@@ -70,7 +71,7 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
     std::make_shared< MAC::Deconvolutional_window >( "Conv_weights_1.dat", Conv_weights_1 );
   //
   std::shared_ptr< NeuralNetwork > deconvlayer_1 =
-    std::make_shared< Conv_layer >( "deconv_layer_1", 1, Deconv_weights_1 );
+    std::make_shared< Deconv_layer >( "deconv_layer_1", 1, Deconv_weights_1 );
   //
   // Layer 0
   // Deconvolution takes the Convolution window "Conv_weights_0"
@@ -78,8 +79,8 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
     std::make_shared< MAC::Deconvolutional_window >( "Conv_weights_0.dat", Conv_weights_0 );
   //
   std::shared_ptr< NeuralNetwork > deconvlayer_0 =
-    std::make_shared< Conv_layer >( "deconv_layer_0", 0, Deconv_weights_0,
-				    true /* Cost function calculation */);
+    std::make_shared< Deconv_layer >( "deconv_layer_0", 0, Deconv_weights_0,
+				      true /* Cost function calculation */);
 
   
   //

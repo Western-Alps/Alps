@@ -25,6 +25,7 @@
 // Weights
 #include "Weights.h"
 #include "Convolutional_window.h"
+#include "Deconvolutional_window.h"
 // Layers
 #include "Convolution.h"
 #include "Convolutional_layer.h"

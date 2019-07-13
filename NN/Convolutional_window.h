@@ -122,9 +122,11 @@ namespace MAC
     // Accessors
     //
     // Save the weights
-    virtual void save_weights();
+    virtual void               save_weights();
     // Save the weights
-    virtual void load_weights();
+    virtual void               load_weights();
+    // type of Window
+    virtual inline Weight_type get_layer_type(){ return Conv_layer; };
     //
     // from the class
     const std::size_t get_number_of_features_in()  const { return number_of_features_in_;};
