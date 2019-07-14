@@ -89,12 +89,7 @@ namespace MAC
 		   const int, 
 		   ConvDeconv,
 		   bool  Compute_cost_function_ = false );
-//      /** Constructor. */
-//      Convolution( const std::string,
-//		   const int, 
-//		   std::shared_ptr< Deconvolutional_window >,
-//		   bool  Compute_cost_function_ = false );
-//      /** Destructor */
+      /** Destructor */
       virtual ~Convolution();
 
       //
@@ -168,8 +163,6 @@ namespace MAC
       //
       // Convolution window
       ConvDeconv window_;
-//      // Deconvolution window
-//      std::shared_ptr< Deconvolutional_window > dec_window_;
 
       //
       //
@@ -218,20 +211,6 @@ namespace MAC
   {
     layer_type_ = Window->get_layer_type();;
   };
-//ToRm  //
-//ToRm  //
-//ToRm  //
-//ToRm  template< class G, class A, class CD >
-//ToRm    MAC::Convolution< G, A, CD >::Convolution( const std::string Layer_name,
-//ToRm					   const int         Layer_number,
-//ToRm					   std::shared_ptr< Deconvolutional_window > Window,
-//ToRm					   bool  Compute_cost_function_ ):
-//ToRm  MAC::NeuralNetwork::NeuralNetwork(),
-//ToRm    layer_name_{Layer_name}, compute_cost_function_{Compute_cost_function_}, layer_number_{Layer_number}, window_{nullptr}, dec_window_{Window}
-//ToRm			       
-//ToRm  { 
-//ToRm    layer_type_ = Deconv_layer;
-//ToRm  };
   //
   //
   //
@@ -244,44 +223,8 @@ namespace MAC
 	  //
 	  if ( true /* CUDA */)
 	    forward_GPU( Sub );
-	  else /*CPU*/
+	  else     /*CPU*/
 	    forward_CPU( Sub );
-
-//	  //
-//	  // Cost function calculation
-//	  if ( compute_cost_function_ )
-//	    {
-//	      //
-//	      // 1. Check output and target matches
-//	      // Retrive the new dimensions of the output image
-//	      const std::vector< Image3DType::Pointer > new_images = Sub.get_clone_modalities_images();
-//	      // Images information
-//	      Image3DType::IndexType  new_start = { 0, 0, 0 };
-//	      Image3DType::Pointer    new_image_ptr = new_images[0];
-//	      //
-//	      size_lu_       = new_image_ptr->GetLargestPossibleRegion().GetSize();
-//	      origine_lu_    = new_image_ptr->GetOrigin();
-//	      spacing_lu_    = new_image_ptr->GetSpacing();
-//	      direction_lu_  = new_image_ptr->GetDirection();
-//	      //
-//	      Image3DType::RegionType new_region;
-//	      region.SetSize( size_lu_ );
-//	      region.SetIndex( start );
-//	      //
-//	      // Get target images' dimensions
-//	      const std::vector< Image3DType::Pointer > tgt_images = Sub.get_modality_targets_ITK_images();
-//	      // Images information
-//	      Image3DType::Pointer subject_tgt_ptr = tgt_images[0];
-//	      //
-//	      Image3DType::SizeType size_tgt_ = subject_tgt_ptr->GetLargestPossibleRegion().GetSize();
-//	      // ToDo: mv the match function into the convolution
-//	      // Check the dimensions of images with the window
-//	      window_->check_match( size_lu_, size_tgt_ );
-//		    
-//	      //
-//	      // 2. 
-//	      
-//	    }
 	}
       catch( itk::ExceptionObject & err )
 	{
@@ -321,6 +264,12 @@ namespace MAC
 	  region.SetSize( size_lu_ );
 	  region.SetIndex( start );
 	  //
+	  // If costfunction calculation:
+	  const std::vector< Image3DType::Pointer > tgt_images = Sub.get_modality_targets_ITK_images();
+	  Image3DType::Pointer  subject_tgt_ptr = tgt_images[0];
+	  Image3DType::SizeType size_tgt_       = subject_tgt_ptr->GetLargestPossibleRegion().GetSize();
+	  int num_tgt_features                  = tgt_images.size();
+	  //
 	  std::size_t
 	    im_size_prev,
 	    im_size_next;
@@ -328,7 +277,6 @@ namespace MAC
 	  
 	  //
 	  // Cuda treatment
-	  //
 	  Convolutional_CUDA cuda_treatment;
 
 	  //
@@ -434,34 +382,25 @@ namespace MAC
 	  double** next_activation_to_device = new double*[num_of_next_features_];
 	  for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
 	    {
-	      //
-	      //
 	      next_features_to_device[mod]   = new double[im_size_next];
 	      next_activation_to_device[mod] = new double[im_size_next];
-	      
-	      //
-	      // Duplicate the image
-	      Image3DType::Pointer records = Image3DType::New();
-	      // image filter
-	      FilterType::Pointer images_filter;
-	      images_filter = FilterType::New();
-	      //
-	      images_filter->SetOutputSpacing( spacing_out );
-	      images_filter->ChangeSpacingOn();
-	      images_filter->SetOutputOrigin( origine_out );
-	      images_filter->ChangeOriginOn();
-	      images_filter->SetOutputDirection( direction_out );
-	      images_filter->ChangeDirectionOn();
-	      //
-	      records->SetRegions( region_out );
-	      records->Allocate();
-	      records->FillBuffer( 0.0 );
-	      images_filter->SetInput( records );
-	      images_filter->Update();
-	      //
-	      convolution_images_[mod] = images_filter->GetOutput();
 	    }
-		    
+	  // Check we can compute the energy, if requiered
+	  if ( compute_cost_function_ )
+	    {
+	      // Check the dim of the images
+	      window_->check_match( size_out, size_tgt_ );
+	      // 
+	      if( num_tgt_features != num_of_next_features_ )
+		{
+		  std::string mess = "Cannot compute the Cost Function if the number of features out (";
+		  mess += std::to_string( num_of_next_features_ ) + ") is different from the input ";
+		  mess += "number of images (" + std::to_string( num_tgt_features ) + ").\n";
+		  throw MAC::MACException( __FILE__, __LINE__,
+					   mess.c_str(),
+					   ITK_LOCATION );
+		}
+	    }   
 	  //
 	  // Convolution on GPU
 	  switch( layer_type_ )
@@ -495,53 +434,60 @@ namespace MAC
 	  // Write the image back
 	  for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
 	    {
+	      //
+	      // Duplicate the image
+	      Image3DType::Pointer records = Image3DType::New();
+	      // image filter
+	      FilterType::Pointer images_filter;
+	      images_filter = FilterType::New();
+	      //
+	      images_filter->SetOutputSpacing( spacing_out );
+	      images_filter->ChangeSpacingOn();
+	      images_filter->SetOutputOrigin( origine_out );
+	      images_filter->ChangeOriginOn();
+	      images_filter->SetOutputDirection( direction_out );
+	      images_filter->ChangeDirectionOn();
+	      //
+	      records->SetRegions( region_out );
+	      records->Allocate();
+	      records->FillBuffer( 0.0 );
+	      images_filter->SetInput( records );
+	      images_filter->Update();
+	      //
+	      convolution_images_[mod] = images_filter->GetOutput();
+	      //
+	      // Cost function calculation
 	      int feature_idx = 0;
 	      itk::ImageRegionIterator< Image3DType > convolution_iter( convolution_images_[mod], region_out );
-	      while( !convolution_iter.IsAtEnd() )
+	      if ( compute_cost_function_ )
 		{
-		  convolution_iter.Set( next_features_to_device[mod][feature_idx++] );
-		  ++convolution_iter;
+		  itk::ImageRegionIterator< Image3DType > tgd_iter( tgt_images[mod], region_out );
+		  while( !convolution_iter.IsAtEnd() )
+		    {
+		      convolution_iter.Set( next_features_to_device[mod][feature_idx++] );
+		      ++convolution_iter; ++tgd_iter;
+		    }
 		}
+	      else
+		while( !convolution_iter.IsAtEnd() )
+		  {
+		    convolution_iter.Set( next_features_to_device[mod][feature_idx++] );
+		    ++convolution_iter;
+		  }
+	      // clean up
+	      delete [] next_features_to_device[mod];
+	      delete [] next_activation_to_device[mod];
+	      next_features_to_device[mod] = nullptr;
+	      next_activation_to_device[mod] = nullptr;
 	    }
+	  //
+	  delete [] next_features_to_device;
+	  delete [] next_activation_to_device;
+	  next_features_to_device = nullptr;
+	  next_activation_to_device = nullptr;
 	  //
 	  write();
 	  Sub.set_clone_modalities_images( convolution_images_ );
-	  
-//	  //
-//	  // Cost function calculation
-//	  if ( compute_cost_function_ )
-//	    {
-//	      //
-//	      // 1. Check output and target matches
-//	      // Retrive the new dimensions of the output image
-//	      const std::vector< Image3DType::Pointer > new_images = Sub.get_clone_modalities_images();
-//	      // Images information
-//	      Image3DType::IndexType  new_start = { 0, 0, 0 };
-//	      Image3DType::Pointer    new_image_ptr = new_images[0];
-//	      //
-//	      size_lu_       = new_image_ptr->GetLargestPossibleRegion().GetSize();
-//	      origine_lu_    = new_image_ptr->GetOrigin();
-//	      spacing_lu_    = new_image_ptr->GetSpacing();
-//	      direction_lu_  = new_image_ptr->GetDirection();
-//	      //
-//	      Image3DType::RegionType new_region;
-//	      region.SetSize( size_lu_ );
-//	      region.SetIndex( start );
-//	      //
-//	      // Get target images' dimensions
-//	      const std::vector< Image3DType::Pointer > tgt_images = Sub.get_modality_targets_ITK_images();
-//	      // Images information
-//	      Image3DType::Pointer subject_tgt_ptr = tgt_images[0];
-//	      //
-//	      Image3DType::SizeType size_tgt_ = subject_tgt_ptr->GetLargestPossibleRegion().GetSize();
-//	      // ToDo: mv the match function into the convolution
-//	      // Check the dimensions of images with the window
-//	      window_->check_match( size_lu_, size_tgt_ );
-//		    
-//	      //
-//	      // 2. 
-//	      
-//	    }
 	}
       catch( itk::ExceptionObject & err )
 	{
