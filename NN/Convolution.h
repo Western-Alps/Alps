@@ -336,6 +336,7 @@ namespace MAC
 	      }
 	    }
 
+	  
 	  //
 	  // 2. access the previouse feature maps and load it on the GPU device
 	  double** prev_features_to_device = new double*[ num_of_previous_features_ ];
@@ -464,7 +465,12 @@ namespace MAC
 		  itk::ImageRegionIterator< Image3DType > tgd_iter( tgt_images[mod], region_out );
 		  while( !convolution_iter.IsAtEnd() )
 		    {
-		      convolution_iter.Set( next_features_to_device[mod][feature_idx++] );
+		      double local_img_energy = next_features_to_device[mod][feature_idx++];
+		      // load the convolution
+		      convolution_iter.Set( local_img_energy );
+		      // Compute the local energy
+		      local_img_energy -= tgd_iter.Value();
+		      energy_ += local_img_energy * local_img_energy;
 		      ++convolution_iter; ++tgd_iter;
 		    }
 		}
