@@ -105,7 +105,7 @@ namespace MAC
       // Forward propagation
       virtual void        forward( Subject&, const Weights& W = Weights() );
       // Backward propagation
-      virtual void        backward(){};
+      virtual void        backward();
       // Backward error propagation
       virtual void        backward_error_propagation(){};
       //
@@ -141,8 +141,10 @@ namespace MAC
       //
       // GPU treatment
       void forward_GPU( Subject& );
+      void backward_GPU( );
       // CPU treatment
       void forward_CPU( Subject& );
+      void backward_CPU( );
 
     protected:
       //
@@ -671,6 +673,54 @@ namespace MAC
 		
 	      }
 	    }
+	}
+      catch( itk::ExceptionObject & err )
+	{
+	  std::cerr << err << std::endl;
+	}
+    };
+  //
+  //
+  //
+  template< class G, class A, class CD > void
+    MAC::Convolution< G, A, CD >::backward()
+    {
+      try
+	{
+	  //
+	  //
+	  if ( true /* CUDA */)
+	    backward_GPU();
+	  else     /*CPU*/
+	    backward_CPU();
+	}
+      catch( itk::ExceptionObject & err )
+	{
+	  std::cerr << err << std::endl;
+	}
+    };
+  //
+  //
+  //
+  template< class G, class A, class CD > void
+    MAC::Convolution< G, A, CD >::backward_GPU()
+    {
+      try
+	{
+	}
+      catch( itk::ExceptionObject & err )
+	{
+	  std::cerr << err << std::endl;
+	}
+    };
+  //
+  //
+  //
+  template< class G, class A, class CD > void
+    MAC::Convolution< G, A, CD >::backward_CPU()
+    {
+      try
+	{
 	}
       catch( itk::ExceptionObject & err )
 	{
