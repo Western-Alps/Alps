@@ -73,6 +73,8 @@ convolution_cuda( int      Num_features_in,
 		  int      Number_of_weights,
 		  double** To_conv,
 		  double*  Conv,
+		  double*  Activation_map,
+		  double*  Delta_map,
 		  double** Shared_weights,
 		  double*  Shared_biases,
 		  int*     Weights_pos_oi )
@@ -83,8 +85,10 @@ convolution_cuda( int      Num_features_in,
   //
   if ( odx <  Image_size_out )
     {
+      Conv[odx]      = 0.;
+      Delta_map[odx] = 0.;
+      //
       double   conv = 0.;
-      Conv[odx]     = 0.;
       Activate activation;
       //
       for ( int feature = 0 ; feature < Num_features_in; feature++ )
@@ -96,7 +100,8 @@ convolution_cuda( int      Num_features_in,
 	    //  printf("~ %d %d %d %f %d %f %f ~", odx, k, feature, Shared_weights[Feature_out][k], Weights_pos_oi[idx], To_conv[feature][ Weights_pos_oi[idx] ], conv );
 	  }
       //
-      Conv[odx]       = /*activation.f(*/ conv + Shared_biases[Feature_out] /*)*/;
+      Conv[odx]      = activation.f(  conv + Shared_biases[Feature_out] );
+      Delta_map[odx] = activation.df( conv + Shared_biases[Feature_out] );
     }
 }
 //
@@ -110,6 +115,8 @@ transpose_convolution_cuda( int      Num_features_in,
 			    int      Number_of_weights,
 			    double** To_deconv,
 			    double*  Deconv,
+			    double*  Activation_map,
+			    double*  Delta_map,
 			    double** Shared_weights,
 			    double*  Shared_biases,
 			    int*     Weights_pos_io )
@@ -120,6 +127,10 @@ transpose_convolution_cuda( int      Num_features_in,
   //
   if ( odx <  Image_size_out )
     {
+      //
+      Deconv[odx]    = 0.;
+      Delta_map[odx] = 0.;
+      //
       double deconv = 0.;
       Deconv[odx]   = 0.;
       Activate activation;
@@ -132,7 +143,8 @@ transpose_convolution_cuda( int      Num_features_in,
 	      deconv += Shared_weights[feature][k] * To_deconv[feature][ Weights_pos_io[idx] ];
 	  }
       //
-      Deconv[odx] = /*activation.f(*/ deconv + Shared_biases[Feature_out] /*)*/;
+      Deconv[odx]    = activation.f(  deconv + Shared_biases[Feature_out] );
+      Delta_map[odx] = activation.df( deconv + Shared_biases[Feature_out] );
     }
 }
 //
@@ -156,9 +168,7 @@ MAC::Convolutional_CUDA::load_convolution_kernels(// features
 						  std::size_t         Im_size_in,
 						  std::size_t         Im_size_out,
 						  std::size_t**       Weights_pos_oi,
-						  std::size_t**       Weights_pos_io/*,
-				      // ToDo: to remove
-				      double* To_conv, double* Conv*/ )
+						  std::size_t**       Weights_pos_io )
 {
   //
   // Initialization
@@ -384,6 +394,7 @@ MAC::Convolutional_CUDA::load_feature_maps( double** Prev_feature_maps )
   // 2. Allocation space for the next features on the GPU
   err = cudaMalloc( (void **)&d_next_feature_maps_,    im_size_out_ * sizeof(double) );
   err = cudaMalloc( (void **)&d_next_activation_maps_, im_size_out_ * sizeof(double) );
+  err = cudaMalloc( (void **)&d_next_delta_maps_,      im_size_out_ * sizeof(double) );
   err = cudaMalloc( (void **)&d_target_maps_,          im_size_out_ * sizeof(double) );
 
   //
@@ -394,6 +405,8 @@ MAC::Convolutional_CUDA::load_feature_maps( double** Prev_feature_maps )
 						      d_next_feature_maps_ );
   fill_with_zeros<<< Blocks_out, threadsPerBlock >>>( im_size_out_,
 						      d_next_activation_maps_ );
+  fill_with_zeros<<< Blocks_out, threadsPerBlock >>>( im_size_out_,
+						      d_next_delta_maps_ );
   fill_with_zeros<<< Blocks_out, threadsPerBlock >>>( im_size_out_, d_target_maps_ );
 }
 //
@@ -402,6 +415,7 @@ MAC::Convolutional_CUDA::load_feature_maps( double** Prev_feature_maps )
 __host__ void
 MAC::Convolutional_CUDA::convolution( double**         Next_feature_maps,
 				      double**         Next_activation_maps,
+				      double**         Next_delta_maps,
 				      const Functions& Activation_func )
 {
   std::cout << "Convolutional_CUDA -- Run the convolution." << std::endl;
@@ -432,14 +446,24 @@ MAC::Convolutional_CUDA::convolution( double**         Next_feature_maps,
 		number_of_weights_,
 		d_previouse_feature_maps_,
 		d_next_feature_maps_,
+		d_next_activation_maps_,
+		d_next_delta_maps_,
 		d_shared_weights_, d_shared_biases_,
 		d_weights_pos_oi_ );
 	    // 2.2 move the feature map back
 	    cudaMemcpy( Next_feature_maps[feature], d_next_feature_maps_,
 			im_size_out_ * sizeof(double), cudaMemcpyDeviceToHost );
-	    // 2.3 reset the feature map
-	    fill_with_zeros<<< numBlocks, threadsPerBlock >>>
-	      ( im_size_out_, d_next_feature_maps_ );
+	    cudaMemcpy( Next_activation_maps[feature], d_next_activation_maps_,
+			im_size_out_ * sizeof(double), cudaMemcpyDeviceToHost );
+	    cudaMemcpy( Next_delta_maps[feature], d_next_delta_maps_,
+			im_size_out_ * sizeof(double), cudaMemcpyDeviceToHost );
+//	    // 2.3 reset the feature map
+//	    fill_with_zeros<<< numBlocks, threadsPerBlock >>>
+//	      ( im_size_out_, d_next_feature_maps_ );
+//	    fill_with_zeros<<< numBlocks, threadsPerBlock >>>
+//	      ( im_size_out_, d_next_activation_maps_ );
+//	    fill_with_zeros<<< numBlocks, threadsPerBlock >>>
+//	      ( im_size_out_, d_next_delta_maps_ );
 	  }
 	break;
       }
@@ -455,14 +479,24 @@ MAC::Convolutional_CUDA::convolution( double**         Next_feature_maps,
 		number_of_weights_,
 		d_previouse_feature_maps_,
 		d_next_feature_maps_,
+		d_next_activation_maps_,
+		d_next_delta_maps_,
 		d_shared_weights_, d_shared_biases_,
 		d_weights_pos_oi_ );
 	    // 2.2 move the feature map back
 	    cudaMemcpy( Next_feature_maps[feature], d_next_feature_maps_,
 			im_size_out_ * sizeof(double), cudaMemcpyDeviceToHost );
-	    // 2.3 reset the feature map
-	    fill_with_zeros<<< numBlocks, threadsPerBlock >>>
-	      ( im_size_out_, d_next_feature_maps_ );
+	    cudaMemcpy( Next_activation_maps[feature], d_next_activation_maps_,
+			im_size_out_ * sizeof(double), cudaMemcpyDeviceToHost );
+	    cudaMemcpy( Next_delta_maps[feature], d_next_delta_maps_,
+			im_size_out_ * sizeof(double), cudaMemcpyDeviceToHost );
+//	    // 2.3 reset the feature map
+//	    fill_with_zeros<<< numBlocks, threadsPerBlock >>>
+//	      ( im_size_out_, d_next_feature_maps_ );
+//	    fill_with_zeros<<< numBlocks, threadsPerBlock >>>
+//	      ( im_size_out_, d_next_activation_maps_ );
+//	    fill_with_zeros<<< numBlocks, threadsPerBlock >>>
+//	      ( im_size_out_, d_next_delta_maps_ );
 	  }
 	break;
       }
@@ -479,6 +513,8 @@ MAC::Convolutional_CUDA::convolution( double**         Next_feature_maps,
 //
 __host__ void
 MAC::Convolutional_CUDA::transpose_convolution( double**         Next_feature_maps,
+						double**         Next_activation_maps,
+						double**         Next_delta_maps,
 						const Functions& Activation_func )
 {
   std::cout << "Convolutional_CUDA -- Run the deconvolution." << std::endl;
@@ -501,7 +537,7 @@ MAC::Convolutional_CUDA::transpose_convolution( double**         Next_feature_ma
       {
 	for ( std::size_t feature = 0 ; feature < number_of_features_out_; feature++ )
 	  {
-	    // 2.1. convolution
+	    // 2.1. deconvolution
 	    transpose_convolution_cuda< MAC::Activation_tanh ><<< numBlocks, threadsPerBlock >>>
 	      ( static_cast< int >(number_of_features_in_),
 		static_cast< int >(feature),
@@ -509,14 +545,24 @@ MAC::Convolutional_CUDA::transpose_convolution( double**         Next_feature_ma
 		number_of_weights_,
 		d_previouse_feature_maps_,
 		d_next_feature_maps_,
+		d_next_activation_maps_,
+		d_next_delta_maps_,
 		d_shared_weights_, d_shared_biases_,
 		d_weights_pos_oi_ );
 	    // 2.2 move the feature map back
 	    cudaMemcpy( Next_feature_maps[feature], d_next_feature_maps_,
 			im_size_out_ * sizeof(double), cudaMemcpyDeviceToHost );
-	    // 2.3 reset the feature map
-	    fill_with_zeros<<< numBlocks, threadsPerBlock >>>
-	      ( im_size_out_, d_next_feature_maps_ );
+	    cudaMemcpy( Next_activation_maps[feature], d_next_activation_maps_,
+			im_size_out_ * sizeof(double), cudaMemcpyDeviceToHost );
+	    cudaMemcpy( Next_delta_maps[feature], d_next_delta_maps_,
+			im_size_out_ * sizeof(double), cudaMemcpyDeviceToHost );
+//	    // 2.3 reset the feature map
+//	    fill_with_zeros<<< numBlocks, threadsPerBlock >>>
+//	      ( im_size_out_, d_next_feature_maps_ );
+//	    fill_with_zeros<<< numBlocks, threadsPerBlock >>>
+//	      ( im_size_out_, d_next_activation_maps_ );
+//	    fill_with_zeros<<< numBlocks, threadsPerBlock >>>
+//	      ( im_size_out_, d_next_delta_maps_ );
 	  }
 	break;
       }
@@ -524,7 +570,7 @@ MAC::Convolutional_CUDA::transpose_convolution( double**         Next_feature_ma
       {
 	for ( std::size_t feature = 0 ; feature < number_of_features_out_; feature++ )
 	  {
-	    // 2.1. convolution
+	    // 2.1. deconvolution
 	    transpose_convolution_cuda< MAC::Activation_sigmoid ><<< numBlocks, threadsPerBlock >>>
 	      ( static_cast< int >(number_of_features_in_),
 		static_cast< int >(feature),
@@ -532,14 +578,24 @@ MAC::Convolutional_CUDA::transpose_convolution( double**         Next_feature_ma
 		number_of_weights_,
 		d_previouse_feature_maps_,
 		d_next_feature_maps_,
+		d_next_activation_maps_,
+		d_next_delta_maps_,
 		d_shared_weights_, d_shared_biases_,
 		d_weights_pos_oi_ );
 	    // 2.2 move the feature map back
 	    cudaMemcpy( Next_feature_maps[feature], d_next_feature_maps_,
 			im_size_out_ * sizeof(double), cudaMemcpyDeviceToHost );
-	    // 2.3 reset the feature map
-	    fill_with_zeros<<< numBlocks, threadsPerBlock >>>
-	      ( im_size_out_, d_next_feature_maps_ );
+	    cudaMemcpy( Next_activation_maps[feature], d_next_activation_maps_,
+			im_size_out_ * sizeof(double), cudaMemcpyDeviceToHost );
+	    cudaMemcpy( Next_delta_maps[feature], d_next_delta_maps_,
+			im_size_out_ * sizeof(double), cudaMemcpyDeviceToHost );
+//	    // 2.3 reset the feature map
+//	    fill_with_zeros<<< numBlocks, threadsPerBlock >>>
+//	      ( im_size_out_, d_next_feature_maps_ );
+//	    fill_with_zeros<<< numBlocks, threadsPerBlock >>>
+//	      ( im_size_out_, d_next_activation_maps_ );
+//	    fill_with_zeros<<< numBlocks, threadsPerBlock >>>
+//	      ( im_size_out_, d_next_delta_maps_ );
 	  }
 	break;
       }

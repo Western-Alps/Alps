@@ -149,6 +149,12 @@ namespace MAC
     //
     const Eigen::SparseMatrix< std::size_t >& get_W_out_in() const {return W_out_in_; };
     const std::vector< IOWeights >            get_triplet_oiw() const {return triplet_oiw_; };
+    //
+    std::map< std::string, std::tuple<
+      std::vector< std::shared_ptr<double> > /* activations */,
+      std::vector< std::shared_ptr<double> > /* neurons */,
+      std::vector< std::shared_ptr<double> > /* deltas */ > >& get_neuron(){ return neurons_;};
+
     
   private:
     // This function creates the size of the output feature 
@@ -160,6 +166,12 @@ namespace MAC
 					 const Image3DType::SpacingType,
 					 const Image3DType::PointType ) const;
 
+    //
+    // Neurons, activations and delta
+    std::map< std::string, std::tuple<
+      std::vector< std::shared_ptr<double> > /* activations */,
+      std::vector< std::shared_ptr<double> > /* neurons */,
+      std::vector< std::shared_ptr<double> > /* deltas */ > > neurons_;
 
     // 
     // Inputs

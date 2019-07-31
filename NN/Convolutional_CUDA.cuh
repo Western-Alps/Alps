@@ -58,8 +58,7 @@ namespace MAC
 				     const int,
 				     double**, double*,
 				     std::size_t,  std::size_t,
-				     std::size_t**,  std::size_t**/*,
-							double*, double* */ );
+				     std::size_t**,  std::size_t** );
       //
       //
       __host__
@@ -67,8 +66,7 @@ namespace MAC
 				       const int,
 				       double**, double*,
 				       std::size_t,  std::size_t,
-				       std::size_t**,  std::size_t**/*,
-							double*, double* */ );
+				       std::size_t**,  std::size_t** );
       //
       //
       __host__
@@ -76,11 +74,11 @@ namespace MAC
       //
       //
       __host__
-      void convolution( double**, double**, const Functions& );
+      void convolution( double**, double**, double**, const Functions& );
       //
       //
       __host__
-      void transpose_convolution( double**, const Functions& );
+      void transpose_convolution( double**, double**, double**, const Functions& );
       
       //
       // Forward/Backward propagation
@@ -110,8 +108,9 @@ namespace MAC
       int*        d_weights_pos_io_{NULL};
       // previouse feature maps
       double**    d_previouse_feature_maps_{NULL}; 
-      double*     d_next_activation_maps_{NULL};
       double*     d_next_feature_maps_{NULL};
+      double*     d_next_activation_maps_{NULL};
+      double*     d_next_delta_maps_{NULL};
       double*     d_target_maps_{NULL};
   };
 }

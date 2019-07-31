@@ -80,121 +80,121 @@ namespace MAC
    */
   template< class Grad, class ActivationFunction, class ConvDeconv  >
     class Convolution : public NeuralNetwork
+  {
+
+  public:
+
+    /** Constructor. */
+    Convolution( const std::string,
+		 const int, 
+		 ConvDeconv,
+		 bool  Compute_cost_function_ = false );
+    /** Destructor */
+    virtual ~Convolution();
+
+    //
+    // Initialization
+    virtual void initialization(){};
+    //
+    // get the layer name
+    virtual std::string get_layer_name(){ return layer_name_;};
+    // get the layer type
+    virtual Layer       get_layer_type(){ return convolution;};
+    // get the energy
+    virtual double      get_energy(){ return energy_;};
+    // Forward propagation
+    virtual void        forward( Subject&, const Weights& W = Weights() );
+    // Backward propagation
+    virtual void        backward();
+    // Backward error propagation
+    virtual void        backward_error_propagation(){};
+    //
+    // For the builders
+    virtual void add( std::shared_ptr< NeuralNetwork > ){};
+    // ToDo: do we need that?
+    virtual int get_number_weights() const { return 0 /*number_of_weights_*/; };
+    //
+    // 
+    void write( const std::string Subject_name ) const
     {
-
-    public:
-
-      /** Constructor. */
-      Convolution( const std::string,
-		   const int, 
-		   ConvDeconv,
-		   bool  Compute_cost_function_ = false );
-      /** Destructor */
-      virtual ~Convolution();
-
       //
-      // Initialization
-      virtual void initialization(){};
-      //
-      // get the layer name
-      virtual std::string get_layer_name(){ return layer_name_;};
-      // get the layer type
-      virtual Layer       get_layer_type(){ return convolution;};
-      // get the energy
-      virtual double      get_energy(){ return energy_;};
-      // Forward propagation
-      virtual void        forward( Subject&, const Weights& W = Weights() );
-      // Backward propagation
-      virtual void        backward();
-      // Backward error propagation
-      virtual void        backward_error_propagation(){};
-      //
-      // For the builders
-      virtual void add( std::shared_ptr< NeuralNetwork > ){};
-      // ToDo: do we need that?
-      virtual int get_number_weights() const { return 0 /*number_of_weights_*/; };
-      //
-      // 
-      void write() const
-      {
-	//
-	// Check
-	int mod = 0;
-	for (auto img_ptr : convolution_images_ )
-	  {
-	    itk::NiftiImageIO::Pointer nifti_io = itk::NiftiImageIO::New();
-	    //
-	    itk::ImageFileWriter< Image3DType >::Pointer writer =
-	      itk::ImageFileWriter< Image3DType >::New();
-	    //
-	    std::string name = "Convolutional_" + layer_name_ + "_" + std::to_string(mod) + ".nii.gz";
-	    writer->SetFileName( name );
-	    writer->SetInput( img_ptr );
-	    writer->SetImageIO( nifti_io );
-	    writer->Update();
-	    //
-	    mod++;
-	  }
-      };
-
-    private:
-      //
-      // GPU treatment
-      void forward_GPU( Subject& );
-      void backward_GPU( );
-      // CPU treatment
-      void forward_CPU( Subject& );
-      void backward_CPU( );
-
-    protected:
-      //
-      // Inputs
-      //
-      
-      // 
-      // Convolution type
-      Weight_type layer_type_{Unknown};
-      // Convolutional layer's name
-      std::string layer_name_;
-      // layer energy (Cost function)
-      double    energy_{0.};
-      bool      compute_cost_function_{false};
-      // Weights
-      const int layer_number_;
-
-      //
-      // Convolution window
-      ConvDeconv window_;
-
-      //
-      //
-      int num_of_previous_features_{0};
-      int num_of_next_features_{0};
-      // Measures grouped in vector of 3D image
-      // Convolution image: vector for each modality
-      std::vector< Image3DType::Pointer > convolution_images_;
-
-      //
-      // Neurons, activations and delta
-      std::map< std::string, std::tuple<
-	std::vector< std::shared_ptr<double> > /* activations */,
-	std::vector< std::shared_ptr<double> > /* neurons */,
-	std::vector< std::shared_ptr<double> > /* deltas */ > > neurons_;
-
-      //
-      // Image information at the lu level
-      Image3DType::SizeType      size_lu_;
-      Image3DType::SpacingType   spacing_lu_;
-      Image3DType::PointType     origine_lu_;
-      Image3DType::DirectionType direction_lu_;
-
-      //
-      // Activation function
-      ActivationFunction activation_;
-      // Gradient method
-      Grad               gradient_;
-
+      // Check
+      int mod = 0;
+      for (auto img_ptr : convolution_images_ )
+	{
+	  itk::NiftiImageIO::Pointer nifti_io = itk::NiftiImageIO::New();
+	  //
+	  itk::ImageFileWriter< Image3DType >::Pointer writer =
+	    itk::ImageFileWriter< Image3DType >::New();
+	  //
+	  std::string name = "Convolutional_" + Subject_name + "_" + layer_name_ + "_" + std::to_string(mod) + ".nii.gz";
+	  writer->SetFileName( name );
+	  writer->SetInput( img_ptr );
+	  writer->SetImageIO( nifti_io );
+	  writer->Update();
+	  //
+	  mod++;
+	}
     };
+
+  private:
+    //
+    // GPU treatment
+    void forward_GPU( Subject& );
+    void backward_GPU( );
+    // CPU treatment
+    void forward_CPU( Subject& );
+    void backward_CPU( );
+
+  protected:
+    //
+    // Inputs
+    //
+      
+    // 
+    // Convolution type
+    Weight_type layer_type_{Unknown};
+    // Convolutional layer's name
+    std::string layer_name_;
+    // layer energy (Cost function)
+    double    energy_{0.};
+    bool      compute_cost_function_{false};
+    // Weights
+    const int layer_number_;
+
+    //
+    // Convolution window
+    ConvDeconv window_;
+
+    //
+    //
+    int num_of_previous_features_{0};
+    int num_of_next_features_{0};
+    // Measures grouped in vector of 3D image
+    // Convolution image: vector for each modality
+    std::vector< Image3DType::Pointer > convolution_images_;
+
+    //
+    // Neurons, activations and delta
+    std::map< std::string, std::tuple<
+      std::vector< std::shared_ptr<double> > /* activations */,
+      std::vector< std::shared_ptr<double> > /* neurons */,
+      std::vector< std::shared_ptr<double> > /* deltas */ > > neurons_;
+
+    //
+    // Image information at the lu level
+    Image3DType::SizeType      size_lu_;
+    Image3DType::SpacingType   spacing_lu_;
+    Image3DType::PointType     origine_lu_;
+    Image3DType::DirectionType direction_lu_;
+
+    //
+    // Activation function
+    ActivationFunction activation_;
+    // Gradient method
+    Grad               gradient_;
+
+  };
   //
   //
   //
@@ -276,7 +276,6 @@ namespace MAC
 	    im_size_prev,
 	    im_size_next;
 
-	  
 	  //
 	  // Cuda treatment
 	  Convolutional_CUDA cuda_treatment;
@@ -360,7 +359,7 @@ namespace MAC
 		}
 	    }
 	  // Load images on the device
-	  cuda_treatment.load_feature_maps( prev_features_to_device );
+    	  cuda_treatment.load_feature_maps( prev_features_to_device );
 	  // clean up
 	  for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ )
 	    {
@@ -383,10 +382,12 @@ namespace MAC
 	  //
 	  double** next_features_to_device   = new double*[num_of_next_features_];
 	  double** next_activation_to_device = new double*[num_of_next_features_];
+	  double** next_delta_to_device      = new double*[num_of_next_features_];
 	  for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
 	    {
 	      next_features_to_device[mod]   = new double[im_size_next];
 	      next_activation_to_device[mod] = new double[im_size_next];
+	      next_delta_to_device[mod]      = new double[im_size_next];
 	    }
 	  // Check we can compute the energy, if requiered
 	  if ( compute_cost_function_ )
@@ -412,6 +413,7 @@ namespace MAC
 	      {
 		cuda_treatment.convolution( next_features_to_device,
 					    next_activation_to_device,
+					    next_delta_to_device,
 					    activation_ );
 		//
 		break;
@@ -419,6 +421,8 @@ namespace MAC
 	    case Deconv_layer:
 	      {
 		cuda_treatment.transpose_convolution( next_features_to_device,
+						      next_activation_to_device,
+						      next_delta_to_device,
 						      activation_ );
 		//
 		break;
@@ -433,10 +437,20 @@ namespace MAC
 		
 	      }
 	    }
+	  
+	  
 	  //
 	  // Write the image back
+	  std::vector< std::shared_ptr<double> >
+	    activations( num_of_next_features_ ),
+	    neurons( num_of_next_features_ ),
+	    deltas( num_of_next_features_ );
+	  //
 	  for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
 	    {
+	      activations[mod] = std::shared_ptr<double>( new double[im_size_next], std::default_delete< double[] >() );
+	      neurons[mod]     = std::shared_ptr<double>( new double[im_size_next], std::default_delete< double[] >() );
+	      deltas[mod]      = std::shared_ptr<double>( new double[im_size_next], std::default_delete< double[] >() );
 	      //
 	      // Duplicate the image
 	      Image3DType::Pointer records = Image3DType::New();
@@ -467,34 +481,46 @@ namespace MAC
 		  itk::ImageRegionIterator< Image3DType > tgd_iter( tgt_images[mod], region_out );
 		  while( !convolution_iter.IsAtEnd() )
 		    {
-		      double local_img_energy = next_features_to_device[mod][feature_idx++];
+		      double local_img_energy = next_features_to_device[mod][feature_idx];
+		      (activations[mod].get())[feature_idx] = local_img_energy;
 		      // load the convolution
 		      convolution_iter.Set( local_img_energy );
 		      // Compute the local energy
 		      local_img_energy -= tgd_iter.Value();
+		      (deltas[mod].get())[feature_idx] = - local_img_energy * next_delta_to_device[mod][feature_idx];
 		      energy_ += local_img_energy * local_img_energy;
-		      ++convolution_iter; ++tgd_iter;
+		      ++convolution_iter; ++tgd_iter; ++feature_idx;
 		    }
 		}
 	      else
 		while( !convolution_iter.IsAtEnd() )
 		  {
+		    (activations[mod].get())[feature_idx] = next_features_to_device[mod][feature_idx];
+		    (deltas[mod].get())[feature_idx]      = next_delta_to_device[mod][feature_idx];
 		    convolution_iter.Set( next_features_to_device[mod][feature_idx++] );
-		    ++convolution_iter;
+		    ++convolution_iter; 
 		  }
 	      // clean up
 	      delete [] next_features_to_device[mod];
 	      delete [] next_activation_to_device[mod];
-	      next_features_to_device[mod] = nullptr;
+	      delete [] next_delta_to_device[mod];
+	      next_features_to_device[mod]   = nullptr;
 	      next_activation_to_device[mod] = nullptr;
+	      next_delta_to_device[mod]      = nullptr;
 	    }
 	  //
+	  neurons_[subject_name] = std::make_tuple(activations,neurons,deltas);
+	  (window_->get_neuron())[subject_name] = std::make_tuple(activations,neurons,deltas);
+
+	  // clean up
 	  delete [] next_features_to_device;
 	  delete [] next_activation_to_device;
-	  next_features_to_device = nullptr;
+	  delete [] next_delta_to_device;
+	  next_features_to_device   = nullptr;
 	  next_activation_to_device = nullptr;
+	  next_delta_to_device      = nullptr;
 	  //
-	  write();
+	  write( subject_name );
 	  Sub.set_clone_modalities_images( convolution_images_ );
 	}
       catch( itk::ExceptionObject & err )
@@ -595,7 +621,7 @@ namespace MAC
 		    std::size_t current_position = 0;
 		    while( !image_iter.IsAtEnd() )
 		      {
-			    //
+			//
 			prev_features_to_device[prev][ current_position++ ] = image_iter.Value();
 			++image_iter;
 		      }
@@ -619,7 +645,7 @@ namespace MAC
 		    // image filter
 		    FilterType::Pointer images_filter;
 		    images_filter = FilterType::New();
-			//
+		    //
 		    images_filter->SetOutputSpacing( spacing_out );
 		    images_filter->ChangeSpacingOn();
 		    images_filter->SetOutputOrigin( origine_out );
@@ -650,12 +676,12 @@ namespace MAC
 		      }
 		  }
 		//
-		write();
+		write( subject_name );
 		Sub.set_clone_modalities_images( convolution_images_ );
 		
 		//
 		//
-		    break;
+		break;
 	      }
 	    case Deconv_layer:
 	      {
@@ -707,6 +733,7 @@ namespace MAC
     {
       try
 	{
+	  std::cout << "BACKPROG!!!!!!!!!!!!!" << std::endl;
 	}
       catch( itk::ExceptionObject & err )
 	{

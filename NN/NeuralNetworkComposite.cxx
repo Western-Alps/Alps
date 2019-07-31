@@ -4,23 +4,6 @@
 #include "MACException.h"
 #include "NeuralNetworkComposite.h"
 
-/**
- * CUDA Kernel Device code
- *
- * Computes ...
- */
-//__global__ void
-//cuda_NeuralNetworkComposite( double *A, int numElements)
-//{
-//  int i = blockDim.x * blockIdx.x + threadIdx.x;
-//
-//  if (i < numElements)
-//    {
-//      
-//      A[i] = A[i] * A[i];
-//      /*printf("lalla %f", A[i]);*/
-//    }
-//}
 //
 //
 //

@@ -90,13 +90,13 @@ namespace MAC
       {
 	// 1. Reset energy cost function
 	// 2. propagate
-//	std::list< std::shared_ptr< NeuralNetwork > >::reverse_iterator rit = nn_composite_.rbegin();
-//	for ( ; rit != nn_composite_.rend() ; rit++ )
-//	  {
-//	    std::cout << "Bkw elem" << std::endl;
-//	    (*rit)->backward();
-//	    (*rit)->backward_error_propagation();
-//	  }
+	std::list< std::shared_ptr< NeuralNetwork > >::reverse_iterator rit = nn_composite_.rbegin();
+	for ( ; rit != nn_composite_.rend() ; rit++ )
+	  {
+	    std::cout << "Bkw elem" << std::endl;
+	    (*rit)->backward();
+	    (*rit)->backward_error_propagation();
+	  }
       };
       //
       // Backward error propagation
