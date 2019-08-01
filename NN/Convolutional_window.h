@@ -154,6 +154,8 @@ namespace MAC
       std::vector< std::shared_ptr<double> > /* activations */,
       std::vector< std::shared_ptr<double> > /* neurons */,
       std::vector< std::shared_ptr<double> > /* deltas */ > >& get_neuron(){ return neurons_;};
+    //
+    std::shared_ptr< Convolutional_window > get_previouse_conv_window() {return previouse_conv_window_;};
 
     
   private:

@@ -509,8 +509,7 @@ namespace MAC
 	      next_delta_to_device[mod]      = nullptr;
 	    }
 	  //
-	  neurons_[subject_name] = std::make_tuple(activations,neurons,deltas);
-	  (window_->get_neuron())[subject_name] = std::make_tuple(activations,neurons,deltas);
+	  ( window_->get_neuron() )[subject_name] = std::make_tuple(activations,neurons,deltas);
 
 	  // clean up
 	  delete [] next_features_to_device;
@@ -733,7 +732,94 @@ namespace MAC
     {
       try
 	{
-	  std::cout << "BACKPROG!!!!!!!!!!!!!" << std::endl;
+	  std::cout << "SIZE: " <<  ( window_->get_neuron() ).size() << std::endl;
+	  //
+	  //
+	  std::size_t
+	    im_size_prev,
+	    im_size_next;
+
+	  //
+	  // Cuda treatment
+	  Convolutional_CUDA cuda_treatment;
+
+	  //
+	  // 1. Load the data and initialize the GPU device
+	  num_of_previous_features_ = window_->get_number_of_features_in();
+	  num_of_next_features_     = window_->get_number_of_features_out();
+	  im_size_prev              = window_->get_im_size_in();
+	  im_size_next              = window_->get_im_size_out();
+	  convolution_images_.resize( num_of_next_features_ );
+	  // Check the dimensions of images with the window
+	  window_->check_match( size_lu_, window_->get_size_in() );
+	  // load the data
+	  switch( layer_type_ )
+	    {
+	    case Conv_layer:
+	      {
+		cuda_treatment.load_convolution_kernels( // features
+							window_->get_number_of_features_in(),
+							window_->get_number_of_features_out(),
+							// weights
+							window_->get_number_of_weights(),
+							window_->get_shared_weights(),
+							window_->get_shared_biases(),
+							// weights position and transposed matrix
+							window_->get_im_size_in(),
+							window_->get_im_size_out(),
+							window_->get_weights_position_oi(),
+							window_->get_weights_position_io() );
+		//
+		break;
+	      }
+	    case Deconv_layer:
+	      {
+		cuda_treatment.load_deconvolution_kernels( // features
+							  window_->get_number_of_features_in(),
+							  window_->get_number_of_features_out(),
+							  // weights
+							  window_->get_number_of_weights(),
+							  window_->get_shared_weights(),
+							  window_->get_shared_biases(),
+							  // weights position and transposed matrix
+							  window_->get_im_size_in(),
+							  window_->get_im_size_out(),
+							  window_->get_weights_position_oi(),
+							  window_->get_weights_position_io() );
+		//
+		break;
+	      }
+	    default:
+	      {
+		std::string mess = "The type of layer is not defined for: ";
+		mess += layer_name_ + ".\n";
+		throw MAC::MACException( __FILE__, __LINE__,
+					 mess.c_str(),
+					 ITK_LOCATION );
+		
+	      }
+	    }
+
+	  //
+	  // For each subjects of the mini-batch run backwards
+	  for ( auto subject : window_->get_neuron() )
+	    {
+	      auto neuron = subject.second;
+	      std::cout << "activations " << std::get< 0/*activation*/>(neuron).size() << std::endl;
+	      std::cout << "neurons " << std::get< 1/*neurons*/>(neuron).size() << std::endl;
+	      std::cout << "deltas " << std::get< 2/*deltas*/>(neuron).size() << std::endl;
+
+	      //
+	      //
+	      if ( window_->get_previouse_conv_window() )
+		{
+		  std::cout
+		    << "LA PREVIOUSE: "
+		    << std::get< 0/*activation*/>( window_->get_previouse_conv_window()->get_neuron()[subject.first] ).size()
+		    <<std::endl;
+		}
+	      
+	    }
 	}
       catch( itk::ExceptionObject & err )
 	{
