@@ -611,6 +611,36 @@ MAC::Convolutional_CUDA::transpose_convolution( double**         Next_feature_ma
 //
 //
 __host__ void
+MAC::Convolutional_CUDA::backprog_transpose_convolution( double** Delta,
+							 double** Feature,
+							 double** Nabla_w, 
+							 double*  Nabla_b )
+{
+  std::cout << "Convolutional_CUDA -- Run backprog_transpose_convolution." << std::endl;
+  std::cout
+    << "\n number_of_features_in_ "  << number_of_features_in_
+    << "\n number_of_features_out_ " << number_of_features_out_ 
+    << "\n number_of_weights_ " << number_of_weights_ 
+    << "\n im_size_in_ " << im_size_in_ 
+    << "\n im_size_out_ " <<  im_size_out_
+    << std::endl;
+  //
+  // 1. Copy the vectors on device
+  
+  //
+  // 2. Create dW^Txh vectors
+  // 2.1. Allocate
+
+  //
+  // 3. (s) dot products
+
+  //
+  // 4. free dW^Txh
+}
+//
+//
+//
+__host__ void
 MAC::Convolutional_CUDA::forward()
 {
   std::cout << "Go fwd CUDA" << std::endl;

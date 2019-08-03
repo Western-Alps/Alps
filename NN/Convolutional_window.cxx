@@ -50,7 +50,7 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   std::uniform_real_distribution<double> distribution( -1.0, 1.0 );
   // initialization
   shared_weights_ = new double*[ Num_of_features ];
-  shared_biases_  = new double[ Num_of_features ];
+  shared_biases_  = new double [ Num_of_features ];
   //
   for ( int feature = 0 ; feature < Num_of_features ; feature++ )
     {
@@ -96,32 +96,6 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   //std::cout << "direction_out_ " << direction_out_ << std::endl;
   //
   // Prepare the weights matrices
-//toRm  Image3DType::IndexType  start = { 0, 0, 0 };
-//toRm  Image3DType::RegionType region;
-//toRm  region.SetSize( size_in_ );
-//toRm  region.SetIndex( start );
-//toRm  //
-//toRm  // ToDo: tempo
-//toRm  // Test image
-//toRm  Reader3D::Pointer out = Reader3D::New();
-//toRm  out->SetFileName( "/home/cobigo/devel/CPP/Alps/data/tempo11.nii.gz" );
-//toRm  out->Update();
-//toRm  Image3DType::RegionType region_out;
-//toRm  region_out.SetSize( size_out_ );
-//toRm  region_out.SetIndex( start );
-//toRm  Image3DType::Pointer image_out = out->GetOutput();
-//toRm  image_out->SetRegions( region_out );
-//toRm  image_out->Allocate();
-//toRm  image_out->FillBuffer( 0.0 );
-//toRm  long int
-//toRm    X_o = 0,
-//toRm    Y_o = 0,
-//toRm    Z_o = 0;
-//toRm  // ToDo: tempo
-//toRm  //Reader3D::Pointer reader = Reader3D::New();
-//toRm  //reader->SetFileName( raw_subject_image_ptr/*->GetOutput()->GetFileName()*/ );
-//toRm  //reader->Update();
-  //
   // Loop over the image
   int
     half_wind_X = convolution_half_window_size_[0],

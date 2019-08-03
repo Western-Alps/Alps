@@ -79,7 +79,15 @@ namespace MAC
       //
       __host__
       void transpose_convolution( double**, double**, double**, const Functions& );
-      
+      //
+      //
+      __host__
+      void backprog_convolution( double**, double*, double*** ){};
+      //
+      //
+      __host__
+      void backprog_transpose_convolution( double**, double**, double**, double* );
+     
       //
       // Forward/Backward propagation
       __host__
@@ -112,6 +120,9 @@ namespace MAC
       double*     d_next_activation_maps_{NULL};
       double*     d_next_delta_maps_{NULL};
       double*     d_target_maps_{NULL};
+      //
+      // Back propagation
+      double**   d_dW_previouse_feature_maps_{NULL};
   };
 }
 #endif

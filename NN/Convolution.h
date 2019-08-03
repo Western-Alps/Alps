@@ -189,11 +189,17 @@ namespace MAC
     Image3DType::DirectionType direction_lu_;
 
     //
+    // gradient
+    // weights
+    double** nabla_E_weights_{nullptr};
+    // biases
+    double*  nabla_E_biases_{nullptr};
+
+    //
     // Activation function
     ActivationFunction activation_;
     // Gradient method
     Grad               gradient_;
-
   };
   //
   //
@@ -206,12 +212,57 @@ namespace MAC
     MAC::Convolution< G, A, CD >::Convolution( const std::string   Layer_name,
 					       const int           Layer_number,
 					       CD                  Window,
-					       bool  Compute_cost_function_ ):
+					       bool                Compute_cost_function_ ):
   MAC::NeuralNetwork::NeuralNetwork(),
     layer_name_{Layer_name}, compute_cost_function_{Compute_cost_function_}, layer_number_{Layer_number}, window_{Window}
 			       
   {
-    layer_type_ = Window->get_layer_type();;
+    //
+    layer_type_ = Window->get_layer_type();
+    //
+    int 
+      num_kernels = 0,
+      num_weights = 0;
+    //
+    switch( layer_type_ )
+      {
+      case Conv_layer:
+	{
+	  num_kernels = window_->get_number_of_features_out();
+	  num_weights = window_->get_number_of_weights();
+	  //
+	  break;
+	}
+      case Deconv_layer:
+	{
+	  num_kernels = window_->get_number_of_features_in();
+	  num_weights = window_->get_number_of_weights();
+	  //
+	  break;
+	}
+      default:
+	{
+	  std::string mess = "The type of layer is not defined for: ";
+	  mess += layer_name_ + ".\n";
+	  throw MAC::MACException( __FILE__, __LINE__,
+				   mess.c_str(),
+				   ITK_LOCATION );
+	  
+	}
+      }
+    //
+    nabla_E_weights_ = new double*[ num_kernels ];
+    nabla_E_biases_  = new double [ num_kernels ];
+    //
+    for ( int feature = 0 ; feature < num_kernels ; feature++ )
+      {
+	nabla_E_weights_[feature] = new double[ num_weights ];
+	//
+	for( int k = 0 ; k < num_weights ; k++ )
+	  nabla_E_weights_[feature][k] = 0.;
+	//
+	nabla_E_biases_[feature] = 0.;
+      }
   };
   //
   //
@@ -749,7 +800,12 @@ namespace MAC
 	  num_of_next_features_     = window_->get_number_of_features_out();
 	  im_size_prev              = window_->get_im_size_in();
 	  im_size_next              = window_->get_im_size_out();
-	  convolution_images_.resize( num_of_next_features_ );
+	  std::cout 
+	    << "num_of_previous_features_ " << num_of_previous_features_
+	    << "\n num_of_next_features_ " << num_of_next_features_
+	    << "\n im_size_prev " << im_size_prev
+	    << "\n im_size_next " << im_size_next
+	    << std::endl;
 	  // Check the dimensions of images with the window
 	  window_->check_match( size_lu_, window_->get_size_in() );
 	  // load the data
@@ -801,24 +857,85 @@ namespace MAC
 	    }
 
 	  //
-	  // For each subjects of the mini-batch run backwards
+	  // 2. For each subjects of the mini-batch run backwards
+	  double** previous_features_to_device = nullptr;
+	  double** delta_features_to_device    = nullptr;
 	  for ( auto subject : window_->get_neuron() )
 	    {
 	      auto neuron = subject.second;
-	      std::cout << "activations " << std::get< 0/*activation*/>(neuron).size() << std::endl;
-	      std::cout << "neurons " << std::get< 1/*neurons*/>(neuron).size() << std::endl;
-	      std::cout << "deltas " << std::get< 2/*deltas*/>(neuron).size() << std::endl;
-
+	      std::cout << "activations " << std::get< 0 /*activation*/ >(neuron).size() << std::endl;
+	      std::cout << "neurons "     << std::get< 1 /*neurons*/    >(neuron).size() << std::endl;
+	      std::cout << "deltas "      << std::get< 2 /*deltas*/     >(neuron).size() << std::endl;
+	      
 	      //
-	      //
+	      // If we have a previouse window we are in 
+	      // - Auto-encoder deconvolution
+	      // - Second convolution   (ToDo: check it works)
+	      // - Second deconvolution (ToDo: check it works)
 	      if ( window_->get_previouse_conv_window() )
 		{
 		  std::cout
 		    << "LA PREVIOUSE: "
-		    << std::get< 0/*activation*/>( window_->get_previouse_conv_window()->get_neuron()[subject.first] ).size()
+		    << std::get< 0/*activation*/>( window_->get_previouse_conv_window()
+						   ->get_neuron()[subject.first] ).size()
 		    <<std::endl;
-		}
+		  //
+		  // 2.1. load the vectors
+		  // 2.1.1. Load the deltas
+		  delta_features_to_device = new double*[num_of_next_features_];
+		  for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
+		    {
+		      //
+		      delta_features_to_device[mod] = new double[im_size_next];
+		      for ( std::size_t size = 0 ; size < im_size_next ; size++ )
+			delta_features_to_device[mod][size] = 
+			  std::get< 2/*deltas*/ >( window_->get_neuron()[subject.first] )[mod].get()[size];
+		    }
+		  // 2.1.2. load the previous features
+		  previous_features_to_device = new double*[num_of_previous_features_];
+		  for ( int mod = 0 ; mod < num_of_previous_features_ ; mod++ )
+		    {
+		      //
+		      previous_features_to_device[mod] = new double[im_size_prev];
+		      for ( std::size_t size = 0 ; size < im_size_prev ; size++ )
+			previous_features_to_device[mod][size] = 
+			  std::get< 0/*activation*/>( window_->get_previouse_conv_window()
+						      ->get_neuron()[subject.first] )[mod].get()[size];
+		    }
 	      
+		  //
+		  // 2.2. Compute nabla and update the weights
+		  cuda_treatment.backprog_transpose_convolution( delta_features_to_device, 
+								 previous_features_to_device,
+								 nabla_E_weights_, nabla_E_biases_);
+
+		  
+		  //
+		  // 2.3. reset nabla
+		  
+		  
+		  //
+		  // 2.4. Clean up
+		  for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
+		    {
+		      delete [] delta_features_to_device[mod];
+		      delta_features_to_device[mod] = nullptr;
+		    }
+		  // clean up
+		  delete [] delta_features_to_device;
+		  delta_features_to_device = nullptr;
+		  
+		  //
+		  // 2.1.2. load the previous features
+		  for ( int mod = 0 ; mod < num_of_previous_features_ ; mod++ )
+		    {
+		      delete [] previous_features_to_device[mod];
+		      previous_features_to_device[mod] = nullptr;
+		    }
+		  // clean up
+		  delete [] previous_features_to_device;
+		  previous_features_to_device = nullptr;
+		}
 	    }
 	}
       catch( itk::ExceptionObject & err )
