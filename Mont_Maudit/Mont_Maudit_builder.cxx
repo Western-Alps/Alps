@@ -17,8 +17,10 @@ MAC::Mont_Maudit_builder::Mont_Maudit_builder():
   // Neural network anatomy
   //
   //using ConvolutionAE = MAC::ConvolutionalAutoEncoder_layer< Activation_sigmoid >;
-  using Conv_layer   = MAC::Convolution< SGD, Activation_sigmoid, std::shared_ptr< MAC::Convolutional_window   > >;
-  using Deconv_layer = MAC::Convolution< SGD, Activation_sigmoid, std::shared_ptr< MAC::Deconvolutional_window > >;
+  //using Conv_layer   = MAC::Convolution< SGD, Activation_sigmoid, std::shared_ptr< MAC::Convolutional_window   > >;
+  //using Deconv_layer = MAC::Convolution< SGD, Activation_sigmoid, std::shared_ptr< MAC::Deconvolutional_window > >;
+  using Conv_layer   = MAC::Convolution< Convolutional_CUDA, Activation_sigmoid, std::shared_ptr< MAC::Convolutional_window   > >;
+  using Deconv_layer = MAC::Convolution< Convolutional_CUDA, Activation_sigmoid, std::shared_ptr< MAC::Deconvolutional_window > >;
 
   //
   // Encoding Convolutional layers

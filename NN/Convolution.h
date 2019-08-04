@@ -329,7 +329,7 @@ namespace MAC
 
 	  //
 	  // Cuda treatment
-	  Convolutional_CUDA cuda_treatment;
+	  G cuda_treatment;
 
 	  //
 	  // 1. Load the data and initialize the GPU device
@@ -792,7 +792,7 @@ namespace MAC
 
 	  //
 	  // Cuda treatment
-	  Convolutional_CUDA cuda_treatment;
+	  G cuda_treatment;
 
 	  //
 	  // 1. Load the data and initialize the GPU device
@@ -878,63 +878,93 @@ namespace MAC
 		    << "LA PREVIOUSE: "
 		    << std::get< 0/*activation*/>( window_->get_previouse_conv_window()
 						   ->get_neuron()[subject.first] ).size()
+		    << "\n window type: " << window_->get_layer_type()
 		    <<std::endl;
-		  //
-		  // 2.1. load the vectors
-		  // 2.1.1. Load the deltas
-		  delta_features_to_device = new double*[num_of_next_features_];
-		  for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
-		    {
-		      //
-		      delta_features_to_device[mod] = new double[im_size_next];
-		      for ( std::size_t size = 0 ; size < im_size_next ; size++ )
-			delta_features_to_device[mod][size] = 
-			  std::get< 2/*deltas*/ >( window_->get_neuron()[subject.first] )[mod].get()[size];
-		    }
-		  // 2.1.2. load the previous features
-		  previous_features_to_device = new double*[num_of_previous_features_];
-		  for ( int mod = 0 ; mod < num_of_previous_features_ ; mod++ )
-		    {
-		      //
-		      previous_features_to_device[mod] = new double[im_size_prev];
-		      for ( std::size_t size = 0 ; size < im_size_prev ; size++ )
-			previous_features_to_device[mod][size] = 
-			  std::get< 0/*activation*/>( window_->get_previouse_conv_window()
-						      ->get_neuron()[subject.first] )[mod].get()[size];
-		    }
-	      
-		  //
-		  // 2.2. Compute nabla and update the weights
-		  cuda_treatment.backprog_transpose_convolution( delta_features_to_device, 
-								 previous_features_to_device,
-								 nabla_E_weights_, nabla_E_biases_);
 
-		  
 		  //
-		  // 2.3. reset nabla
-		  
-		  
 		  //
-		  // 2.4. Clean up
-		  for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
+		  switch( window_->get_layer_type() )
 		    {
-		      delete [] delta_features_to_device[mod];
-		      delta_features_to_device[mod] = nullptr;
+		    case Conv_layer:
+		      {		
+			//
+			//
+			break;
+		      }
+		    case Deconv_layer:
+		      {
+			//
+			// 2.1. load the vectors
+			// 2.1.1. Load the deltas
+			delta_features_to_device = new double*[num_of_next_features_];
+			for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
+			  {
+			    //
+			    delta_features_to_device[mod] = new double[im_size_next];
+			    for ( std::size_t size = 0 ; size < im_size_next ; size++ )
+			      delta_features_to_device[mod][size] = 
+				std::get< 2/*deltas*/ >( window_->get_neuron()[subject.first] )[mod].get()[size];
+			  }
+			// 2.1.2. load the previous features
+			previous_features_to_device = new double*[num_of_previous_features_];
+			for ( int mod = 0 ; mod < num_of_previous_features_ ; mod++ )
+			  {
+			    //
+			    previous_features_to_device[mod] = new double[im_size_prev];
+			    for ( std::size_t size = 0 ; size < im_size_prev ; size++ )
+			      previous_features_to_device[mod][size] = 
+				std::get< 0/*activation*/>( window_->get_previouse_conv_window()
+							    ->get_neuron()[subject.first] )[mod].get()[size];
+			  }
+			
+			//
+			// 2.2. Compute nabla and update the weights
+			cuda_treatment.backprog_transpose_convolution( delta_features_to_device, 
+								       previous_features_to_device,
+								       nabla_E_weights_, nabla_E_biases_);
+			
+			
+			//
+			// 2.3. reset nabla
+			
+			
+			//
+			// 2.4. Clean up
+			for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
+			  {
+			    delete [] delta_features_to_device[mod];
+			    delta_features_to_device[mod] = nullptr;
+			  }
+			// clean up
+			delete [] delta_features_to_device;
+			delta_features_to_device = nullptr;
+			
+			//
+			// 2.1.2. load the previous features
+			for ( int mod = 0 ; mod < num_of_previous_features_ ; mod++ )
+			  {
+			    delete [] previous_features_to_device[mod];
+			    previous_features_to_device[mod] = nullptr;
+			  }
+			// clean up
+			delete [] previous_features_to_device;
+			previous_features_to_device = nullptr;
+		      
+			//
+			//
+			break;
+		      }
+		    case Unknown:
+		    default:
+		      {
+			std::string mess = "The type of layer is not defined for: ";
+			mess += layer_name_ + ".\n";
+			throw MAC::MACException( __FILE__, __LINE__,
+						 mess.c_str(),
+						 ITK_LOCATION );
+			
+		      }
 		    }
-		  // clean up
-		  delete [] delta_features_to_device;
-		  delta_features_to_device = nullptr;
-		  
-		  //
-		  // 2.1.2. load the previous features
-		  for ( int mod = 0 ; mod < num_of_previous_features_ ; mod++ )
-		    {
-		      delete [] previous_features_to_device[mod];
-		      previous_features_to_device[mod] = nullptr;
-		    }
-		  // clean up
-		  delete [] previous_features_to_device;
-		  previous_features_to_device = nullptr;
 		}
 	    }
 	}
