@@ -57,10 +57,19 @@ __global__ void fill_with_zeros( int Image_size, double* Image )
   if ( idx <  Image_size )
     Image[idx] = 0.;
 }
+//
+//
+//
+__global__ void nabla_reset_cuda( double** Nabla )
+{
+  //
+  // feature: blockIdx
+  // weight: threadIdx
+  Nabla[ blockDim.x ][ threadIdx.x ] = 0.;
+}
 __global__ void cuda_hello()
 {
   printf("Hello World from GPU!\n");
-
 }
 //
 //
@@ -94,14 +103,40 @@ convolution_cuda( int      Num_features_in,
       for ( int feature = 0 ; feature < Num_features_in; feature++ )
 	for ( int k = 0 ; k < Number_of_weights ; k++ )
 	  {
-	    int idx = k + odx * Number_of_weights;
-	    conv += Shared_weights[Feature_out][k] * To_conv[feature][ Weights_pos_oi[idx] ];
-	    //if ( Weights_pos_oi[idx] == 371232 )
-	    //  printf("~ %d %d %d %f %d %f %f ~", odx, k, feature, Shared_weights[Feature_out][k], Weights_pos_oi[idx], To_conv[feature][ Weights_pos_oi[idx] ], conv );
+	    int idx = Weights_pos_oi[ k + odx * Number_of_weights ];
+	    conv += Shared_weights[Feature_out][k] * To_conv[feature][idx];
 	  }
       //
       Conv[odx]      = activation.f(  conv + Shared_biases[Feature_out] );
       Delta_map[odx] = activation.df( conv + Shared_biases[Feature_out] );
+    }
+}
+//
+// Backward
+//
+template< typename Activate >
+__global__ void
+dW_x_f_cuda( int      Num_features,
+	     int      Image_size_out,
+	     int      Number_of_weights,
+	     double** DW_x_f,
+	     double** F_map,
+	     int*     Weights_pos_oi )
+{
+  //
+  //
+  int odx = blockDim.x * blockIdx.x + threadIdx.x;
+  //
+  if ( odx <  Image_size_out )
+    {
+      //
+      for ( int feature = 0 ; feature < Num_features; feature++ )
+	for ( int k = 0 ; k < Number_of_weights ; k++ )
+	  {
+	    int idx           = Weights_pos_oi[ k + odx * Number_of_weights ];
+	    int kernel_weight = feature*Number_of_weights + k;
+	    DW_x_f[kernel_weight][odx] = F_map[feature][idx];
+	  }
     }
 }
 //
@@ -123,28 +158,117 @@ transpose_convolution_cuda( int      Num_features_in,
 {
   //
   //
-  int odx = blockDim.x * blockIdx.x + threadIdx.x;
+  int idx = blockDim.x * blockIdx.x + threadIdx.x;
   //
-  if ( odx <  Image_size_out )
+  if ( idx <  Image_size_out )
     {
       //
-      Deconv[odx]    = 0.;
-      Delta_map[odx] = 0.;
+      Deconv[idx]    = 0.;
+      Delta_map[idx] = 0.;
       //
       double deconv = 0.;
-      Deconv[odx]   = 0.;
+      Deconv[idx]   = 0.;
       Activate activation;
       //
       for ( int feature = 0 ; feature < Num_features_in; feature++ )
 	for ( int k = 0 ; k < Number_of_weights ; k++ )
 	  {
-	    int idx = k + odx * Number_of_weights;
-	    if ( Weights_pos_io[idx] != 999999999 )
-	      deconv += Shared_weights[feature][k] * To_deconv[feature][ Weights_pos_io[idx] ];
+	    int odx = Weights_pos_io[ k + idx * Number_of_weights ];
+	    if ( odx != 999999999 )
+	      deconv += Shared_weights[feature][k] * To_deconv[feature][odx];
 	  }
       //
-      Deconv[odx]    = activation.f(  deconv + Shared_biases[Feature_out] );
-      Delta_map[odx] = activation.df( deconv + Shared_biases[Feature_out] );
+      Deconv[idx]    = activation.f(  deconv + Shared_biases[Feature_out] );
+      Delta_map[idx] = activation.df( deconv + Shared_biases[Feature_out] );
+    }
+}
+//
+// Backward
+//
+__global__ void
+dWT_x_f_cuda( int      Feature,
+	      int      Image_size_out,
+	      int      Number_of_weights,
+	      double** DWT_x_f,
+	      double*  F_map,
+	      int*     Weights_pos_io )
+{
+  //
+  //
+  int idx = blockDim.x * blockIdx.x + threadIdx.x;
+  //
+  if ( idx <  Image_size_out )
+    {
+      //
+      for ( int k = 0 ; k < Number_of_weights ; k++ )
+	{
+	  DWT_x_f[k][idx] = 0.;
+	  int odx = Weights_pos_io[ k + idx * Number_of_weights ];
+	  //
+	  if ( odx != 999999999 )
+	    DWT_x_f[k][idx] = F_map[odx];
+	}
+    }
+}
+//
+// Backward
+//
+template< typename Activate >
+__global__ void
+delta_feature_cuda( int      Num_features,
+		    int      Image_size_out,
+		    int      Number_of_weights,
+		    double** Shared_weights,
+		    double** Delta_y,
+		    double** Delta_h,
+		    double** Df,
+		    int*     Weights_pos_oi )
+{
+  //
+  //
+  int odx = blockDim.x * blockIdx.x + threadIdx.x;
+  //
+  if ( odx <  Image_size_out )
+    {
+      //
+      for ( int feature = 0 ; feature < Num_features; feature++ )
+	{
+	  double w_delta_y = 0.;
+	  for ( int k = 0 ; k < Number_of_weights ; k++ )
+	    {
+	      int idx = Weights_pos_oi[ k + odx * Number_of_weights ];
+	      w_delta_y += Shared_weights[feature][k] * Delta_y[0][idx];
+	    }
+
+	  //
+	  Delta_h[feature][odx] = w_delta_y * Df[feature][odx];
+	}
+    }
+}
+//
+// Backward
+//
+__global__ void
+nabla_cuda( int      Feature,
+	    int      Image_size_out,
+	    int      Number_of_weights,
+	    double** DWf,
+	    double*  Delta_map,
+	    double** Nabla_E_weights,
+	    double*  Nabla_E_biases )
+{
+  //
+  //
+  int idx = blockDim.x * blockIdx.x + threadIdx.x;
+  //
+  if ( idx <  Image_size_out )
+    {
+      //
+      double delta = Delta_map[idx];
+      for ( int k = 0 ; k < Number_of_weights ; k++ )
+	Nabla_E_weights[Feature][k] += delta * DWf[k][idx];
+      //
+      Nabla_E_biases[Feature]       += delta;
     }
 }
 //
@@ -197,12 +321,14 @@ MAC::Convolutional_CUDA::load_convolution_kernels(// features
       fprintf(stderr, "Failed to deinitialize the device! error=%s\n", cudaGetErrorString(err));
       exit(EXIT_FAILURE);
     }
-  // Start allocation
-  err = cudaMalloc((void **)&d_shared_weights_, Num_of_features_out * sizeof(double*) );
-  err = cudaMalloc((void **)&d_shared_biases_,  Num_of_features_out * sizeof(double) );
+  
+  //
+  // 1.1. Start allocation the weights and matrices
+  err = cudaMalloc( (void **)&d_shared_weights_, Num_of_features_out * sizeof(double*) );
+  err = cudaMalloc( (void **)&d_shared_biases_,  Num_of_features_out * sizeof(double) );
   // Weights position and transposed matrix
-  err = cudaMalloc((void **)&d_weights_pos_oi_, Im_size_out * Number_of_weights * sizeof(int) );
-  err = cudaMalloc((void **)&d_weights_pos_io_, Im_size_in  * Number_of_weights * sizeof(int) );
+  err = cudaMalloc( (void **)&d_weights_pos_oi_, Im_size_out * Number_of_weights * sizeof(int) );
+  err = cudaMalloc( (void **)&d_weights_pos_io_, Im_size_in  * Number_of_weights * sizeof(int) );
   if (err != cudaSuccess)
     {
       fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
@@ -251,6 +377,27 @@ MAC::Convolutional_CUDA::load_convolution_kernels(// features
       fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
       exit(EXIT_FAILURE);
     }
+
+  //
+  // 1.2. Allocating nabla
+  err = cudaMalloc( (void **)&d_nabla_E_weights_, Num_of_features_out * sizeof(double*) );
+  err = cudaMalloc( (void **)&d_nabla_E_biases_,  Num_of_features_out * sizeof(double) );
+  // weights
+  for ( std::size_t p = 0 ; p < Num_of_features_out ; p++)
+    {
+      double *temp_weights;
+      cudaMalloc((void **)&temp_weights, Number_of_weights * sizeof(double) );
+      // create a master pointer we will move into the pointer to pointer
+      cudaMemcpy(&d_nabla_E_weights_[p], &temp_weights, sizeof(double*), cudaMemcpyHostToDevice);
+      if (err != cudaSuccess)
+	{
+	  fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
+	  exit(EXIT_FAILURE);
+	}
+    }
+  // reset nabla
+  nabla_reset_cuda<<< Num_of_features_out, number_of_weights_ >>>( d_nabla_E_weights_ ); 
+  fill_with_zeros<<< Num_of_features_out, 1 >>>( Num_of_features_out, d_nabla_E_biases_ );
 };
 //
 //
@@ -296,7 +443,9 @@ MAC::Convolutional_CUDA::load_deconvolution_kernels(// features
       fprintf(stderr, "Failed to deinitialize the device! error=%s\n", cudaGetErrorString(err));
       exit(EXIT_FAILURE);
     }
-  // Start allocation
+
+  //
+  // 1.1. Start allocation the weights and matrices
   err = cudaMalloc((void **)&d_shared_weights_, Num_of_features_in * sizeof(double*) );
   err = cudaMalloc((void **)&d_shared_biases_,  Num_of_features_out * sizeof(double) );
   // Weights position and transposed matrix
@@ -350,6 +499,27 @@ MAC::Convolutional_CUDA::load_deconvolution_kernels(// features
       fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
       exit(EXIT_FAILURE);
     }
+
+  //
+  // 1.2. Allocating nabla
+  err = cudaMalloc( (void **)&d_nabla_E_weights_, Num_of_features_in * sizeof(double*) );
+  err = cudaMalloc( (void **)&d_nabla_E_biases_,  Num_of_features_out * sizeof(double) );
+  // weights
+  for ( std::size_t p = 0 ; p < Num_of_features_in ; p++)
+    {
+      double *temp_weights;
+      cudaMalloc((void **)&temp_weights, Number_of_weights * sizeof(double) );
+      // create a master pointer we will move into the pointer to pointer
+      cudaMemcpy(&d_nabla_E_weights_[p], &temp_weights, sizeof(double*), cudaMemcpyHostToDevice);
+      if (err != cudaSuccess)
+	{
+	  fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
+	  exit(EXIT_FAILURE);
+	}
+    }
+  // reset nabla
+  nabla_reset_cuda<<< Num_of_features_in, number_of_weights_ >>>( d_nabla_E_weights_ );
+  fill_with_zeros<<< Num_of_features_out, 1 >>>( Num_of_features_out, d_nabla_E_biases_ );
 };
 //
 //
@@ -420,7 +590,7 @@ MAC::Convolutional_CUDA::convolution( double**         Next_feature_maps,
 {
   std::cout << "Convolutional_CUDA -- Run the convolution." << std::endl;
   //
-  // 1. check on the device and load the 
+  // 1. check on the device  
   int threadsPerBlock = THREADSPERBLOCK;
   int numBlocks       = (( im_size_out_ ) + threadsPerBlock - 1) / threadsPerBlock;
   cudaError_t err = cudaGetLastError();
@@ -612,7 +782,7 @@ MAC::Convolutional_CUDA::transpose_convolution( double**         Next_feature_ma
 //
 __host__ void
 MAC::Convolutional_CUDA::backprog_transpose_convolution( double** Delta,
-							 double** Feature,
+							 double** Features,
 							 double** Nabla_w, 
 							 double*  Nabla_b )
 {
@@ -625,14 +795,74 @@ MAC::Convolutional_CUDA::backprog_transpose_convolution( double** Delta,
     << "\n im_size_out_ " <<  im_size_out_
     << std::endl;
   //
-  // 1. Copy the vectors on device
-  
-  //
-  // 2. Create dW^Txh vectors
-  // 2.1. Allocate
+  // 1. check on the device  
+  cudaError_t err = cudaGetLastError();
+  if (err != cudaSuccess)
+    {
+      fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
+      exit(EXIT_FAILURE);
+    }
 
   //
-  // 3. (s) dot products
+  // 2. create space on the device
+  // 2.1. allocate dWxh vectors
+  err = cudaMalloc( (void **)&d_next_feature_maps_, im_size_out_       * sizeof(double) );
+  err = cudaMalloc( (void **)&d_next_delta_maps_,   im_size_in_        * sizeof(double) );
+  err = cudaMalloc( (void **)&d_dWT_x_f_,           number_of_weights_ * sizeof(double*) );
+  //
+  for ( int p = 0 ; p < number_of_weights_ ; p++)
+    {
+      double *temp;
+      cudaMalloc((void **)&temp, im_size_out_ * sizeof(double) );
+      // 
+      cudaMemcpy(&d_dWT_x_f_[p], &temp, sizeof(double*), cudaMemcpyHostToDevice);
+      if (err != cudaSuccess)
+	{
+	  fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
+	  exit(EXIT_FAILURE);
+	}
+    }
+
+
+  //
+  // 3. gradient descent 
+  for ( std::size_t feature = 0 ; feature < number_of_features_in_; feature++ )
+    {
+      //
+      // 3.1. Copy the feature information
+      cudaMemcpy( d_next_feature_maps_, Features[feature], 
+		  im_size_out_ * sizeof(double), cudaMemcpyHostToDevice );
+      //
+      // 3.2. dWxh vectors
+      int threadsPerBlock = THREADSPERBLOCK;
+      int numBlocks       = (( im_size_in_ ) + threadsPerBlock - 1) / threadsPerBlock;
+      //
+      dWT_x_f_cuda<<< numBlocks, threadsPerBlock >>>
+	( static_cast< int >(feature),
+	  static_cast< int >(im_size_in_),
+	  number_of_weights_,
+	  d_dWT_x_f_,
+	  d_next_feature_maps_,
+	  d_weights_pos_io_ );
+      // 3.2. Compute nabla
+      threadsPerBlock = THREADSPERBLOCK;
+      numBlocks       = (( im_size_out_ ) + threadsPerBlock - 1) / threadsPerBlock;
+      //
+      for ( std::size_t s = 0 ; s < number_of_features_out_ ; s++ )
+	{
+	  //
+	  // 3.2.1. Copy the feature information
+	  cudaMemcpy(d_next_delta_maps_ , Delta[s], 
+		      im_size_out_ * sizeof(double), cudaMemcpyHostToDevice );
+	  // 3.2.2. nabla
+	  nabla_cuda<<< numBlocks, threadsPerBlock >>>
+	    ( static_cast< int >(feature),
+	      static_cast< int >(im_size_out_),
+	      number_of_weights_,
+	      d_dWT_x_f_, d_next_delta_maps_,
+	      d_nabla_E_weights_, d_nabla_E_biases_ );
+	}
+    }
 
   //
   // 4. free dW^Txh

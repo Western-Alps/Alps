@@ -855,6 +855,9 @@ namespace MAC
 		
 	      }
 	    }
+	  //
+	  // Init nabla
+	  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcuda_treatment.nabla_reset();
 
 	  //
 	  // 2. For each subjects of the mini-batch run backwards
@@ -925,11 +928,14 @@ namespace MAC
 			
 			
 			//
-			// 2.3. reset nabla
+			// 2.3. Update the weights
+			// 2.3.1. Update
+			// 2.3.1. reset nabla
 			
 			
 			//
 			// 2.4. Clean up
+			// 2.4.1. clean up deltas
 			for ( int mod = 0 ; mod < num_of_next_features_ ; mod++ )
 			  {
 			    delete [] delta_features_to_device[mod];
@@ -940,7 +946,7 @@ namespace MAC
 			delta_features_to_device = nullptr;
 			
 			//
-			// 2.1.2. load the previous features
+			// 2.4.2. clean up features
 			for ( int mod = 0 ; mod < num_of_previous_features_ ; mod++ )
 			  {
 			    delete [] previous_features_to_device[mod];

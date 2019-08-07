@@ -122,7 +122,12 @@ namespace MAC
       double*     d_target_maps_{NULL};
       //
       // Back propagation
-      double**   d_dW_previouse_feature_maps_{NULL};
+      // 
+      double**    d_dWT_x_f_{NULL};
+      double**    d_dW_x_f_{NULL};
+      // weights & biases
+      double**    d_nabla_E_weights_{NULL};
+      double*     d_nabla_E_biases_{NULL};
   };
 }
 #endif
