@@ -65,7 +65,7 @@ __global__ void nabla_reset_cuda( double** Nabla )
   //
   // feature: blockIdx
   // weight: threadIdx
-  Nabla[ blockDim.x ][ threadIdx.x ] = 0.;
+  Nabla[ blockIdx.x ][ threadIdx.x ] = 0.;
 }
 __global__ void cuda_hello()
 {
@@ -154,7 +154,7 @@ transpose_convolution_cuda( int      Num_features_in,
 			    double*  Delta_map,
 			    double** Shared_weights,
 			    double*  Shared_biases,
-			    int*     Weights_pos_io )
+			    int*     Weights_pos_oi )
 {
   //
   //
@@ -173,7 +173,7 @@ transpose_convolution_cuda( int      Num_features_in,
       for ( int feature = 0 ; feature < Num_features_in; feature++ )
 	for ( int k = 0 ; k < Number_of_weights ; k++ )
 	  {
-	    int odx = Weights_pos_io[ k + idx * Number_of_weights ];
+	    int odx = Weights_pos_oi[ k + idx * Number_of_weights ];
 	    if ( odx != 999999999 )
 	      deconv += Shared_weights[feature][k] * To_deconv[feature][odx];
 	  }
@@ -191,7 +191,7 @@ dWT_x_f_cuda( int      Feature,
 	      int      Number_of_weights,
 	      double** DWT_x_f,
 	      double*  F_map,
-	      int*     Weights_pos_io )
+	      int*     Weights_pos_oi )
 {
   //
   //
@@ -203,10 +203,14 @@ dWT_x_f_cuda( int      Feature,
       for ( int k = 0 ; k < Number_of_weights ; k++ )
 	{
 	  DWT_x_f[k][idx] = 0.;
-	  int odx = Weights_pos_io[ k + idx * Number_of_weights ];
+	  int odx = Weights_pos_oi[ k + idx * Number_of_weights ];
 	  //
 	  if ( odx != 999999999 )
-	    DWT_x_f[k][idx] = F_map[odx];
+	    {
+	      DWT_x_f[k][idx] = F_map[odx];
+	      //printf(" [%d,%d,%d,%f] ", k, idx, odx, F_map[odx]);
+	    }
+	    
 	}
     }
 }
@@ -397,7 +401,14 @@ MAC::Convolutional_CUDA::load_convolution_kernels(// features
     }
   // reset nabla
   nabla_reset_cuda<<< Num_of_features_out, number_of_weights_ >>>( d_nabla_E_weights_ ); 
-  fill_with_zeros<<< Num_of_features_out, 1 >>>( Num_of_features_out, d_nabla_E_biases_ );
+  fill_with_zeros<<< 1, Num_of_features_out >>>( Num_of_features_out, d_nabla_E_biases_ );
+
+  //
+  //
+  delete [] weights_pos_oi;
+  weights_pos_oi = nullptr;
+  delete [] weights_pos_io;
+  weights_pos_io = nullptr;
 };
 //
 //
@@ -519,7 +530,14 @@ MAC::Convolutional_CUDA::load_deconvolution_kernels(// features
     }
   // reset nabla
   nabla_reset_cuda<<< Num_of_features_in, number_of_weights_ >>>( d_nabla_E_weights_ );
-  fill_with_zeros<<< Num_of_features_out, 1 >>>( Num_of_features_out, d_nabla_E_biases_ );
+  fill_with_zeros<<< 1, Num_of_features_out >>>( Num_of_features_out, d_nabla_E_biases_ );
+
+  //
+  //
+  delete [] weights_pos_oi;
+  weights_pos_oi = nullptr;
+  delete [] weights_pos_io;
+  weights_pos_io = nullptr;
 };
 //
 //
@@ -807,7 +825,7 @@ MAC::Convolutional_CUDA::backprog_transpose_convolution( double** Delta,
   // 2. create space on the device
   // 2.1. allocate dWxh vectors
   err = cudaMalloc( (void **)&d_next_feature_maps_, im_size_out_       * sizeof(double) );
-  err = cudaMalloc( (void **)&d_next_delta_maps_,   im_size_in_        * sizeof(double) );
+  err = cudaMalloc( (void **)&d_next_delta_maps_,   im_size_out_       * sizeof(double) );
   err = cudaMalloc( (void **)&d_dWT_x_f_,           number_of_weights_ * sizeof(double*) );
   //
   for ( int p = 0 ; p < number_of_weights_ ; p++)
@@ -843,7 +861,7 @@ MAC::Convolutional_CUDA::backprog_transpose_convolution( double** Delta,
 	  number_of_weights_,
 	  d_dWT_x_f_,
 	  d_next_feature_maps_,
-	  d_weights_pos_io_ );
+	  d_weights_pos_oi_ );
       // 3.2. Compute nabla
       threadsPerBlock = THREADSPERBLOCK;
       numBlocks       = (( im_size_out_ ) + threadsPerBlock - 1) / threadsPerBlock;
