@@ -857,7 +857,7 @@ namespace MAC
 	    }
 	  //
 	  // Init nabla
-	  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcuda_treatment.nabla_reset();
+	  // AAAAAAAAAAAAAAAAAAAAAAAAAAAA cuda_treatment.nabla_reset();
 
 	  //
 	  // 2. For each subjects of the mini-batch run backwards
@@ -927,6 +927,7 @@ namespace MAC
 								       nabla_E_weights_, nabla_E_biases_);
 			
 			
+			
 			//
 			// 2.3. Update the weights
 			// 2.3.1. Update
@@ -971,6 +972,10 @@ namespace MAC
 			
 		      }
 		    }
+		}
+	      else
+		{
+		  std::cout << "We are in a first convolution!" << std::endl;
 		}
 	    }
 	}

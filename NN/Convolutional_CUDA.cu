@@ -270,7 +270,10 @@ nabla_cuda( int      Feature,
       //
       double delta = Delta_map[idx];
       for ( int k = 0 ; k < Number_of_weights ; k++ )
-	Nabla_E_weights[Feature][k] += delta * DWf[k][idx];
+	{
+	  Nabla_E_weights[Feature][k] += delta * DWf[k][idx];
+	  //printf("Nabla_E_weights[%d][%d] = %f ",Feature,k,Nabla_E_weights[Feature][k]);
+	}
       //
       Nabla_E_biases[Feature]       += delta;
     }
@@ -382,26 +385,26 @@ MAC::Convolutional_CUDA::load_convolution_kernels(// features
       exit(EXIT_FAILURE);
     }
 
-  //
-  // 1.2. Allocating nabla
-  err = cudaMalloc( (void **)&d_nabla_E_weights_, Num_of_features_out * sizeof(double*) );
-  err = cudaMalloc( (void **)&d_nabla_E_biases_,  Num_of_features_out * sizeof(double) );
-  // weights
-  for ( std::size_t p = 0 ; p < Num_of_features_out ; p++)
-    {
-      double *temp_weights;
-      cudaMalloc((void **)&temp_weights, Number_of_weights * sizeof(double) );
-      // create a master pointer we will move into the pointer to pointer
-      cudaMemcpy(&d_nabla_E_weights_[p], &temp_weights, sizeof(double*), cudaMemcpyHostToDevice);
-      if (err != cudaSuccess)
-	{
-	  fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
-	  exit(EXIT_FAILURE);
-	}
-    }
-  // reset nabla
-  nabla_reset_cuda<<< Num_of_features_out, number_of_weights_ >>>( d_nabla_E_weights_ ); 
-  fill_with_zeros<<< 1, Num_of_features_out >>>( Num_of_features_out, d_nabla_E_biases_ );
+//  //
+//  // 1.2. Allocating nabla
+//  err = cudaMalloc( (void **)&d_nabla_E_weights_, Num_of_features_out * sizeof(double*) );
+//  err = cudaMalloc( (void **)&d_nabla_E_biases_,  Num_of_features_out * sizeof(double) );
+//  // weights
+//  for ( std::size_t p = 0 ; p < Num_of_features_out ; p++)
+//    {
+//      double *temp_weights;
+//      cudaMalloc((void **)&temp_weights, Number_of_weights * sizeof(double) );
+//      // create a master pointer we will move into the pointer to pointer
+//      cudaMemcpy(&d_nabla_E_weights_[p], &temp_weights, sizeof(double*), cudaMemcpyHostToDevice);
+//      if (err != cudaSuccess)
+//	{
+//	  fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
+//	  exit(EXIT_FAILURE);
+//	}
+//    }
+//  // reset nabla
+//  nabla_reset_cuda<<< Num_of_features_out, number_of_weights_ >>>( d_nabla_E_weights_ ); 
+//  fill_with_zeros<<< 1, Num_of_features_out >>>( Num_of_features_out, d_nabla_E_biases_ );
 
   //
   //
@@ -511,26 +514,26 @@ MAC::Convolutional_CUDA::load_deconvolution_kernels(// features
       exit(EXIT_FAILURE);
     }
 
-  //
-  // 1.2. Allocating nabla
-  err = cudaMalloc( (void **)&d_nabla_E_weights_, Num_of_features_in * sizeof(double*) );
-  err = cudaMalloc( (void **)&d_nabla_E_biases_,  Num_of_features_out * sizeof(double) );
-  // weights
-  for ( std::size_t p = 0 ; p < Num_of_features_in ; p++)
-    {
-      double *temp_weights;
-      cudaMalloc((void **)&temp_weights, Number_of_weights * sizeof(double) );
-      // create a master pointer we will move into the pointer to pointer
-      cudaMemcpy(&d_nabla_E_weights_[p], &temp_weights, sizeof(double*), cudaMemcpyHostToDevice);
-      if (err != cudaSuccess)
-	{
-	  fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
-	  exit(EXIT_FAILURE);
-	}
-    }
-  // reset nabla
-  nabla_reset_cuda<<< Num_of_features_in, number_of_weights_ >>>( d_nabla_E_weights_ );
-  fill_with_zeros<<< 1, Num_of_features_out >>>( Num_of_features_out, d_nabla_E_biases_ );
+//  //
+//  // 1.2. Allocating nabla
+//  err = cudaMalloc( (void **)&d_nabla_E_weights_, Num_of_features_in * sizeof(double*) );
+//  err = cudaMalloc( (void **)&d_nabla_E_biases_,  Num_of_features_out * sizeof(double) );
+//  // weights
+//  for ( std::size_t p = 0 ; p < Num_of_features_in ; p++)
+//    {
+//      double *temp_weights;
+//      cudaMalloc((void **)&temp_weights, Number_of_weights * sizeof(double) );
+//      // create a master pointer we will move into the pointer to pointer
+//      cudaMemcpy(&d_nabla_E_weights_[p], &temp_weights, sizeof(double*), cudaMemcpyHostToDevice);
+//      if (err != cudaSuccess)
+//	{
+//	  fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
+//	  exit(EXIT_FAILURE);
+//	}
+//    }
+//  // reset nabla
+//  nabla_reset_cuda<<< Num_of_features_in, number_of_weights_ >>>( d_nabla_E_weights_ );
+//  fill_with_zeros<<< 1, Num_of_features_out >>>( Num_of_features_out, d_nabla_E_biases_ );
 
   //
   //
@@ -840,6 +843,41 @@ MAC::Convolutional_CUDA::backprog_transpose_convolution( double** Delta,
 	  exit(EXIT_FAILURE);
 	}
     }
+  // 2.2. Allocating nabla
+  double
+    **hd_nabla_E_weights,
+    **hh_nabla_E_weights,
+    **dd_nabla_E_weights,
+     *dd_nabla_E_biases;
+  //
+  hd_nabla_E_weights = (double**) malloc( number_of_features_in_ * sizeof(double*) );
+  hh_nabla_E_weights = (double**) malloc( number_of_features_in_ * sizeof(double*) );
+  //
+  err = cudaMalloc( (void **)&dd_nabla_E_weights, number_of_features_in_ * sizeof(double*) );
+  err = cudaMalloc( (void **)&dd_nabla_E_biases,  number_of_features_in_ * sizeof(double) );
+  //
+  for ( std::size_t feature = 0 ; feature < number_of_features_in_; feature++ )
+    {
+      //
+      // 2.2.1. Allocate space for nabla
+      hh_nabla_E_weights[feature] = (double*) malloc( number_of_weights_ * sizeof(double) );
+      for ( int w = 0; w < number_of_weights_ ; w++ )
+	hh_nabla_E_weights[feature][w] = 0.;
+      //
+      err = cudaMalloc( (void**)&hd_nabla_E_weights[feature], number_of_weights_ * sizeof(double) );
+      err = cudaMemcpy( hd_nabla_E_weights[feature], hh_nabla_E_weights[feature],
+			number_of_weights_*sizeof(double), cudaMemcpyHostToDevice );
+    }
+  //
+  err = cudaMemcpy( dd_nabla_E_weights, hd_nabla_E_weights,
+		    number_of_features_in_ * sizeof(double*), cudaMemcpyHostToDevice );
+  if (err != cudaSuccess)
+    {
+      fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
+      exit(EXIT_FAILURE);
+    }
+  // 2.2.2. Set the bias to zero
+  fill_with_zeros<<< 1, number_of_features_in_ >>>( number_of_features_in_, dd_nabla_E_biases );
 
 
   //
@@ -847,7 +885,7 @@ MAC::Convolutional_CUDA::backprog_transpose_convolution( double** Delta,
   for ( std::size_t feature = 0 ; feature < number_of_features_in_; feature++ )
     {
       //
-      // 3.1. Copy the feature information
+      // 3.2. Copy the feature information
       cudaMemcpy( d_next_feature_maps_, Features[feature], 
 		  im_size_out_ * sizeof(double), cudaMemcpyHostToDevice );
       //
@@ -871,19 +909,77 @@ MAC::Convolutional_CUDA::backprog_transpose_convolution( double** Delta,
 	  //
 	  // 3.2.1. Copy the feature information
 	  cudaMemcpy(d_next_delta_maps_ , Delta[s], 
-		      im_size_out_ * sizeof(double), cudaMemcpyHostToDevice );
+		     im_size_out_ * sizeof(double), cudaMemcpyHostToDevice );
 	  // 3.2.2. nabla
 	  nabla_cuda<<< numBlocks, threadsPerBlock >>>
 	    ( static_cast< int >(feature),
 	      static_cast< int >(im_size_out_),
 	      number_of_weights_,
 	      d_dWT_x_f_, d_next_delta_maps_,
-	      d_nabla_E_weights_, d_nabla_E_biases_ );
+	      dd_nabla_E_weights, dd_nabla_E_biases );
 	}
     }
+  
+  //
+  // 4. Copy back the nabla
+  // 4.1. Biases
+  double* temp = (double*) malloc( number_of_features_in_*sizeof(double) );
+  err = cudaMemcpy( temp, dd_nabla_E_biases,
+		    number_of_features_in_*sizeof(double), cudaMemcpyDeviceToHost );
+  // 4.2. Weights
+  for ( std::size_t p = 0 ; p < number_of_features_in_ ; p++)
+    {
+      std::cout << "Je passe!1" << std::endl;
+      // 4.2.1. Copy back the weights and the biaises 
+      err = cudaMemcpy(hh_nabla_E_weights[p], hd_nabla_E_weights[p],
+		       number_of_weights_*sizeof(double), cudaMemcpyDeviceToHost);
+      std::cout << "Je passe!2" << std::endl;
+      // 4.2.2. Clear the levels
+      err = cudaFree( hd_nabla_E_weights[p] );
+      std::cout << "Je passe!3" << std::endl;
+      if (err != cudaSuccess)
+	{
+	  fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
+	  exit(EXIT_FAILURE);
+	}
+      //
+      std::cout << "Je passe!4" << std::endl;
+      for ( int w = 0 ; w < number_of_weights_ ; w++ )
+	{
+	  std::cout << "Je passe!5" << std::endl;
+
+	  Nabla_w[p][w] += hh_nabla_E_weights[p][w];
+	  std::cout << "Nabla_w["<<p<<"]["<<w<<"] = " << Nabla_w[p][w] << std::endl;
+	}
+      //
+      std::cout << "Je passe!6" << std::endl;
+      Nabla_b[p] += temp[p];
+      std::cout << "Nabla_b["<<p<<"] = " << Nabla_b[p] << std::endl;
+      //
+      free( hh_nabla_E_weights[p] );
+      std::cout << "Je passe!7" << std::endl;
+    }
+  //
+  std::cout << "Je passe!8" << std::endl;
+  free(temp);
 
   //
-  // 4. free dW^Txh
+  std::cout << "Je passe!9" << std::endl;
+  free( hh_nabla_E_weights );
+  free( hd_nabla_E_weights );
+  //
+  std::cout << "Je passe!10" << std::endl;
+  err = cudaFree( dd_nabla_E_weights );
+  err = cudaFree( dd_nabla_E_biases );
+  if (err != cudaSuccess)
+    {
+      fprintf(stderr, "error on the CUDA device (error code %s)!\n", cudaGetErrorString(err));
+      exit(EXIT_FAILURE);
+    }
+//
+//
+//  //
+//  // 4. free dW^Txh
 }
 //
 //
@@ -908,30 +1004,30 @@ MAC::Convolutional_CUDA::backward( std::map< std::string, Neurons_type >& Neuron
 __host__ 
 MAC::Convolutional_CUDA::~Convolutional_CUDA()
 {
-  cudaError_t err = cudaGetLastError();
-  err = cudaFree( d_shared_weights_ );
-  err = cudaFree( d_shared_biases_ );
-  err = cudaFree( d_weights_pos_oi_ );
-  err = cudaFree( d_weights_pos_io_ );
-  err = cudaFree( d_previouse_feature_maps_ );
-  err = cudaFree( d_next_feature_maps_ );
-  //
-  if (err != cudaSuccess)
-    {
-      fprintf(stderr, "Failed to free device (error code %s)!\n", cudaGetErrorString(err));
-      exit(EXIT_FAILURE);
-    }
-  // Reset the device and exit
-  // cudaDeviceReset causes the driver to clean up all states. While
-  // not mandatory in normal operation, it is good practice.  It is also
-  // needed to ensure correct operation when the application is being
-  // profiled. Calling cudaDeviceReset causes all profile data to be
-  // flushed before the application exits
-  err = cudaDeviceReset();
-  //
-  if (err != cudaSuccess)
-    {
-      fprintf(stderr, "Failed to deinitialize the device! error=%s\n", cudaGetErrorString(err));
-      exit(EXIT_FAILURE);
-    }
+cudaError_t err = cudaGetLastError();
+err = cudaFree( d_shared_weights_ );
+err = cudaFree( d_shared_biases_ );
+err = cudaFree( d_weights_pos_oi_ );
+err = cudaFree( d_weights_pos_io_ );
+err = cudaFree( d_previouse_feature_maps_ );
+err = cudaFree( d_next_feature_maps_ );
+//
+if (err != cudaSuccess)
+  {
+    fprintf(stderr, "Failed to free device (error code %s)!\n", cudaGetErrorString(err));
+    exit(EXIT_FAILURE);
+  }
+// Reset the device and exit
+// cudaDeviceReset causes the driver to clean up all states. While
+// not mandatory in normal operation, it is good practice.  It is also
+// needed to ensure correct operation when the application is being
+// profiled. Calling cudaDeviceReset causes all profile data to be
+// flushed before the application exits
+err = cudaDeviceReset();
+//
+if (err != cudaSuccess)
+  {
+    fprintf(stderr, "Failed to deinitialize the device! error=%s\n", cudaGetErrorString(err));
+    exit(EXIT_FAILURE);
+  }
 }

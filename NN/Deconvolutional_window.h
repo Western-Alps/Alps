@@ -162,7 +162,7 @@ namespace MAC
       std::vector< std::shared_ptr<double> > /* deltas */ > > neurons_;
     // 
     // Inputs
-    std::shared_ptr< Convolutional_window > previouse_conv_window_;
+    std::shared_ptr< Convolutional_window > previouse_conv_window_{nullptr};
     // Half window
     int*                                    convolution_half_window_size_{nullptr};
     int*                                    stride_{nullptr};
