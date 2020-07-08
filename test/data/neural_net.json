@@ -1,0 +1,70 @@
+{
+    "inputs":{
+	"images_comment": "We can take as many modalities needed for the classification",
+	"images":[["/path/to/modality_1_subject_1.nii.gz",
+		   "/path/to/modality_1_subject_2.nii.gz",
+		   "/path/to/modality_1_subject_3.nii.gz"],
+		  ["/path/to/modality_2_subject_1.nii.gz",
+		   "/path/to/modality_2_subject_2.nii.gz",
+		   "/path/to/modality_2_subject_3.nii.gz"]],
+	"image_targets_comment": "Any target image must match an input image",
+	"image_targets":[["/path/to/modality_1_subject_1_target.nii.gz",
+			  "/path/to/modality_1_subject_2_target.nii.gz",
+			  "/path/to/modality_1_subject_3_target.nii.gz"],
+			 ["/path/to/modality_2_subject_1_target.nii.gz",
+			  "/path/to/modality_2_subject_2_target.nii.gz",
+			  "/path/to/modality_2_subject_3_target.nii.gz"]],
+	"labels_comment": "Labels are used for the classification training set. AD = 0, bvFTD = 1, CSB = 2, CO = 3, nfvPPA = 4 PSP = 5, svPPA = 6.",
+	"labels": {"label_subject_1": 0,
+		   "label_subject_2": 5,
+		   "label_subject_3": 1},
+	"masks_comment": "Do we want 1 mask in MNI, or one mask per subject in the native space.",
+	"masks": [["mask_modality_1_subject_1",
+		   "mask_modality_2_subject_1",
+		   "mask_modality_3_subject_1"],
+		  ["mask_modality_1_subject_2",
+		   "mask_modality_2_subject_2",
+		   "mask_modality_3_subject_2"],
+		  ["mask_modality_1_subject_3",
+		   "mask_modality_2_subject_3",
+		   "mask_modality_3_subject_3"]]
+    },
+    "mountains":{
+	"Mont_Blanc_comment":".",
+	"Mont_Blanc":{},
+	"Monte_Rosa_comment":"Monte Rosa is a custumized classification algorithm.",
+	"Mont_Rosa":{
+	    "inputs":["images","masks","labels"],
+	    "weights":"weights_Monte_Rosa.nii.gz",
+	    "output":"/path/to/output.csv"
+	},
+	"Mont_Maudit_comment":"Mont Maudit is a custumized auto-encoder algorithm.",
+	"Mont_Maudit":{
+	    "inputs":["images","masks","image_targets"],
+	    "weights":"weights_Mont_Maudit.nii.gz",
+	    "output":{
+		"output_maps": [["out_mod_1_subject_1.nii.gz",
+				 "out_mod_1_subject_1.nii.gz",
+				 "out_mod_1_subject_1.nii.gz"],
+				["out_mod_1_subject_2.nii.gz",
+				 "out_mod_1_subject_2.nii.gz",
+				 "out_mod_1_subject_2.nii.gz"],
+				["out_mod_1_subject_3.nii.gz",
+				 "out_mod_1_subject_3.nii.gz",
+				 "out_mod_1_subject_3.nii.gz"]]
+	    }
+	}
+    },
+    "network":{
+	"layer_comment": "How many layers has the neural network?",
+	"layers": 4,
+	"neurons_per_layer_comment": "For each layer, how many neurons do we want?",
+	"neurons_per_layer":[16,8,4,2],
+	"gradient_descent":{
+	    "response_function_comment": "soft_maximum, tan_hyperbolic, ...",
+	    "response_function":"soft_maximum",
+	    "learning_rate":0.01
+	}
+    },
+    "GPU":{}
+}

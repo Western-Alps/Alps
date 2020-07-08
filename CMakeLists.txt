@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 2.8)
+include(FetchContent)
+cmake_minimum_required(VERSION 3.2)
 
 project(Alps)
 
@@ -149,3 +150,8 @@ target_link_libraries( Mont_Maudit  ${ITK_LIBRARIES}  _Alps_nn _Alps_utils )
 #
 # Install
 install( FILES ${HEADERS_} ${Monte_Rosa_HEADERS_} ${Mont_Blanc_HEADERS_}  ${Mont_Maudit_HEADERS_} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ )
+
+#
+# Goolge tests
+enable_testing()
+add_subdirectory(test)

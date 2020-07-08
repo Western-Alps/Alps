@@ -208,7 +208,8 @@ dWT_x_f_cuda( int      Feature,
 	  if ( odx != 999999999 )
 	    {
 	      DWT_x_f[k][idx] = F_map[odx];
-	      //printf(" [%d,%d,%d,%f] ", k, idx, odx, F_map[odx]);
+	//if ( k == 0 && idx < 200 )
+	//	printf(" [%d,%d,%d,%f,%f] ", k, idx, odx, F_map[odx], DWT_x_f[k][idx]);
 	    }
 	    
 	}
@@ -264,19 +265,46 @@ nabla_cuda( int      Feature,
   //
   //
   int idx = blockDim.x * blockIdx.x + threadIdx.x;
+  __shared__ double shmem[ THREADSPERBLOCK ];
   //
   if ( idx <  Image_size_out )
     {
       //
       double delta = Delta_map[idx];
-      for ( int k = 0 ; k < Number_of_weights ; k++ )
+      //for ( int k = 0 ; k < Number_of_weights ; k++ )
+      for ( int k = 0 ; k < 1 ; k++ )
 	{
-	  Nabla_E_weights[Feature][k] += delta * DWf[k][idx];
-	  //printf("Nabla_E_weights[%d][%d] = %f ",Feature,k,Nabla_E_weights[Feature][k]);
+	  //Nabla_E_weights[Feature][k] += delta * DWf[k][idx];
+	  shmem[threadIdx.x] = delta * DWf[k][idx];
+	  //if ( Feature == 6 && k == 0 )
+	  //  printf("[delta * DWf[%d][%d] = %f , %f]",k,idx,delta * DWf[k][idx], Nabla_E_weights[Feature][k]);
+	  //printf("delta[%d] = %f ",idx,delta);
+	    //printf("DWf[%d][%d] = %f ",k,idx,DWf[k][idx]);
+	    //printf("Nabla_E_weights[%d][%d] = %f ",Feature,k,Nabla_E_weights[Feature][k]);
 	}
       //
-      Nabla_E_biases[Feature]       += delta;
+      //Nabla_E_biases[Feature]       += delta;
     }
+
+  __syncthreads();
+  //
+  //
+  if ( threadIdx.x == 0 )
+    {
+      double nabla_e = 0.;
+      for ( int thr = 0 ; thr < blockDim.x; thr++ )
+	{
+	  nabla_e += shmem[thr];
+	}
+      //
+      Nabla_E_weights[Feature][0] += nabla_e;
+      printf("Nabla_E_weights[%d][%d] = %f ",Feature,0,Nabla_E_weights[Feature][0]);
+    }
+}
+__global__ void
+read_cuda( double** Nabla_E_weights )
+{
+  printf("Nabla_E_weights[%d][%d] = %f ",blockIdx.x,threadIdx.x,Nabla_E_weights[blockIdx.x][threadIdx.x]);
 }
 //
 //
@@ -882,6 +910,9 @@ MAC::Convolutional_CUDA::backprog_transpose_convolution( double** Delta,
 
   //
   // 3. gradient descent 
+  int threadsPerBlock = THREADSPERBLOCK;
+  int numBlocks       = (( im_size_out_ ) + threadsPerBlock - 1) / threadsPerBlock;
+  //
   for ( std::size_t feature = 0 ; feature < number_of_features_in_; feature++ )
     {
       //
@@ -890,9 +921,6 @@ MAC::Convolutional_CUDA::backprog_transpose_convolution( double** Delta,
 		  im_size_out_ * sizeof(double), cudaMemcpyHostToDevice );
       //
       // 3.2. dWxh vectors
-      int threadsPerBlock = THREADSPERBLOCK;
-      int numBlocks       = (( im_size_in_ ) + threadsPerBlock - 1) / threadsPerBlock;
-      //
       dWT_x_f_cuda<<< numBlocks, threadsPerBlock >>>
 	( static_cast< int >(feature),
 	  static_cast< int >(im_size_in_),
@@ -901,9 +929,9 @@ MAC::Convolutional_CUDA::backprog_transpose_convolution( double** Delta,
 	  d_next_feature_maps_,
 	  d_weights_pos_oi_ );
       // 3.2. Compute nabla
-      threadsPerBlock = THREADSPERBLOCK;
-      numBlocks       = (( im_size_out_ ) + threadsPerBlock - 1) / threadsPerBlock;
-      //
+//      threadsPerBlock = THREADSPERBLOCK;
+//      numBlocks       = (( im_size_out_ ) + threadsPerBlock - 1) / threadsPerBlock;
+//      //
       for ( std::size_t s = 0 ; s < number_of_features_out_ ; s++ )
 	{
 	  //
@@ -919,7 +947,7 @@ MAC::Convolutional_CUDA::backprog_transpose_convolution( double** Delta,
 	      dd_nabla_E_weights, dd_nabla_E_biases );
 	}
     }
-  
+  //  read_cuda<<< number_of_features_in_, number_of_weights_ >>>( dd_nabla_E_weights );
   //
   // 4. Copy back the nabla
   // 4.1. Biases
