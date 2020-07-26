@@ -68,8 +68,9 @@ include_directories( ${Alps_SOURCE_DIR}  )
 #file(  UTILS_HEADERS_
 #  utils/*.h  )
 file( GLOB HEADERS_
-  utils/*.h utils/CrossValidation/*.h
+  utils/*.h utils/basic/*.h utils/CrossValidation/*.h
   NN/Functions/*.h NN/Gradients/*.h NN/*.cuh NN/*.h
+  NN/Convolution/*h
   ITK/Modules/Core/ImageFunction/include/*.h )
 #
 file( GLOB NN_SOURCES_
@@ -87,10 +88,12 @@ list( APPEND SOURCES ${NN_SOURCES_} ${UTILS_SOURCES_} )
 #list( APPEND SOURCES ${SOURCES_} )
 include_directories(
   ${Alps_SOURCE_DIR}/utils
+  ${Alps_SOURCE_DIR}/utils/basic
   ${Alps_SOURCE_DIR}/utils/CrossValidation
   ${Alps_SOURCE_DIR}/NN
   ${Alps_SOURCE_DIR}/NN/Functions
   ${Alps_SOURCE_DIR}/NN/Gradients
+  ${Alps_SOURCE_DIR}/NN/Convolution
   ${Alps_SOURCE_DIR}/ITK/Modules/Core/ImageFunction/include
    )
 
