@@ -21,7 +21,7 @@ TEST_F(AlpsConvolutionWindowTest, ByDefaultGetStatusIsTrue) {
   using Tensor = Alps::Tensor< int, 1 >;
   Alps::Window< Tensor > window_1( /* half window size */ {2},
 				   /* padding */          {1},
-				   /* striding */         {4});
+				   /* striding */         {1});
   EXPECT_EQ(true,true);
 }
 
