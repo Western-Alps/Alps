@@ -42,7 +42,8 @@ namespace MAC
     /* Composition neural network */
     Monte_Rosa_layer,
     Mont_Blanc_layer,
-    Mont_Maudit_layer
+    Mont_Maudit_layer,
+    Gran_Paradiso_layer
   };
  
 

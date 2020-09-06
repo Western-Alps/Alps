@@ -105,7 +105,7 @@ add_library( _Alps_utils SHARED ${UTILS_SOURCES_} )
 #link_directories (${LIB_BINARY_DIR}/NN ${LIB_BINARY_DIR}/utils ) 
 
 #
-# CNN + DC
+# CNN + DC Classification
 #
 # Monte Rosa
 include_directories( ${Alps_SOURCE_DIR}/Monte_Rosa )
@@ -119,6 +119,21 @@ list( APPEND SOURCES ${Monte_Rosa_SOURCES_} )
 cuda_add_executable( Monte_Rosa MACOSX_BUNDLE Monte_Rosa/Monte_Rosa.cpp ${HEADERS} ${Monte_Rosa_SOURCES_} )
 # cmake 3.1 target_compile_features(Monte_Rosa PRIVATE cxx_range_for)
 target_link_libraries( Monte_Rosa ${ITK_LIBRARIES} _Alps_nn _Alps_utils )
+#
+# DC classification
+#
+# Gran Paradiso
+include_directories( ${Alps_SOURCE_DIR}/Gran_Paradiso )
+#
+file( GLOB Gran_Paradiso_HEADERS_ Gran_Paradiso/*.h Gran_Paradiso/*.cuh )
+file( GLOB Gran_Paradiso_SOURCES_ Gran_Paradiso/*.cxx Gran_Paradiso/*.cu )
+#
+list( APPEND HEADERS ${Gran_Paradiso_HEADERS_} )
+list( APPEND SOURCES ${Gran_Paradiso_SOURCES_} )
+#
+cuda_add_executable( Gran_Paradiso MACOSX_BUNDLE Gran_Paradiso/Gran_Paradiso.cpp ${HEADERS} ${Gran_Paradiso_SOURCES_} )
+# cmake 3.1 target_compile_features( PRIVATE cxx_range_for)
+target_link_libraries( Gran_Paradiso ${ITK_LIBRARIES} _Alps_nn _Alps_utils )
 #
 #
 # Auto-encoder
@@ -152,7 +167,7 @@ target_link_libraries( Mont_Maudit  ${ITK_LIBRARIES}  _Alps_nn _Alps_utils )
 
 #
 # Install
-install( FILES ${HEADERS_} ${Monte_Rosa_HEADERS_} ${Mont_Blanc_HEADERS_}  ${Mont_Maudit_HEADERS_} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ )
+install( FILES ${HEADERS_} ${Monte_Rosa_HEADERS_} ${Gran_Paradiso_HEADERS_} ${Mont_Blanc_HEADERS_}  ${Mont_Maudit_HEADERS_} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ )
 
 #
 # Goolge tests
