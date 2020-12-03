@@ -2,6 +2,10 @@ include(FetchContent)
 cmake_minimum_required(VERSION 3.2)
 
 project(Alps)
+# The Alps version number
+set(Alps_VERSION_MAJOR "0")
+set(Alps_VERSION_MINOR "1")
+set(Alps_VERSION_PATCH "0")
 
 #
 # CUDA
@@ -35,8 +39,12 @@ endif()
 
 #
 # Eigen and JSON
-set( EIGEN /mnt/neuroimaging/Eigen-3/install/include/eigen3/ /mnt/neuroimaging/Eigen-3/install/include/eigen3/unsupported/ )
-set( JSON /mnt/neuroimaging/json/src/ )
+set( EIGEN /usr/local/include/eigen3/ /usr/local/include/eigen3/unsupported/ )
+#set( JSON /mnt/neuroimaging/json/src/ )
+
+find_package(nlohmann_json REQUIRED)
+#include(${ITK_USE_FILE})
+
 
 #
 # include directories

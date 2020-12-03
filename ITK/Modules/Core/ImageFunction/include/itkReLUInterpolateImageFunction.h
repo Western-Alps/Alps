@@ -61,7 +61,7 @@ public:
   itkTypeMacro(ReLUInterpolateImageFunction, InterpolateImageFunction);
 
   /** Method for creation through the object factory. */
-  itkNewMacro(Self);
+  //itkNewMacro(Self);
 
   /** OutputType typedef support. */
   typedef typename Superclass::OutputType OutputType;

@@ -8,7 +8,7 @@
 //
 // JSON interface
 //
-#include "json.hpp"
+#include "nlohmann/json.hpp"
 using json = nlohmann::json;
 //
 // ITK

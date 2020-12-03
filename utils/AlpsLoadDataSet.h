@@ -9,7 +9,7 @@
 //
 // JSON interface
 //
-#include "json.hpp"
+#include "nlohmann/json.hpp"
 using json = nlohmann::json;
 //
 // 
@@ -18,12 +18,12 @@ using json = nlohmann::json;
 //
 //
 //
-/*! \namespace MAC
+/*! \namespace Alps
  *
- * Name space MAC.
+ * Name space Alps.
  *
  */
-namespace MAC
+namespace Alps
 {
   /*! \class LoadDataSet
    *
@@ -48,6 +48,10 @@ namespace MAC
     {
       return data_;
     }
+    const std::string get_mountain() const
+    {
+      return mountain_;
+    }
     //
     std::string get_data_set() const
       {
@@ -59,6 +63,12 @@ namespace MAC
     {
       json_file_ = JSon_file;
     }
+
+
+    //
+    // Load the ITK images
+    bool Load_ITK_images();
+
     //
     //
     void print_data_set() const
@@ -84,6 +94,9 @@ namespace MAC
     std::string json_file_;
     //! json data
     json data_;
+
+    //! What type of algorithm:
+    std::string mountain_{""};
   };
 }
 #endif

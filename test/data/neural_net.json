@@ -32,10 +32,16 @@
     "mountains":{
 	"Mont_Blanc_comment":".",
 	"Mont_Blanc":{},
-	"Monte_Rosa_comment":"Monte Rosa is a custumized classification algorithm.",
-	"Mont_Rosa":{
+	"Monte_Rosa_comment":"Monte Rosa is a custumized CNN classification algorithm.",
+	"Monte_Rosa":{
 	    "inputs":["images","masks","labels"],
 	    "weights":"weights_Monte_Rosa.nii.gz",
+	    "output":"/path/to/output.csv"
+	},
+	"Gran_Paradiso_comment":"Gran Paradiso is a custumized classification algorithm.",
+	"Gran_Paradiso":{
+	    "inputs":["images","masks","labels"],
+	    "weights":"weights_Gran_Paradiso.nii.gz",
 	    "output":"/path/to/output.csv"
 	},
 	"Mont_Maudit_comment":"Mont Maudit is a custumized auto-encoder algorithm.",

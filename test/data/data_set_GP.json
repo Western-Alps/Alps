@@ -1,0 +1,53 @@
+{
+    "inputs":{
+	"images_comment": "We can take as many modalities needed for the classification",
+	"images":[["../images/MNITS/train/000000-num5.png",
+		   "../images/MNITS/train/000001-num0.png",
+		   "../images/MNITS/train/000002-num4.png",
+		   "../images/MNITS/train/000003-num1.png",
+		   "../images/MNITS/train/000004-num9.png",
+		   "../images/MNITS/train/000005-num2.png",
+		   "../images/MNITS/train/000006-num1.png",
+		   "../images/MNITS/train/000007-num3.png",
+		   "../images/MNITS/train/000008-num1.png",
+		   "../images/MNITS/train/000009-num4.png"]],
+	"image_targets_comment": "Any target image must match an input image",
+	"image_targets":[[]],
+	"labels_comment": "Labels are used for the classification training set. AD = 0, bvFTD = 1, CSB = 2, CO = 3, nfvPPA = 4 PSP = 5, svPPA = 6.",
+	"labels": {"label_subject_0": 5,
+		   "label_subject_1": 0,
+		   "label_subject_2": 4,
+		   "label_subject_3": 1,
+		   "label_subject_4": 9,
+		   "label_subject_5": 2,
+		   "label_subject_6": 1,
+		   "label_subject_7": 3,
+		   "label_subject_8": 1,
+		   "label_subject_9": 4},
+	"masks_comment": "Do we want 1 mask in MNI, or one mask per subject in the native space.",
+	"masks": []
+    },
+    "mountains":{
+	"Gran_Paradiso_comment":"Gran Paradiso is a custumized classification algorithm.",
+	"Gran_Paradiso":{
+	    "inputs":["images","masks","labels"],
+	    "weights":"weights_Gran_Paradiso.nii.gz",
+	    "output":"/path/to/output.csv"
+	}
+    },
+    "network":{
+	"Information comment": "Global information of image dimension, ...",
+	"Image_dim" : 2,
+	"mountain": "Gran_Paradiso",
+	"layer_comment": "How many layers has the neural network?",
+	"layers": 3,
+	"neurons_per_layer_comment": "For each layer, how many neurons do we want?",
+	"neurons_per_layer":[-1,10,2],
+	"gradient_descent":{
+	    "response_function_comment": "soft_maximum, tan_hyperbolic, ...",
+	    "response_function":"soft_maximum",
+	    "learning_rate":0.01
+	}
+    },
+    "GPU":{}
+}

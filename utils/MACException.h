@@ -1,7 +1,7 @@
 #ifndef MACEXCEPTION_H
 #define MACEXCEPTION_H
 #include "itkMacro.h"
-#include "itkExceptionObject.h"
+//#include "itkExceptionObject.h"
 //
 //
 //

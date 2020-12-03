@@ -23,7 +23,7 @@ using MaskReaderType = itk::ImageFileReader< MaskType >;
 //
 #include "MACException.h"
 #include "MACLoadDataSet.h"
-#include "Monte_Rosa_builder.h"
+#include "Gran_Paradiso_builder.h"
 //
 //
 //
@@ -107,12 +107,12 @@ main( const int argc, const char **argv )
 
 	      //
 	      // Main object
-	      MAC::Monte_Rosa_builder network;
+	      MAC::Gran_Paradiso_builder network;
 	      // Forward
-	      network.forward( MAC::Singleton::instance()->get_subjects()[0] );
-	      network.forward( MAC::Singleton::instance()->get_subjects()[1] );
+	      //network.forward( MAC::Singleton::instance()->get_subjects()[0] );
+	      //network.forward( MAC::Singleton::instance()->get_subjects()[1] );
 	      // Backward
-	      network.backward();
+	      //network.backward();
 
 	      /////////
 	      // End //
