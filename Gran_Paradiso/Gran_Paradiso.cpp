@@ -11,18 +11,10 @@
 #include "nlohmann/json.hpp"
 using json = nlohmann::json;
 //
-// ITK
-//
-#include <itkImageFileReader.h>
-#include <itkSpatialOrientationAdapter.h>
-#include "itkChangeInformationImageFilter.h"
-using MaskType       = itk::Image< unsigned char, 3 >;
-using MaskReaderType = itk::ImageFileReader< MaskType >;
-//
 // 
 //
 #include "MACException.h"
-#include "MACLoadDataSet.h"
+#include "AlpsLoadDataSet.h"
 #include "Gran_Paradiso_builder.h"
 //
 //
@@ -84,9 +76,9 @@ main( const int argc, const char **argv )
 	    {
 	      //
 	      // Load the data set
-	      MAC::Singleton::instance( filename );
+	      Alps::LoadDataSet::instance( filename );
 	      // print the data set
-	      MAC::Singleton::instance()->print_data_set();
+	      Alps::LoadDataSet::instance()->print_data_set();
 
 	      ////////////////////////////
 	      ///////              ///////

@@ -20,39 +20,8 @@
 // Eigen
 //
 #include <Eigen/Sparse>
-//
 // ITK
-//
-#include <itkSize.h>
-#include <itkImage.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
-#include <itkConstNeighborhoodIterator.h>
-#include <itkImageRegionIterator.h>
-#include <itkNiftiImageIO.h>
-#include <itkOrientImageFilter.h>
-#include <itkSpatialOrientation.h>
-#include "itkChangeInformationImageFilter.h"
-#include "itkImageDuplicator.h"
-// {down,up}sampling the pooling image and upsampling
-#include "itkIdentityTransform.h"
-#include "itkRescaleIntensityImageFilter.h"
-#include "itkShrinkImageFilter.h"
-#include "itkResampleImageFilter.h"
-#include "itkBSplineInterpolateImageFunction.h"
-#include "itkNearestNeighborInterpolateImageFunction.h"
-#include "itkLinearInterpolateImageFunction.h"
-#include "itkReLUInterpolateImageFunction.h"
-
-//
-// Some typedef
-using Image3DType    = itk::Image< double, 3 >;
-using Reader3D       = itk::ImageFileReader< Image3DType >;
-using Writer3D       = itk::ImageFileWriter< Image3DType >;
-using MaskType       = itk::Image< unsigned char, 3 >;
-using FilterType     = itk::ChangeInformationImageFilter< Image3DType >;
-using DuplicatorType = itk::ImageDuplicator< Image3DType > ;
-using ShrinkImageFilterType = itk::ShrinkImageFilter < Image3DType, Image3DType >;
+#include "ITKHeaders.h"
 //
 //
 //
@@ -124,8 +93,8 @@ namespace MAC
 	{
 	  itk::NiftiImageIO::Pointer nifti_io = itk::NiftiImageIO::New();
 	  //
-	  itk::ImageFileWriter< Image3DType >::Pointer writer =
-	    itk::ImageFileWriter< Image3DType >::New();
+	  itk::ImageFileWriter< ImageType<3> >::Pointer writer =
+	    itk::ImageFileWriter< ImageType<3> >::New();
 	  //
 	  std::string name = "Convolutional_" + Subject_name + "_" + layer_name_ + "_" + std::to_string(mod) + ".nii.gz";
 	  writer->SetFileName( name );
@@ -172,7 +141,7 @@ namespace MAC
     int num_of_next_features_{0};
     // Measures grouped in vector of 3D image
     // Convolution image: vector for each modality
-    std::vector< Image3DType::Pointer > convolution_images_;
+    std::vector< ImageType<3>::Pointer > convolution_images_;
 
     //
     // Neurons, activations and delta
@@ -183,10 +152,10 @@ namespace MAC
 
     //
     // Image information at the lu level
-    Image3DType::SizeType      size_lu_;
-    Image3DType::SpacingType   spacing_lu_;
-    Image3DType::PointType     origine_lu_;
-    Image3DType::DirectionType direction_lu_;
+    ImageType<3>::SizeType      size_lu_;
+    ImageType<3>::SpacingType   spacing_lu_;
+    ImageType<3>::PointType     origine_lu_;
+    ImageType<3>::DirectionType direction_lu_;
 
     //
     // gradient
@@ -300,27 +269,27 @@ namespace MAC
 
 	  //
 	  // Subject informations
-	  const std::vector< Image3DType::Pointer > curr_images = Sub.get_clone_modalities_images();
+	  const std::vector< ImageType<3>::Pointer > curr_images = Sub.get_clone_modalities_images();
 	  std::string subject_name = Sub.get_subject_name();
 	  std::cout << "subject_name " << subject_name << std::endl;
 	  //
 	  // Images information
-	  Image3DType::IndexType  start = { 0, 0, 0 };
-	  Image3DType::Pointer    raw_subject_image_ptr = curr_images[0];
+	  ImageType<3>::IndexType  start = { 0, 0, 0 };
+	  ImageType<3>::Pointer    raw_subject_image_ptr = curr_images[0];
 	  //
 	  size_lu_       = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
 	  origine_lu_    = raw_subject_image_ptr->GetOrigin();
 	  spacing_lu_    = raw_subject_image_ptr->GetSpacing();
 	  direction_lu_  = raw_subject_image_ptr->GetDirection();
 	  //
-	  Image3DType::RegionType region;
+	  ImageType<3>::RegionType region;
 	  region.SetSize( size_lu_ );
 	  region.SetIndex( start );
 	  //
 	  // If costfunction calculation:
-	  const std::vector< Image3DType::Pointer > tgt_images = Sub.get_modality_targets_ITK_images();
-	  Image3DType::Pointer  subject_tgt_ptr = tgt_images[0];
-	  Image3DType::SizeType size_tgt_       = subject_tgt_ptr->GetLargestPossibleRegion().GetSize();
+	  const std::vector< ImageType<3>::Pointer > tgt_images = Sub.get_modality_targets_ITK_images();
+	  ImageType<3>::Pointer  subject_tgt_ptr = tgt_images[0];
+	  ImageType<3>::SizeType size_tgt_       = subject_tgt_ptr->GetLargestPossibleRegion().GetSize();
 	  int num_tgt_features                  = tgt_images.size();
 	  //
 	  std::size_t
@@ -396,14 +365,14 @@ namespace MAC
 	  for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ )
 	    {
 	      // ToDo: Is it the right order for z in [Z1,Zn]; y in [Y1,Yn]; x in [X1,Xn]
-	      itk::ImageRegionIterator< Image3DType > image_iter( curr_images[prev], region );
+	      itk::ImageRegionIterator< ImageType<3> > image_iter( curr_images[prev], region );
 	      prev_features_to_device[prev] = new double[im_size_prev];
 	      //
 	      std::size_t current_position = 0;
 	      while( !image_iter.IsAtEnd() )
 		{
 		  //
-		  //Image3DType::IndexType idx = image_iter.GetIndex();
+		  //ImageType<3>::IndexType idx = image_iter.GetIndex();
 		  prev_features_to_device[prev][ current_position++ ] = image_iter.Value();
 		  //
 		  ++image_iter;
@@ -422,12 +391,12 @@ namespace MAC
 	  
 	  //
 	  // 3. Create the new feature maps with convolution
-	  Image3DType::SizeType      size_out       = window_->get_size_out();
-	  Image3DType::PointType     origine_out    = window_->get_origine_out();
-	  Image3DType::SpacingType   spacing_out    = window_->get_spacing_out();
-	  Image3DType::DirectionType direction_out  = window_->get_direction_out();
+	  ImageType<3>::SizeType      size_out       = window_->get_size_out();
+	  ImageType<3>::PointType     origine_out    = window_->get_origine_out();
+	  ImageType<3>::SpacingType   spacing_out    = window_->get_spacing_out();
+	  ImageType<3>::DirectionType direction_out  = window_->get_direction_out();
 	  //
-	  Image3DType::RegionType region_out;
+	  ImageType<3>::RegionType region_out;
 	  region_out.SetSize( size_out );
 	  region_out.SetIndex( start );
 	  //
@@ -504,10 +473,10 @@ namespace MAC
 	      deltas[mod]      = std::shared_ptr<double>( new double[im_size_next], std::default_delete< double[] >() );
 	      //
 	      // Duplicate the image
-	      Image3DType::Pointer records = Image3DType::New();
+	      ImageType<3>::Pointer records = ImageType<3>::New();
 	      // image filter
-	      FilterType::Pointer images_filter;
-	      images_filter = FilterType::New();
+	      FilterType<3>::Pointer images_filter;
+	      images_filter = FilterType<3>::New();
 	      //
 	      images_filter->SetOutputSpacing( spacing_out );
 	      images_filter->ChangeSpacingOn();
@@ -526,10 +495,10 @@ namespace MAC
 	      //
 	      // Cost function calculation
 	      int feature_idx = 0;
-	      itk::ImageRegionIterator< Image3DType > convolution_iter( convolution_images_[mod], region_out );
+	      itk::ImageRegionIterator< ImageType<3> > convolution_iter( convolution_images_[mod], region_out );
 	      if ( compute_cost_function_ )
 		{
-		  itk::ImageRegionIterator< Image3DType > tgd_iter( tgt_images[mod], region_out );
+		  itk::ImageRegionIterator< ImageType<3> > tgd_iter( tgt_images[mod], region_out );
 		  while( !convolution_iter.IsAtEnd() )
 		    {
 		      double local_img_energy = next_features_to_device[mod][feature_idx];
@@ -594,20 +563,20 @@ namespace MAC
 
 	  //
 	  // Subject informations
-	  const std::vector< Image3DType::Pointer > curr_images = Sub.get_clone_modalities_images();
+	  const std::vector< ImageType<3>::Pointer > curr_images = Sub.get_clone_modalities_images();
 	  std::string subject_name = Sub.get_subject_name();
 	  std::cout << "subject_name " << subject_name << std::endl;
 	  //
 	  // Images information
-	  Image3DType::IndexType  start = { 0, 0, 0 };
-	  Image3DType::Pointer    raw_subject_image_ptr = curr_images[0];
+	  ImageType<3>::IndexType  start = { 0, 0, 0 };
+	  ImageType<3>::Pointer    raw_subject_image_ptr = curr_images[0];
 	  //
 	  size_lu_       = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
 	  origine_lu_    = raw_subject_image_ptr->GetOrigin();
 	  spacing_lu_    = raw_subject_image_ptr->GetSpacing();
 	  direction_lu_  = raw_subject_image_ptr->GetDirection();
 	  //
-	  Image3DType::RegionType region;
+	  ImageType<3>::RegionType region;
 	  region.SetSize( size_lu_ );
 	  region.SetIndex( start );
 	  //
@@ -665,7 +634,7 @@ namespace MAC
 		for ( int prev = 0 ; prev < num_of_previous_features_ ; prev++ )
 		  {
 		    // ToDo: Is it the right order for z in [Z1,Zn]; y in [Y1,Yn]; x in [X1,Xn]
-		    itk::ImageRegionIterator< Image3DType > image_iter( curr_images[prev], region );
+		    itk::ImageRegionIterator< ImageType<3> > image_iter( curr_images[prev], region );
 		    prev_features_to_device[prev].resize( im_size_prev );
 		    //
 		    std::size_t current_position = 0;
@@ -677,12 +646,12 @@ namespace MAC
 		      }
 		  }
 		// 3.2. Create the new feature maps with convolution
-		Image3DType::SizeType      size_out       = window_->get_size_out();
-		Image3DType::PointType     origine_out    = window_->get_origine_out();
-		Image3DType::SpacingType   spacing_out    = window_->get_spacing_out();
-		Image3DType::DirectionType direction_out  = window_->get_direction_out();
+		ImageType<3>::SizeType      size_out       = window_->get_size_out();
+		ImageType<3>::PointType     origine_out    = window_->get_origine_out();
+		ImageType<3>::SpacingType   spacing_out    = window_->get_spacing_out();
+		ImageType<3>::DirectionType direction_out  = window_->get_direction_out();
 		//
-		Image3DType::RegionType region_out;
+		ImageType<3>::RegionType region_out;
 		region_out.SetSize( size_out );
 		region_out.SetIndex( start );
 		//
@@ -691,10 +660,10 @@ namespace MAC
 		  {
 		    next_features_to_device[mod].resize(im_size_next);
 		    // Duplicate the image
-		    Image3DType::Pointer records = Image3DType::New();
+		    ImageType<3>::Pointer records = ImageType<3>::New();
 		    // image filter
-		    FilterType::Pointer images_filter;
-		    images_filter = FilterType::New();
+		    FilterType<3>::Pointer images_filter;
+		    images_filter = FilterType<3>::New();
 		    //
 		    images_filter->SetOutputSpacing( spacing_out );
 		    images_filter->ChangeSpacingOn();
@@ -717,7 +686,7 @@ namespace MAC
 		    //
 		    // Create the output images
 		    int feature_idx = 0;
-		    itk::ImageRegionIterator< Image3DType > convolution_iter( convolution_images_[mod], region_out );
+		    itk::ImageRegionIterator< ImageType<3> > convolution_iter( convolution_images_[mod], region_out );
 		    while( !convolution_iter.IsAtEnd() )
 		      {
 			// ToDo: Add the activation and the bias

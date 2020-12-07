@@ -71,10 +71,10 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
   // Take the first modality first image to get the dimensions
   // ToDo: at this point we take only one input modality. Several input modalities
   //       would need to generalize the kernel to 4 dimensions
-  const std::vector< Image3DType::Pointer >
+  const std::vector< ImageType<3>::Pointer >
     curr_images = ( MAC::Singleton::instance()->get_subjects()[0] ).get_clone_modalities_images();
   //
-  Image3DType::Pointer raw_subject_image_ptr = curr_images[0];
+  ImageType<3>::Pointer raw_subject_image_ptr = curr_images[0];
   size_in_       = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
   origine_in_    = raw_subject_image_ptr->GetOrigin();
   spacing_in_    = raw_subject_image_ptr->GetSpacing();
@@ -158,7 +158,7 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 	      weights_poisition_oi_[ output_idx ] = new std::size_t[ number_of_weights_ ];
 	      // ToDo: tempo
 //toRm	      double conv = 0.;
-//toRm	      Image3DType::IndexType iidx = {X_o++, Y_o, Z_o};
+//toRm	      ImageType<3>::IndexType iidx = {X_o++, Y_o, Z_o};
 		      
 	      //
 	      for ( int z = -half_wind_Z ; z < half_wind_Z + 1 ; z++ )
@@ -168,7 +168,7 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 		      std::size_t in_idx = (X + x) + (Y + y)*Im_size_X + (Z + z)*Im_size_X*Im_size_Y;
 		      weights_poisition_oi_[output_idx][index] = in_idx;
 
-//toRm		      Image3DType::IndexType idx = {(X + x), (Y + y), (Z + z)};
+//toRm		      ImageType<3>::IndexType idx = {(X + x), (Y + y), (Z + z)};
 //toRm		      std::cout
 //toRm			<< "idx " << idx 
 //toRm			<< " ~~ in_idx" << in_idx
@@ -176,7 +176,7 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 //toRm			<< std::endl;
 		      // we keep the same index to not have zero value in the sparse matrix
 //toRm		      // ToDo: tempo
-//toRm		      Image3DType::IndexType idx = {(X + x), (Y + y), (Z + z)};
+//toRm		      ImageType<3>::IndexType idx = {(X + x), (Y + y), (Z + z)};
 //toRm		      conv += shared_weights_[0][index++]*raw_subject_image_ptr->GetPixel(idx);
 		      triplet_oiw_.push_back( IOWeights( output_idx, in_idx, ++index ) );
 		      //std::cout
@@ -238,7 +238,7 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 //toRm      for ( auto Y = 0 ; Y < Im_size_Y ; Y++ )
 //toRm	for ( auto X = 0 ; X < Im_size_X ; X++ )
 //toRm	  {
-//toRm	    Image3DType::IndexType idx = {X, Y, Z};
+//toRm	    ImageType<3>::IndexType idx = {X, Y, Z};
 //toRm	    int ii = X + Y*Im_size_X + Z*Im_size_X*Im_size_Y;
 //toRm	    image_to_conv[ii] =  raw_subject_image_ptr->GetPixel(idx);
 //toRm//	    for ( int oo = 0 ; oo < im_size_out_ ; oo++ )
@@ -288,7 +288,7 @@ MAC::Convolutional_window::Convolutional_window( const std::string Name,
 //toRm  //itk::NiftiImageIO::Pointer nifti_io = itk::NiftiImageIO::New();
 //toRm  //nifti_io->SetPixelType( "float" );
 //toRm  //
-//toRm  itk::ImageFileWriter< Image3DType >::Pointer writer = itk::ImageFileWriter< Image3DType >::New();
+//toRm  itk::ImageFileWriter< ImageType<3> >::Pointer writer = itk::ImageFileWriter< ImageType<3> >::New();
 //toRm  writer->SetFileName( "image_test.nii.gz" );
 //toRm  writer->SetInput( image_out );
 //toRm  //writer->SetImageIO( nifti_io );
@@ -486,8 +486,8 @@ MAC::Convolutional_window::print()
 //
 //
 void
-MAC::Convolutional_window::check_match( Image3DType::SizeType Size_1,
-					 Image3DType::SizeType Size_2 )
+MAC::Convolutional_window::check_match( ImageType<3>::SizeType Size_1,
+					 ImageType<3>::SizeType Size_2 )
 {
   try
     {
@@ -554,12 +554,12 @@ MAC::Convolutional_window::load_weights()
 }
 //
 //
-Image3DType::SizeType
-MAC::Convolutional_window::feature_size( const Image3DType::SizeType Input_size ) const
+ImageType<3>::SizeType
+MAC::Convolutional_window::feature_size( const ImageType<3>::SizeType Input_size ) const
 {
   //
   // Output feature size in the direction Dim
-  Image3DType::SizeType to_return;
+  ImageType<3>::SizeType to_return;
   //
   for ( int d = 0 ; d < 3 ; d++ )
     {
@@ -574,15 +574,15 @@ MAC::Convolutional_window::feature_size( const Image3DType::SizeType Input_size 
 }
 //
 //
-Image3DType::PointType
-MAC::Convolutional_window::feature_orig( const Image3DType::SizeType    Input_size,
-					 const Image3DType::SpacingType Input_spacing,
-					 const Image3DType::PointType   Input_orig ) const
+ImageType<3>::PointType
+MAC::Convolutional_window::feature_orig( const ImageType<3>::SizeType    Input_size,
+					 const ImageType<3>::SpacingType Input_spacing,
+					 const ImageType<3>::PointType   Input_orig ) const
 {
   //
   // Output feature size in the direction Dim
-  Image3DType::SizeType  size;
-  Image3DType::PointType to_return;
+  ImageType<3>::SizeType  size;
+  ImageType<3>::PointType to_return;
   //
   for ( int d = 0 ; d < 3 ; d++ )
     {

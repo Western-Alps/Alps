@@ -15,37 +15,8 @@
 //
 #include <Eigen/Sparse>
 using IOWeights = Eigen::Triplet< double >;
-//
 // ITK
-//
-#include <itkSize.h>
-#include <itkImage.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
-#include <itkConstNeighborhoodIterator.h>
-#include <itkImageRegionIterator.h>
-#include <itkNiftiImageIO.h>
-#include <itkOrientImageFilter.h>
-#include <itkSpatialOrientation.h>
-#include "itkChangeInformationImageFilter.h"
-#include "itkImageDuplicator.h"
-// {down,up}sampling the pooling image and upsampling
-#include "itkIdentityTransform.h"
-#include "itkRescaleIntensityImageFilter.h"
-#include "itkShrinkImageFilter.h"
-#include "itkResampleImageFilter.h"
-#include "itkBSplineInterpolateImageFunction.h"
-#include "itkNearestNeighborInterpolateImageFunction.h"
-#include "itkLinearInterpolateImageFunction.h"
-#include "itkReLUInterpolateImageFunction.h"
-// Some typedef
-using Image3DType    = itk::Image< double, 3 >;
-using Reader3D       = itk::ImageFileReader< Image3DType >;
-using Writer3D       = itk::ImageFileWriter< Image3DType >;
-using MaskType       = itk::Image< unsigned char, 3 >;
-using FilterType     = itk::ChangeInformationImageFilter< Image3DType >;
-using DuplicatorType = itk::ImageDuplicator< Image3DType > ;
-using ShrinkImageFilterType = itk::ShrinkImageFilter < Image3DType, Image3DType >;
+#include "ITKHeaders.h"
 //
 // 
 //
@@ -116,8 +87,8 @@ namespace MAC
     // Functions
     virtual void print();
     // Check we have the right image as input
-    void         check_match( Image3DType::SizeType,
-			       Image3DType::SizeType);
+    void         check_match( ImageType<3>::SizeType,
+			       ImageType<3>::SizeType);
     //
     // Accessors
     //
@@ -132,15 +103,15 @@ namespace MAC
     const std::size_t get_number_of_features_in()  const { return number_of_features_in_;};
     const std::size_t get_number_of_features_out() const { return number_of_features_out_;};
     // Image information input layer
-    const Image3DType::SizeType      get_size_in()      const { return size_in_; };
-    const Image3DType::SpacingType   get_spacing_in()   const { return spacing_in_; };
-    const Image3DType::PointType     get_origine_in()   const { return origine_in_; };
-    const Image3DType::DirectionType get_direction_in() const { return direction_in_; };
+    const ImageType<3>::SizeType      get_size_in()      const { return size_in_; };
+    const ImageType<3>::SpacingType   get_spacing_in()   const { return spacing_in_; };
+    const ImageType<3>::PointType     get_origine_in()   const { return origine_in_; };
+    const ImageType<3>::DirectionType get_direction_in() const { return direction_in_; };
     // Image information output layer
-    const Image3DType::SizeType      get_size_out()      const { return size_out_; };
-    const Image3DType::SpacingType   get_spacing_out()   const { return spacing_out_; };
-    const Image3DType::PointType     get_origine_out()   const { return origine_out_; };
-    const Image3DType::DirectionType get_direction_out() const { return direction_out_; };
+    const ImageType<3>::SizeType      get_size_out()      const { return size_out_; };
+    const ImageType<3>::SpacingType   get_spacing_out()   const { return spacing_out_; };
+    const ImageType<3>::PointType     get_origine_out()   const { return origine_out_; };
+    const ImageType<3>::DirectionType get_direction_out() const { return direction_out_; };
     //
     std::size_t                      get_im_size_in() const { return im_size_in_; };
     std::size_t                      get_im_size_out() const { return im_size_out_; };
@@ -161,12 +132,12 @@ namespace MAC
   private:
     // This function creates the size of the output feature 
     // following each direction Dim.
-    Image3DType::SizeType feature_size( const Image3DType::SizeType ) const;
+    ImageType<3>::SizeType feature_size( const ImageType<3>::SizeType ) const;
     // This function creates the size of the output feature 
     // following each direction Dim.
-    Image3DType::PointType feature_orig( const Image3DType::SizeType,
-					 const Image3DType::SpacingType,
-					 const Image3DType::PointType ) const;
+    ImageType<3>::PointType feature_orig( const ImageType<3>::SizeType,
+					 const ImageType<3>::SpacingType,
+					 const ImageType<3>::PointType ) const;
 
     //
     // Neurons, activations and delta
@@ -189,15 +160,15 @@ namespace MAC
     std::size_t                number_of_features_in_;
     std::size_t                number_of_features_out_;
     // Image information input layer
-    Image3DType::SizeType      size_in_;
-    Image3DType::SpacingType   spacing_in_;
-    Image3DType::PointType     origine_in_;
-    Image3DType::DirectionType direction_in_;
+    ImageType<3>::SizeType      size_in_;
+    ImageType<3>::SpacingType   spacing_in_;
+    ImageType<3>::PointType     origine_in_;
+    ImageType<3>::DirectionType direction_in_;
     // Image information output layer
-    Image3DType::SizeType      size_out_;
-    Image3DType::SpacingType   spacing_out_;
-    Image3DType::PointType     origine_out_;
-    Image3DType::DirectionType direction_out_;
+    ImageType<3>::SizeType      size_out_;
+    ImageType<3>::SpacingType   spacing_out_;
+    ImageType<3>::PointType     origine_out_;
+    ImageType<3>::DirectionType direction_out_;
     // Weights position in the Weight matrix
     std::size_t                im_size_in_{0};
     std::size_t                im_size_out_{0};

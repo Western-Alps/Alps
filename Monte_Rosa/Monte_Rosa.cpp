@@ -11,14 +11,6 @@
 #include "nlohmann/json.hpp"
 using json = nlohmann::json;
 //
-// ITK
-//
-#include <itkImageFileReader.h>
-#include <itkSpatialOrientationAdapter.h>
-#include "itkChangeInformationImageFilter.h"
-using MaskType       = itk::Image< unsigned char, 3 >;
-using MaskReaderType = itk::ImageFileReader< MaskType >;
-//
 // 
 //
 #include "MACException.h"

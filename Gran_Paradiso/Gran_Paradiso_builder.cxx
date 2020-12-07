@@ -18,6 +18,7 @@ MAC::Gran_Paradiso_builder::Gran_Paradiso_builder():
   // Neural network anatomy
   //
   using FullyConnected = MAC::FullyConnected_layer< Activation_tanh >;
+  //using FullyConnected = Alps::FullyConnectedLayer< Activation_tanh, Alps::Architecture::CPU , 2 >;
    
    //
   // Fully connected layers

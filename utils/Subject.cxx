@@ -12,8 +12,8 @@ MAC::Subject::write() const
     {
       itk::NiftiImageIO::Pointer nifti_io = itk::NiftiImageIO::New();
       //
-      itk::ImageFileWriter< Image3DType >::Pointer writer =
-	itk::ImageFileWriter< Image3DType >::New();
+      itk::ImageFileWriter< ImageType<3> >::Pointer writer =
+	itk::ImageFileWriter< ImageType<3> >::New();
       //
       std::string name = "sunbject_" + std::to_string(mod) + ".nii.gz";
       writer->SetFileName( name );
@@ -37,8 +37,8 @@ MAC::Subject::write_clone() const
     {
       itk::NiftiImageIO::Pointer nifti_io = itk::NiftiImageIO::New();
       //
-      itk::ImageFileWriter< Image3DType >::Pointer writer =
-	itk::ImageFileWriter< Image3DType >::New();
+      itk::ImageFileWriter< ImageType<3> >::Pointer writer =
+	itk::ImageFileWriter< ImageType<3> >::New();
       //
       std::string name = "subject_clone_" + std::to_string(mod) + ".nii.gz";
       writer->SetFileName( name );
@@ -65,7 +65,7 @@ MAC::Subject::add_modality( const std::string Mod_name )
       image_ptr->SetFileName( Mod_name );
       image_ptr->ReadImageInformation();
       // Read the ITK image
-      Reader3D::Pointer img_ptr = Reader3D::New();
+      Reader<3>::Pointer img_ptr = Reader<3>::New();
       img_ptr->SetFileName( image_ptr->GetFileName() );
       img_ptr->Update();
       //
@@ -97,7 +97,7 @@ MAC::Subject::add_modality_target( const std::string Mod_target_name )
       image_ptr->SetFileName( Mod_target_name );
       image_ptr->ReadImageInformation();
       // Read the ITK image
-      Reader3D::Pointer img_ptr = Reader3D::New();
+      Reader<3>::Pointer img_ptr = Reader<3>::New();
       img_ptr->SetFileName( image_ptr->GetFileName() );
       img_ptr->Update();
       //
@@ -127,7 +127,7 @@ MAC::Subject::update()
 //
 // 
 void
-MAC::Subject::update( const std::vector< Image3DType::Pointer > New_images )
+MAC::Subject::update( const std::vector< ImageType<3>::Pointer > New_images )
 {
   clone_modalities_images_.resize( New_images.size() );
   //

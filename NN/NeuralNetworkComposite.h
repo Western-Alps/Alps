@@ -19,6 +19,7 @@
 #include "MACException.h"
 #include "NeuralNetwork.h"
 #include "Subject.h"
+#include "AlpsTools.h"
 // Gradients
 #include "Gradient.h"
 #include "SGD.h"
@@ -26,12 +27,15 @@
 #include "Weights.h"
 #include "Convolutional_window.h"
 #include "Deconvolutional_window.h"
+//
 // Layers
 #include "Convolution.h"
 #include "Convolutional_layer.h"
 #include "ConvolutionalAutoEncoder_layer.h"
 #include "FullyConnected_layer.h"
 #include "NN_test.h"
+//
+#include "AlpsFullyConnectedLayer.h"
 // Activation
 #include "Activations.h"
 //

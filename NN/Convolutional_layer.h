@@ -16,40 +16,8 @@
 #include <cuda_runtime.h>
 #include <thrust/host_vector.h>
 #include "Convolutional_layer_CUDA.cuh"
-//
 // ITK
-//
-#include <itkSize.h>
-#include <itkImage.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
-#include <itkConstNeighborhoodIterator.h>
-#include <itkImageRegionIterator.h>
-#include <itkNiftiImageIO.h>
-#include <itkOrientImageFilter.h>
-#include <itkSpatialOrientation.h>
-#include "itkChangeInformationImageFilter.h"
-#include "itkImageDuplicator.h"
-// {down,up}sampling the pooling image and upsampling
-#include "itkIdentityTransform.h"
-#include "itkRescaleIntensityImageFilter.h"
-#include "itkShrinkImageFilter.h"
-#include "itkResampleImageFilter.h"
-#include "itkBSplineInterpolateImageFunction.h"
-#include "itkNearestNeighborInterpolateImageFunction.h"
-#include "itkLinearInterpolateImageFunction.h"
-#include "itkReLUInterpolateImageFunction.h"
-
-//
-// Some typedef
-using Image3DType    = itk::Image< double, 3 >;
-using Reader3D       = itk::ImageFileReader< Image3DType >;
-using Writer3D       = itk::ImageFileWriter< Image3DType >;
-using MaskType       = itk::Image< unsigned char, 3 >;
-using FilterType     = itk::ChangeInformationImageFilter< Image3DType >;
-using DuplicatorType = itk::ImageDuplicator< Image3DType > ;
-using ShrinkImageFilterType = itk::ShrinkImageFilter < Image3DType, Image3DType >;
-using ConvolutionWindowType = itk::Size< 3 >;
+#include "ITKHeaders.h"
 //
 //
 //
@@ -136,22 +104,22 @@ namespace MAC
       Convolutional_layer_CUDA& get_cuda(){ return cuda_treatment_; };
       //
       //
-      const std::vector< Image3DType::Pointer > pooling();
+      const std::vector< ImageType<3>::Pointer > pooling();
       //
       //
-      std::vector< Image3DType::SizeType > pooling_image_size();
+      std::vector< ImageType<3>::SizeType > pooling_image_size();
       //
       //
-      const std::vector< Image3DType::Pointer > resample();
+      const std::vector< ImageType<3>::Pointer > resample();
       //
       //
-      const std::vector< Image3DType::Pointer > resample( const Subject& );
+      const std::vector< ImageType<3>::Pointer > resample( const Subject& );
       //
       //
-      const std::vector< Image3DType::Pointer > resample_backward();
+      const std::vector< ImageType<3>::Pointer > resample_backward();
       //
       //
-      const std::vector< Image3DType::Pointer > reconstruct_inputs( const Subject& );
+      const std::vector< ImageType<3>::Pointer > reconstruct_inputs( const Subject& );
       //
       // 
       void write() const
@@ -163,8 +131,8 @@ namespace MAC
 	  {
 	    itk::NiftiImageIO::Pointer nifti_io = itk::NiftiImageIO::New();
 	    //
-	    itk::ImageFileWriter< Image3DType >::Pointer writer =
-	      itk::ImageFileWriter< Image3DType >::New();
+	    itk::ImageFileWriter< ImageType<3> >::Pointer writer =
+	      itk::ImageFileWriter< ImageType<3> >::New();
 	    //
 	    std::string name = "convolutional_" + layer_name_ + "_" + std::to_string(mod) + ".nii.gz";
 	    writer->SetFileName( name );
@@ -204,9 +172,9 @@ namespace MAC
       int num_of_previous_features_{0};
       // Measures grouped in vector of 3D image
       // Convolution image: vector for each modality
-      std::vector< Image3DType::Pointer > convolution_images_;
+      std::vector< ImageType<3>::Pointer > convolution_images_;
       // Pulling image: vector for each modality
-      std::vector< Image3DType::Pointer > pull_images_;
+      std::vector< ImageType<3>::Pointer > pull_images_;
 
       //
       // Neurons, activations and delta
@@ -217,10 +185,10 @@ namespace MAC
 
       //
       // Image information at the lu level
-      Image3DType::SizeType      size_lu_;
-      Image3DType::SpacingType   spacing_lu_;
-      Image3DType::PointType     origine_lu_;
-      Image3DType::DirectionType direction_lu_;
+      ImageType<3>::SizeType      size_lu_;
+      ImageType<3>::SpacingType   spacing_lu_;
+      ImageType<3>::PointType     origine_lu_;
+      ImageType<3>::DirectionType direction_lu_;
 
       //
       // Activation function
@@ -397,19 +365,19 @@ namespace MAC
 
       //
       // Subject informations
-      const std::vector< Image3DType::Pointer > curr_images = Sub.get_clone_modalities_images();
+      const std::vector< ImageType<3>::Pointer > curr_images = Sub.get_clone_modalities_images();
       std::string subject_name = Sub.get_subject_name();
       //
       // Images information
-      Image3DType::IndexType  start = { 0, 0, 0 };
-      Image3DType::Pointer    raw_subject_image_ptr = curr_images[0];
+      ImageType<3>::IndexType  start = { 0, 0, 0 };
+      ImageType<3>::Pointer    raw_subject_image_ptr = curr_images[0];
       //
       size_lu_       = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
       origine_lu_    = raw_subject_image_ptr->GetOrigin();
       spacing_lu_    = raw_subject_image_ptr->GetSpacing();
       direction_lu_  = raw_subject_image_ptr->GetDirection();
       //
-      Image3DType::RegionType region;
+      ImageType<3>::RegionType region;
       region.SetSize( size_lu_ );
       region.SetIndex( start );
       //
@@ -464,12 +432,12 @@ namespace MAC
 	    {
 	      prev_features_to_device[prev]    = new double[ neuron_number ];
 	      //
-	      itk::ImageRegionIterator< Image3DType > convolution_image_iter( curr_images[prev], region );
+	      itk::ImageRegionIterator< ImageType<3> > convolution_image_iter( curr_images[prev], region );
 	      std::size_t current_position = 0;
 	      while( !convolution_image_iter.IsAtEnd() )
 		{
 		  //
-		  Image3DType::IndexType idx = convolution_image_iter.GetIndex();
+		  ImageType<3>::IndexType idx = convolution_image_iter.GetIndex();
 		  //
 		  if  ( prev == 0 )
 		    {
@@ -496,10 +464,10 @@ namespace MAC
 	    {	    
 	      //
 	      // Duplicate the image
-	      Image3DType::Pointer records = Image3DType::New();
+	      ImageType<3>::Pointer records = ImageType<3>::New();
 	      // image filter
-	      FilterType::Pointer images_filter;
-	      images_filter = FilterType::New();
+	      FilterType<3>::Pointer images_filter;
+	      images_filter = FilterType<3>::New();
 	      //
 	      images_filter->SetOutputSpacing( spacing_lu_ );
 	      images_filter->ChangeSpacingOn();
@@ -521,7 +489,7 @@ namespace MAC
 	      cuda_treatment_.convolution( neurons_[subject_name],
 					   mod, activation_ );
 	      //
-	      itk::ImageRegionIterator< Image3DType > convolution_iter( convolution_images_[mod], region );
+	      itk::ImageRegionIterator< ImageType<3> > convolution_iter( convolution_images_[mod], region );
 	      int feature_idx = 0;
 	      while( !convolution_iter.IsAtEnd() )
 		{
@@ -558,10 +526,10 @@ namespace MAC
 	    {
 	      //
 	      // Duplicate the image
-	      Image3DType::Pointer records = Image3DType::New();
+	      ImageType<3>::Pointer records = ImageType<3>::New();
 	      // image filter
-	      FilterType::Pointer images_filter;
-	      images_filter = FilterType::New();
+	      FilterType<3>::Pointer images_filter;
+	      images_filter = FilterType<3>::New();
 	      //
 	      images_filter->SetOutputSpacing( spacing_lu_ );
 	      images_filter->ChangeSpacingOn();
@@ -580,13 +548,13 @@ namespace MAC
 
 	      //
 	      // Loop over the image
-	      itk::ImageRegionIterator< Image3DType > convolution_image_iter( convolution_images_[mod], region );
+	      itk::ImageRegionIterator< ImageType<3> > convolution_image_iter( convolution_images_[mod], region );
 	      //
 	      while( !convolution_image_iter.IsAtEnd() )
 		{
 		  //
 		  //
-		  Image3DType::IndexType idx = convolution_image_iter.GetIndex();
+		  ImageType<3>::IndexType idx = convolution_image_iter.GetIndex();
 		  //
 		  double convolution_voxel_value = 0;
 		  //	  int X, x, Y, y, Z, z;
@@ -661,7 +629,7 @@ namespace MAC
   //
   //
   //
-  template< class A > const std::vector< Image3DType::Pointer > 
+  template< class A > const std::vector< ImageType<3>::Pointer > 
     MAC::Convolutional_layer< A >::pooling() 
     {
       //
@@ -670,8 +638,8 @@ namespace MAC
 	{
 	  //
 	  // Shrink Image
-	  ShrinkImageFilterType::Pointer shrinkFilter
-	    = ShrinkImageFilterType::New();
+	  ShrinkImageFilterType<3>::Pointer shrinkFilter
+	    = ShrinkImageFilterType<3>::New();
 	  //
 	  shrinkFilter->SetInput( convolution_images_[mod]/*duplicator->GetOutput()*/ );
 	  // shrink the first dimension by a factor of 2
@@ -694,13 +662,13 @@ namespace MAC
   //
   //
   //
-  template< class A > std::vector< Image3DType::SizeType > 
+  template< class A > std::vector< ImageType<3>::SizeType > 
     MAC::Convolutional_layer< A >::pooling_image_size() 
     {
       //
       //
-      std::vector< Image3DType::SizeType > tempo( convolution_window_size_[0] );
-      const std::vector< Image3DType::Pointer > curr_images =
+      std::vector< ImageType<3>::SizeType > tempo( convolution_window_size_[0] );
+      const std::vector< ImageType<3>::Pointer > curr_images =
 	MAC::Singleton::instance()->get_subjects()[0].get_clone_modalities_images();
       
       //
@@ -716,8 +684,8 @@ namespace MAC
 
 	  //
 	  // Shrink Image
-	  ShrinkImageFilterType::Pointer shrinkFilter
-	    = ShrinkImageFilterType::New();
+	  ShrinkImageFilterType<3>::Pointer shrinkFilter
+	    = ShrinkImageFilterType<3>::New();
 	  //
 	  shrinkFilter->SetInput( curr_images[mod]/*duplicator->GetOutput()*/ );
 	  // shrink the first dimension by a factor of 2
@@ -739,7 +707,7 @@ namespace MAC
   //
   //
   //
-  template< class A > const std::vector< Image3DType::Pointer > 
+  template< class A > const std::vector< ImageType<3>::Pointer > 
     MAC::Convolutional_layer< A >::resample() 
     {
       //
@@ -748,17 +716,17 @@ namespace MAC
 	{
 	  //
 	  // Images information
-	  Image3DType::Pointer    raw_subject_image_ptr = convolution_images_[mod];
-	  Image3DType::SizeType   size = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
+	  ImageType<3>::Pointer    raw_subject_image_ptr = convolution_images_[mod];
+	  ImageType<3>::SizeType   size = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
 	  //
-	  Image3DType::PointType     orig_3d      = raw_subject_image_ptr->GetOrigin();
-	  //Image3DType::SpacingType   spacing_3d   = raw_subject_image_ptr->GetSpacing();
-	  Image3DType::DirectionType direction_3d = raw_subject_image_ptr->GetDirection();
+	  ImageType<3>::PointType     orig_3d      = raw_subject_image_ptr->GetOrigin();
+	  //ImageType<3>::SpacingType   spacing_3d   = raw_subject_image_ptr->GetSpacing();
+	  ImageType<3>::DirectionType direction_3d = raw_subject_image_ptr->GetDirection();
 
 	  //
 	  // Resize
-	  Image3DType::SizeType outputSize;
-	  Image3DType::SpacingType outputSpacing;
+	  ImageType<3>::SizeType outputSize;
+	  ImageType<3>::SpacingType outputSpacing;
 	  //
 	  for ( int i = 0 ; i < 3 ; i++ )
 	    {
@@ -771,9 +739,9 @@ namespace MAC
 	    }
 	  //
 	  typedef itk::IdentityTransform< double, 3 > TransformType;
-	  typedef itk::LinearInterpolateImageFunction< Image3DType, double >  InterpolatorType;
-	  //typedef itk::ReLUInterpolateImageFunction< Image3DType, double >  InterpolatorType;
-	  typedef itk::ResampleImageFilter< Image3DType, Image3DType > ResampleImageFilterType;
+	  typedef itk::LinearInterpolateImageFunction< ImageType<3>, double >  InterpolatorType;
+	  //typedef itk::ReLUInterpolateImageFunction< ImageType<3>, double >  InterpolatorType;
+	  typedef itk::ResampleImageFilter< ImageType<3>, ImageType<3> > ResampleImageFilterType;
 	  //
 	  InterpolatorType::Pointer interpolator    = InterpolatorType::New();
 	  ResampleImageFilterType::Pointer resample = ResampleImageFilterType::New();
@@ -800,7 +768,7 @@ namespace MAC
   //
   //
   //
-  template< class A > const std::vector< Image3DType::Pointer > 
+  template< class A > const std::vector< ImageType<3>::Pointer > 
     MAC::Convolutional_layer< A >::resample( const Subject& Sub ) 
     {
       //
@@ -809,25 +777,25 @@ namespace MAC
 	{
 	  //
 	  // Images layer information information
-	  Image3DType::Pointer    raw_subject_image_ptr = convolution_images_[mod];
-	  //Image3DType::SizeType   size = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
+	  ImageType<3>::Pointer    raw_subject_image_ptr = convolution_images_[mod];
+	  //ImageType<3>::SizeType   size = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
 	  //
-	  Image3DType::PointType     orig_3d      = raw_subject_image_ptr->GetOrigin();
-	  //Image3DType::SpacingType   spacing_3d   = raw_subject_image_ptr->GetSpacing();
-	  Image3DType::DirectionType direction_3d = raw_subject_image_ptr->GetDirection();
+	  ImageType<3>::PointType     orig_3d      = raw_subject_image_ptr->GetOrigin();
+	  //ImageType<3>::SpacingType   spacing_3d   = raw_subject_image_ptr->GetSpacing();
+	  ImageType<3>::DirectionType direction_3d = raw_subject_image_ptr->GetDirection();
 	  //
 	  // Images input information information
-	  Image3DType::Pointer input_ptr = Sub.get_modality_targets_ITK_images()[mod];
+	  ImageType<3>::Pointer input_ptr = Sub.get_modality_targets_ITK_images()[mod];
 	  //
-	  Image3DType::SizeType      in_ptr_size         = input_ptr->GetLargestPossibleRegion().GetSize();
-	  //Image3DType::PointType     in_ptr_orig_3d      = input_ptr->GetOrigin();
-	  Image3DType::SpacingType   in_ptr_spacing_3d   = input_ptr->GetSpacing();
-	  Image3DType::DirectionType in_ptr_direction_3d = input_ptr->GetDirection();
+	  ImageType<3>::SizeType      in_ptr_size         = input_ptr->GetLargestPossibleRegion().GetSize();
+	  //ImageType<3>::PointType     in_ptr_orig_3d      = input_ptr->GetOrigin();
+	  ImageType<3>::SpacingType   in_ptr_spacing_3d   = input_ptr->GetSpacing();
+	  ImageType<3>::DirectionType in_ptr_direction_3d = input_ptr->GetDirection();
 
 	  //
 	  // Resize
 	  typedef itk::IdentityTransform<double, 3> TransformType;
-	  typedef itk::ResampleImageFilter<Image3DType, Image3DType> ResampleImageFilterType;
+	  typedef itk::ResampleImageFilter<ImageType<3>, ImageType<3>> ResampleImageFilterType;
 	  ResampleImageFilterType::Pointer resample = ResampleImageFilterType::New();
 	  //
 	  resample->SetInput(raw_subject_image_ptr);
@@ -851,7 +819,7 @@ namespace MAC
   //
   //
   //
-  template< class A > const std::vector< Image3DType::Pointer > 
+  template< class A > const std::vector< ImageType<3>::Pointer > 
     MAC::Convolutional_layer< A >::resample_backward() 
     {
       //
@@ -860,17 +828,17 @@ namespace MAC
 	{
 	  //
 	  // Images layer information information
-	  Image3DType::Pointer    raw_subject_image_ptr = pull_images_[mod];
-	  //Image3DType::SizeType   size = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
+	  ImageType<3>::Pointer    raw_subject_image_ptr = pull_images_[mod];
+	  //ImageType<3>::SizeType   size = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
 	  //
-	  Image3DType::PointType     orig_3d      = raw_subject_image_ptr->GetOrigin();
-	  //Image3DType::SpacingType   spacing_3d   = raw_subject_image_ptr->GetSpacing();
-	  Image3DType::DirectionType direction_3d = raw_subject_image_ptr->GetDirection();
+	  ImageType<3>::PointType     orig_3d      = raw_subject_image_ptr->GetOrigin();
+	  //ImageType<3>::SpacingType   spacing_3d   = raw_subject_image_ptr->GetSpacing();
+	  ImageType<3>::DirectionType direction_3d = raw_subject_image_ptr->GetDirection();
 
 	  //
 	  // Resize
 	  typedef itk::IdentityTransform<double, 3> TransformType;
-	  typedef itk::ResampleImageFilter<Image3DType, Image3DType> ResampleImageFilterType;
+	  typedef itk::ResampleImageFilter<ImageType<3>, ImageType<3>> ResampleImageFilterType;
 	  ResampleImageFilterType::Pointer resample = ResampleImageFilterType::New();
 	  //
 	  resample->SetInput(raw_subject_image_ptr);
@@ -894,7 +862,7 @@ namespace MAC
   //
   //
   //
-  template< class A > const std::vector< Image3DType::Pointer > 
+  template< class A > const std::vector< ImageType<3>::Pointer > 
     MAC::Convolutional_layer< A >::reconstruct_inputs( const Subject& Sub ) 
     {
       //
@@ -907,25 +875,25 @@ namespace MAC
 	{
 	  //
 	  // Images layer information information
-	  Image3DType::Pointer    raw_subject_image_ptr = pull_images_[mod];
-	  Image3DType::SizeType   size = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
-	  Image3DType::IndexType  start = { 0, 0, 0 };
+	  ImageType<3>::Pointer    raw_subject_image_ptr = pull_images_[mod];
+	  ImageType<3>::SizeType   size = raw_subject_image_ptr->GetLargestPossibleRegion().GetSize();
+	  ImageType<3>::IndexType  start = { 0, 0, 0 };
 	  //
-	  Image3DType::RegionType region;
+	  ImageType<3>::RegionType region;
 	  region.SetSize( size );
 	  region.SetIndex( start );
 	  //
-	  //      Image3DType::PointType     orig_3d      = raw_subject_image_ptr->GetOrigin();
-	  //      //Image3DType::SpacingType   spacing_3d   = raw_subject_image_ptr->GetSpacing();
-	  //      Image3DType::DirectionType direction_3d = raw_subject_image_ptr->GetDirection();
+	  //      ImageType<3>::PointType     orig_3d      = raw_subject_image_ptr->GetOrigin();
+	  //      //ImageType<3>::SpacingType   spacing_3d   = raw_subject_image_ptr->GetSpacing();
+	  //      ImageType<3>::DirectionType direction_3d = raw_subject_image_ptr->GetDirection();
 	  //
 	  // Images input information information
-	  Image3DType::Pointer input_ptr = Sub.get_modality_targets_ITK_images()[mod];
+	  ImageType<3>::Pointer input_ptr = Sub.get_modality_targets_ITK_images()[mod];
 	  //
-	  Image3DType::SizeType      in_ptr_size         = input_ptr->GetLargestPossibleRegion().GetSize();
-	  //      //Image3DType::PointType     in_ptr_orig_3d      = input_ptr->GetOrigin();
-	  //      Image3DType::SpacingType   in_ptr_spacing_3d   = input_ptr->GetSpacing();
-	  //      Image3DType::DirectionType in_ptr_direction_3d = input_ptr->GetDirection();
+	  ImageType<3>::SizeType      in_ptr_size         = input_ptr->GetLargestPossibleRegion().GetSize();
+	  //      //ImageType<3>::PointType     in_ptr_orig_3d      = input_ptr->GetOrigin();
+	  //      ImageType<3>::SpacingType   in_ptr_spacing_3d   = input_ptr->GetSpacing();
+	  //      ImageType<3>::DirectionType in_ptr_direction_3d = input_ptr->GetDirection();
 
 	  //
 	  // Be sure the images have the same dimension
@@ -936,12 +904,12 @@ namespace MAC
 
 	  //
 	  // Loop over the image
-	  itk::ImageRegionIterator< Image3DType > image_iter( pull_images_[mod], region );
+	  itk::ImageRegionIterator< ImageType<3> > image_iter( pull_images_[mod], region );
 	  while( !image_iter.IsAtEnd() )
 	    {
 	      //
 	      // process the delta
-	      Image3DType::IndexType idx = image_iter.GetIndex();
+	      ImageType<3>::IndexType idx = image_iter.GetIndex();
 	      image_iter.Value() -= input_ptr->GetPixel(idx);
 	  
 	      //

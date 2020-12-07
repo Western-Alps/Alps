@@ -8,23 +8,11 @@
 #include <math.h>  
 #include <map>
 #include <list>
-//
 // ITK
-//
-#include <itkImage.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
-#include <itkImageRegionIterator.h>
-#include <itkNiftiImageIO.h>
-#include <itkOrientImageFilter.h>
-#include <itkSpatialOrientation.h>
-// Some typedef
-using Image3DType = itk::Image< double, 3 >;
-using Reader3D    = itk::ImageFileReader< Image3DType >;
-using MaskType    = itk::Image< unsigned char, 3 >;
+#include "ITKHeaders.h"
 //
 //
-//
+// Alps
 #include "MACException.h"
 //
 //
@@ -57,19 +45,19 @@ namespace MAC
 
       //
       // Accessors
-      const std::vector< Image3DType::Pointer >&  get_modalities_ITK_images() const
+      const std::vector< ImageType<3>::Pointer >&  get_modalities_ITK_images() const
       {
 	return modalities_ITK_images_;
       }
-      const std::vector< Image3DType::Pointer >&  get_modality_targets_ITK_images() const
+      const std::vector< ImageType<3>::Pointer >&  get_modality_targets_ITK_images() const
       {
 	return modality_targets_ITK_images_;
       }
-      const std::vector< Image3DType::SizeType >& get_modality_images_size() const
+      const std::vector< ImageType<3>::SizeType >& get_modality_images_size() const
       {
 	return modality_images_size_;
       }
-      const std::vector< Image3DType::Pointer >&  get_clone_modalities_images() const
+      const std::vector< ImageType<3>::Pointer >&  get_clone_modalities_images() const
       {
 	return clone_modalities_images_;
       }
@@ -87,7 +75,7 @@ namespace MAC
       {
 	name_ = Name;
       }
-      void set_clone_modalities_images( std::vector< Image3DType::Pointer >& Imgs )
+      void set_clone_modalities_images( std::vector< ImageType<3>::Pointer >& Imgs )
       {
 	clone_modalities_images_ = Imgs;
       }
@@ -117,7 +105,7 @@ namespace MAC
       void update();
       //
       // Update the current read image
-      void update( const std::vector< Image3DType::Pointer >  );
+      void update( const std::vector< ImageType<3>::Pointer >  );
 
     private:
       //
@@ -131,14 +119,14 @@ namespace MAC
       // subject name
       std::string name_;
       // vector of modalities
-      std::vector< Image3DType::Pointer > modalities_ITK_images_;
+      std::vector< ImageType<3>::Pointer > modalities_ITK_images_;
       // vector of targets
-      std::vector< Image3DType::Pointer > modality_targets_ITK_images_;
+      std::vector< ImageType<3>::Pointer > modality_targets_ITK_images_;
       // Current read images
       // This set of images will be transfered to next neural network layers
-      std::vector< Image3DType::Pointer > clone_modalities_images_;
+      std::vector< ImageType<3>::Pointer > clone_modalities_images_;
       // images size
-      std::vector< Image3DType::SizeType > modality_images_size_;
+      std::vector< ImageType<3>::SizeType > modality_images_size_;
       // label
       int label_;
     };

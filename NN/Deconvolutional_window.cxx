@@ -122,8 +122,8 @@ MAC::Deconvolutional_window::print()
 //
 //
 void
-MAC::Deconvolutional_window::check_match( Image3DType::SizeType Size_1,
-					   Image3DType::SizeType Size_2 )
+MAC::Deconvolutional_window::check_match( ImageType<3>::SizeType Size_1,
+					   ImageType<3>::SizeType Size_2 )
 {
   try
     {

@@ -8,18 +8,7 @@
 //
 // ITK
 //
-#include <itkImage.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
-#include <itkImageRegionIterator.h>
-#include <itkNiftiImageIO.h>
-#include <itkOrientImageFilter.h>
-#include <itkSpatialOrientation.h>
-// Some typedef
-template< int Dim > using ImageType = itk::Image< double, Dim >;
-template< int Dim > using Reader    = itk::ImageFileReader< ImageType< Dim > >;
-template< int Dim > using MaskType  = itk::Image< unsigned char, Dim >;
-
+#include "ITKHeaders.h"
 //
 // 
 //

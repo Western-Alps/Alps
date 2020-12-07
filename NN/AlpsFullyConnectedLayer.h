@@ -8,6 +8,7 @@
 //
 #include "MACException.h"
 #include "AlpsLayer.h"
+#include "AlpsSubjects.h"
 #include "AlpsMountain.h"
 //#include "AlpsLayerDependencies.h"
 //#include "AlpsWeights.h"
@@ -44,7 +45,7 @@ namespace Alps
     // Backward propagation
     virtual void backward()                                   override {};
     // Attach observers that need to be updated
-    virtual void attach( std::shared_ptr< Alps::Climber > )   override {};
+    virtual void attach( std::shared_ptr< Alps::Climber > )   override;
     // Notify the observers for updates
     virtual void notify()                                     override {};
 //    // Update the weights
@@ -76,7 +77,7 @@ namespace Alps
     // Observers conatainer
     std::list< std::shared_ptr< Alps::Climber > > climbers_;
     // Subjects
-    std::shared_ptr< Alps::Subjects< /*ActivationFunction,*/ Architecture, Dim > > subjects_
+    std::shared_ptr< Alps::Subjects< /*ActivationFunction,*/ Architecture, Dim > > subjects_;
   };
   //
   //
