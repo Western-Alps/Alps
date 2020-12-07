@@ -2,6 +2,7 @@
 #define ALPSTOOLS_H
 //
 #include <limits>       // std::numeric_limits
+#include <random>
 //
 //
 // Eigen
@@ -21,6 +22,13 @@
 namespace NeuroStat
 {
   enum TimeTransformation {NONE, DEMEAN, NORMALIZE, STANDARDIZE, LOAD};
+}
+//
+//
+// When we reach numerical limits
+namespace Alps
+{
+  enum Architecture {NONE, CPU, GPU};
 }
 //
 //

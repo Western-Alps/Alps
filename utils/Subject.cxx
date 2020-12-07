@@ -61,7 +61,7 @@ MAC::Subject::add_modality( const std::string Mod_name )
       //
       // load the image ITK pointer
       auto image_ptr = itk::ImageIOFactory::CreateImageIO( Mod_name.c_str(),
-							   itk::ImageIOFactory::ReadMode );
+							   itk::CommonEnums::IOFileMode::ReadMode );
       image_ptr->SetFileName( Mod_name );
       image_ptr->ReadImageInformation();
       // Read the ITK image
@@ -93,7 +93,7 @@ MAC::Subject::add_modality_target( const std::string Mod_target_name )
       //
       // load the image ITK pointer
       auto image_ptr = itk::ImageIOFactory::CreateImageIO( Mod_target_name.c_str(),
-							   itk::ImageIOFactory::ReadMode );
+							   itk::CommonEnums::IOFileMode::ReadMode );
       image_ptr->SetFileName( Mod_target_name );
       image_ptr->ReadImageInformation();
       // Read the ITK image

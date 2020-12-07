@@ -24,7 +24,7 @@ namespace Alps
    * of the subject through the processing.
    *
    */
-  template< class Function, int Dim >
+  //template< /*class Function,*/ int Dim >
   class Subject
   {
   public:
@@ -41,6 +41,8 @@ namespace Alps
 
     //
     // functions
+    virtual void add_modalities( const std::string ) = 0;
+    virtual bool check_modalities() const            = 0;
 
   };
 }
