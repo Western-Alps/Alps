@@ -17,8 +17,8 @@ MAC::Gran_Paradiso_builder::Gran_Paradiso_builder():
   //
   // Neural network anatomy
   //
-  using FullyConnected = MAC::FullyConnected_layer< Activation_tanh >;
-  //using FullyConnected = Alps::FullyConnectedLayer< Activation_tanh, Alps::Architecture::CPU , 2 >;
+  //using FullyConnected = MAC::FullyConnected_layer< Activation_tanh >;
+  using FullyConnected = Alps::FullyConnectedLayer< Activation_tanh, Alps::Architecture::CPU , 2 >;
    
    //
   // Fully connected layers
@@ -28,7 +28,7 @@ MAC::Gran_Paradiso_builder::Gran_Paradiso_builder():
   // The bias is not included
   int fc_layers[num_fc_layers] = { -1, 10, 3 };
   //
-  std::shared_ptr< NeuralNetwork > nn_3 =
+  std::shared_ptr< Alps::Layer > nn_3 =
     std::make_shared< FullyConnected >( "layer_3", 3,
 					num_fc_layers,
 					fc_layers );
@@ -38,7 +38,7 @@ MAC::Gran_Paradiso_builder::Gran_Paradiso_builder():
   // Anatomy
   //
   
-  mr_nn_.add( nn_3 );
+  //mr_nn_.add( nn_3 );
 
   //MAC::Singleton::instance()->get_subjects()[0].write_clone();
 };

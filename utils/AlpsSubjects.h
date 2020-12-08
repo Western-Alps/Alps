@@ -34,7 +34,7 @@ namespace Alps
    */
   // Observer
   template< /*class Function,*/ int Arch, int Dim >
-  class Subjects : Alps::Climber
+  class Subjects : public Alps::Climber
   {
   public:
 
@@ -66,7 +66,7 @@ namespace Alps
   //
   // Constructor
   template< /*class F,*/ int A, int Dim >
-  Alps::Subjects<A,Dim>::Subjects( std::shared_ptr< Alps::Mountain > Mountain):
+  Alps::Subjects<A,Dim>::Subjects( std::shared_ptr< Alps::Mountain > Mountain ):
     Alps::Climber(),
     mountain_observed_{Mountain}
   {

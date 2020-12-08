@@ -76,8 +76,8 @@ namespace Alps
     // Observers
     // Observers conatainer
     std::list< std::shared_ptr< Alps::Climber > > climbers_;
-    // Subjects
-    std::shared_ptr< Alps::Subjects< /*ActivationFunction,*/ Architecture, Dim > > subjects_;
+//    // Subjects
+//    std::shared_ptr< Alps::Subjects< /*ActivationFunction,*/ Architecture, Dim > > subjects_;
   };
   //
   //
@@ -97,7 +97,11 @@ namespace Alps
 
 	//
 	// Create the subjects (images)
-	subjects_ = std::make_shared< Alps::Subjects< /*AF,*/ A, D > >( std::shared_ptr< FullyConnectedLayer< AF, A, D > >( *this ) );
+	std::shared_ptr< Alps::Subjects< /*ActivationFunction,*/ A, D > >
+	  subjects = std::make_shared< Alps::Subjects< /*AF,*/ A, D > >( std::shared_ptr< FullyConnectedLayer< AF, A, D > >( this ) );
+	// Attached the subjects
+	attach( subjects );
+
   
       }
     catch( itk::ExceptionObject & err )
