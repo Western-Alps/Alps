@@ -40,7 +40,6 @@ endif()
 #
 # Eigen and JSON
 set( EIGEN /usr/local/include/eigen3/ /usr/local/include/eigen3/unsupported/ )
-#set( JSON /mnt/neuroimaging/json/src/ )
 
 find_package(nlohmann_json REQUIRED)
 #include(${ITK_USE_FILE})
@@ -77,12 +76,12 @@ include_directories( ${Alps_SOURCE_DIR}  )
 #  utils/*.h  )
 file( GLOB HEADERS_
   utils/*.h utils/basic/*.h utils/CrossValidation/*.h
-  NN/Functions/*.h NN/Gradients/*.h NN/*.cuh NN/*.h
+  NN/Functions/*.h NN/Weights/*.h NN/Gradients/*.h NN/*.cuh NN/*.h
   NN/Convolution/*h
   ITK/Modules/Core/ImageFunction/include/*.h )
 #
 file( GLOB NN_SOURCES_
-  NN/*.cu  NN/*.cxx 
+  NN/*.cu  NN/*.cxx NN/Weights/*.cxx 
   ITK/Modules/Core/ImageFunction/include/*.hxx )
 file( GLOB UTILS_SOURCES_
   utils/*.cxx  )
@@ -101,6 +100,7 @@ include_directories(
   ${Alps_SOURCE_DIR}/NN
   ${Alps_SOURCE_DIR}/NN/Functions
   ${Alps_SOURCE_DIR}/NN/Gradients
+  ${Alps_SOURCE_DIR}/NN/Weights
   ${Alps_SOURCE_DIR}/NN/Convolution
   ${Alps_SOURCE_DIR}/ITK/Modules/Core/ImageFunction/include
    )

@@ -23,7 +23,7 @@ TEST_F(SubjectsTest, ByDefaultSubjectsTrue) {
   // Load the dataset 
   Alps::LoadDataSet::instance("data_set_GP.json");
   // Creates the subjects container
-  Alps::Subjects< /*Functions,*/ Alps::Architecture::CPU , 2 > subjects( std::make_shared< Alps::MountainDummy >() );
+  //  Alps::Subjects< /*Functions,*/ Alps::Architecture::CPU , 2 > subjects( std::make_shared< Alps::MountainDummy >() );
   EXPECT_EQ(Alps::LoadDataSet::instance()->Load_ITK_images(), true);
 }
 

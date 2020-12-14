@@ -45,7 +45,7 @@ namespace Alps
     //
     // functions
     //
-    virtual void update( std::shared_ptr< Alps::Mountain > ) = 0;
+    virtual void update() = 0;
   };
 }
 #endif

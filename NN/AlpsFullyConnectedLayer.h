@@ -4,6 +4,7 @@
 //
 //
 #include <iostream>
+#include <tuple>
 #include <memory>
 //
 #include "MACException.h"
@@ -24,35 +25,39 @@ namespace Alps
    * into a densly connected neural network.
    * 
    */
-  template< typename ActivationFunction, int Architecture, int Dim  >
+  template< typename ActivationFunction, typename Weights, int Dim  >
   class FullyConnectedLayer : public Alps::Layer, public Alps::Mountain
   {
+    //
+    //
+    using Self = FullyConnectedLayer< ActivationFunction, Weights, Dim >;
     //
     // 
   public:
     /** Constructor. */
-    explicit FullyConnectedLayer( const std::string, const int,
-				    const int,         const int* );
+    explicit FullyConnectedLayer( const std::string,
+				  const std::vector<int>,
+				  std::shared_ptr< Alps::Layer > );
     
     /** Destructor */
     virtual ~FullyConnectedLayer(){};
 
     //
     // Accessors
-
+    virtual       void             set_next_layer( std::shared_ptr< Alps::Layer > Next ) override
+      { next_layer_ = Next;};
+    virtual const std::vector<int> get_layer_size() const                                override
+      {return fc_layer_size_;}
+    //
+    // Functions
     // Forward propagation
-    virtual void forward()                                    override {};
+    virtual       void             forward()                                             override {};
     // Backward propagation
-    virtual void backward()                                   override {};
+    virtual       void             backward()                                            override {};
     // Attach observers that need to be updated
-    virtual void attach( std::shared_ptr< Alps::Climber > )   override;
+    virtual       void             attach( std::shared_ptr< Alps::Climber > )            override {};
     // Notify the observers for updates
-    virtual void notify()                                     override {};
-//    // Update the weights
-//    virtual void update_weights() override {};
-//    // Update the weights
-//    virtual void attach_weights( std::shared_ptr< Weights > Weights ) override
-//    { weights_ = Weights; };
+    virtual       void             notify()                                              override {};
 
   private:
     //
@@ -61,63 +66,48 @@ namespace Alps
 
       
     //
-    // Convolutional layer's name
-    std::string layer_name_;
-    // layer energy
-    double      energy_{0.};
-    // Weights
-    const int   layer_number_;
+    // layer's name
+    std::string                                                layer_name_;
     // number of fully connected layers
-    const int   number_fc_layers_;
-    // 
-    int*        fc_layers_;
+    std::vector<int>                                           fc_layer_size_;
 
     //
+    // Previous  layers information
+    std::shared_ptr< Alps::Layer >                             prev_layer_;
+    // Next layers information
+    std::shared_ptr< Alps::Layer >                             next_layer_;
+    //
     // Observers
-    // Observers conatainer
-    std::list< std::shared_ptr< Alps::Climber > > climbers_;
-//    // Subjects
-//    std::shared_ptr< Alps::Subjects< /*ActivationFunction,*/ Architecture, Dim > > subjects_;
+    // Observers containers
+    std::tuple< std::shared_ptr< Alps::Climber > /*images*/,
+		std::shared_ptr< Alps::Climber > /*weights*/ > climbers_;
   };
   //
   //
-  template< class AF, int A, int D   >
-  FullyConnectedLayer< AF, A, D >::FullyConnectedLayer( const std::string Layer_name,
-							  const int         Layer_number,
-							  const int         Number_fc_layers,
-							  const int*        Fc_layers ):
-    layer_name_{Layer_name}, layer_number_{Layer_number}, number_fc_layers_{Number_fc_layers},
-    fc_layers_{ new int[Number_fc_layers] }
+  template< typename AF, typename W, int D   >
+  FullyConnectedLayer< AF, W, D >::FullyConnectedLayer( const std::string              Layer_name,
+							const std::vector<int>         Fc_layer_size,
+							std::shared_ptr< Alps::Layer > Prev_layer ):
+    layer_name_{Layer_name}, fc_layer_size_{Fc_layer_size}, prev_layer_{Prev_layer}
   {
     try
       {
 	//
 	//
-	memcpy( fc_layers_, Fc_layers, Number_fc_layers*sizeof(int) );
-
+	
+	
 	//
 	// Create the subjects (images)
-	std::shared_ptr< Alps::Subjects< /*ActivationFunction,*/ A, D > >
-	  subjects = std::make_shared< Alps::Subjects< /*AF,*/ A, D > >( std::shared_ptr< FullyConnectedLayer< AF, A, D > >( this ) );
-	// Attached the subjects
-	attach( subjects );
-
-  
-      }
-    catch( itk::ExceptionObject & err )
-      {
-	std::cerr << err << std::endl;
-	exit(-1);
-      }
-  };
-  //
-  //
-  template< class AF, int A, int D   > void
-  FullyConnectedLayer< AF, A, D >::attach( std::shared_ptr< Alps::Climber > One_climber )
-  {
-    try
-      {
-	climbers_.push_back( One_climber );
+	std::shared_ptr< Alps::Subjects< /*ActivationFunction,*/ W, D > >
+	  subjects = std::make_shared< Alps::Subjects< /*AF,*/ W, D > >( std::shared_ptr< FullyConnectedLayer< AF, W, D > >( this ) );
+	//
+	// Create the weights
+	std::shared_ptr< W >
+	  weights = std::make_shared< W >( std::shared_ptr< FullyConnectedLayer< AF, W, D > >( this ),
+					   Fc_layer_size, Prev_layer->get_layer_size() );
+	//
+	//
+	climbers_ = std::make_tuple( subjects, weights );
       }
     catch( itk::ExceptionObject & err )
       {
