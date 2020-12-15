@@ -1,4 +1,4 @@
-#include "testSubjects.h"
+#include "testWeightsFclCPU.h"
 #include "AlpsLoadDataSet.h"
 #include "AlpsWeightsFclCPU.h"
 #include "AlpsTools.h"

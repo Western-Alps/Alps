@@ -34,7 +34,7 @@ target_link_libraries( testWeightsFclCPU ${gtest_LIB_DEPENDS}
   ${gmock_BINARY_DIR}/gtest/libgtest_main.a
   ${gmock_BINARY_DIR}/libgmock.a
   ${gmock_BINARY_DIR}/libgmock_main.a
-  _Alps_utils ${ITK_LIBRARIES} )
+  _Alps_utils _Alps_nn ${ITK_LIBRARIES} )
 #
 file( GLOB SRCS main.cxx  testAlpsTensor.h testAlpsTensor.cpp)
 add_executable(testAlpsTensor ${SRCS})
