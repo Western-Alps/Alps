@@ -27,7 +27,7 @@ TEST_F(WeightsFclCPUTest, ByDefaultSubjectZero) {
   //
   //
   // EXPECT_EQ( W.get_subject_number(), 0) ;
-  EXPECT_EQ( 0, 0) ;
+  EXPECT_EQ( (*W.get_weight())(0,1), (*W.get_weight_transposed())(1,0) ) ;
 }
 //// Add modalities
 //TEST_F(WeightsFclCPUTest, ByDefaultSubjectAddModalitiesTrue) {

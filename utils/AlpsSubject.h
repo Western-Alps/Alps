@@ -8,6 +8,7 @@
 // 
 //
 #include "MACException.h"
+#include "AlpsClimber.h"
 //
 //
 //
@@ -43,7 +44,6 @@ namespace Alps
     // functions
     virtual void add_modalities( const std::string ) = 0;
     virtual bool check_modalities() const            = 0;
-
   };
 }
 #endif

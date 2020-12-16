@@ -5,6 +5,9 @@
 //
 #include <iostream> 
 #include <memory>
+// Eigen
+#include <Eigen/Core>
+#include <Eigen/Eigen>
 //
 #include "AlpsLayerDependencies.h"
 #include "MACException.h"
@@ -21,7 +24,7 @@ namespace Alps
    * neural networks layers.
    *
    */
-  class Weights : public Alps::Climber
+  class Weights
   {
 //  protected:
 //    Weights(){};
@@ -32,12 +35,13 @@ namespace Alps
 
   public:
     //
+    // Overrrided accessors
+    virtual std::shared_ptr< Eigen::MatrixXd > get_weight()            const = 0;
+    virtual std::shared_ptr< Eigen::MatrixXd > get_weight_transposed() const = 0;
     // Save the weightd
-    virtual void save_weights() const = 0;
-    // Save the weightd
-    virtual void load_weights()       = 0;
-    // Save the weightd
-    virtual void update()             = 0;
+    virtual void save_weights()                                        const = 0;
+    // Save the weight
+    virtual void load_weights()                                              = 0;
   };
 }
 #endif

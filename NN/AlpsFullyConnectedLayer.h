@@ -10,6 +10,7 @@
 #include "MACException.h"
 #include "AlpsLayer.h"
 #include "AlpsSubjects.h"
+#include "AlpsImage.h"
 #include "AlpsMountain.h"
 //#include "AlpsLayerDependencies.h"
 //#include "AlpsWeights.h"
@@ -79,7 +80,7 @@ namespace Alps
     //
     // Observers
     // Observers containers
-    std::tuple< std::shared_ptr< Alps::Climber > /*images*/,
+    std::tuple< std::vector< Alps::Image<Dim> >   /*images*/,
 		std::shared_ptr< Alps::Climber > /*weights*/ > climbers_;
   };
   //
@@ -98,8 +99,8 @@ namespace Alps
 	
 	//
 	// Create the subjects (images)
-	std::shared_ptr< Alps::Subjects< /*ActivationFunction,*/ W, D > >
-	  subjects = std::make_shared< Alps::Subjects< /*AF,*/ W, D > >( std::shared_ptr< FullyConnectedLayer< AF, W, D > >( this ) );
+	//std::shared_ptr< Alps::Subjects< /*ActivationFunction,*/ W, D > >
+	//  subjects = std::make_shared< Alps::Subjects< /*AF,*/ W, D > >( std::shared_ptr< FullyConnectedLayer< AF, W, D > >( this ) );
 	//
 	// Create the weights
 	std::shared_ptr< W >
@@ -107,7 +108,8 @@ namespace Alps
 					   Fc_layer_size, Prev_layer->get_layer_size() );
 	//
 	//
-	climbers_ = std::make_tuple( subjects, weights );
+	climbers_ = std::make_tuple( std::vector< Alps::Image<D> >(),
+				     weights );
       }
     catch( itk::ExceptionObject & err )
       {

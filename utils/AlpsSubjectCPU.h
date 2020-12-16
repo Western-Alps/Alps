@@ -33,7 +33,7 @@ namespace Alps
    *
    */
   template< /*class Function,*/ int Dim >
-  class SubjectCPU : public Alps::Subject
+  class SubjectCPU : public Alps::Subject, public Alps::Climber
   {
   public:
     //
@@ -51,8 +51,11 @@ namespace Alps
 
     //
     // functions
-    virtual void add_modalities( const std::string ) override;
-    virtual bool check_modalities() const override { return (number_modalities_ == modalities_.size() ? true : false);};
+    virtual void add_modalities( const std::string )       override;
+    virtual bool check_modalities()                  const override
+      { return (number_modalities_ == modalities_.size() ? true : false);};
+    // Update the subject information
+    virtual void update()                                  override {};
 
   private:
     //
@@ -74,7 +77,7 @@ namespace Alps
   // Constructor
   template< /*class F,*/ int Dim >
   Alps::SubjectCPU<Dim>::SubjectCPU( const int SubNumber,
-				      const std::size_t NumModalities ): /*Alps::Subject(),*/
+				     const std::size_t NumModalities ): /*Alps::Subject(),*/
     subject_number_{SubNumber}, number_modalities_{NumModalities}
   {}
   //
