@@ -93,22 +93,14 @@ namespace Alps
   {
     try
       {
-	//
-	//
-	
-	
-	//
-	// Create the subjects (images)
-	//std::shared_ptr< Alps::Subjects< /*ActivationFunction,*/ W, D > >
-	//  subjects = std::make_shared< Alps::Subjects< /*AF,*/ W, D > >( std::shared_ptr< FullyConnectedLayer< AF, W, D > >( this ) );
-	//
+       	//
 	// Create the weights
 	std::shared_ptr< W >
 	  weights = std::make_shared< W >( std::shared_ptr< FullyConnectedLayer< AF, W, D > >( this ),
 					   Fc_layer_size, Prev_layer->get_layer_size() );
 	//
 	//
-	climbers_ = std::make_tuple( std::vector< Alps::Image<D> >(),
+	climbers_ = std::make_tuple( std::vector< Alps::Image< /*AF,*/ D > >(),
 				     weights );
       }
     catch( itk::ExceptionObject & err )
