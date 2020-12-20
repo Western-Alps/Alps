@@ -21,10 +21,10 @@ using json = nlohmann::json;
 //
 #include "MACException.h"
 #include "MACLoadDataSet.h"
-#include "CrossValidation_k_folds.h"
+//#include "CrossValidation_k_folds.h"
 #include "Mont_Maudit_builder.h"
 //
-using Validation = MAC::CrossValidation_k_folds< MAC::Mont_Maudit_builder >;
+//using Validation = MAC::CrossValidation_k_folds< MAC::Mont_Maudit_builder >;
 //
 //
 //
