@@ -9,6 +9,7 @@
 //
 //
 //
+#include "AlpsThreadDispatching.h"
 #include "MACException.h"
 #include "AlpsValidation.h"
 #include "AlpsLoadDataSet.h"
@@ -40,6 +41,12 @@ namespace Alps
       // use the calssification engin
       virtual void use()   override;
 
+
+      //
+      // Functions
+      // multi-threading
+      void operator ()( const int Fold );
+      
     private:
 //      //
 //      // Solver used in the cross-validation
@@ -100,11 +107,48 @@ namespace Alps
   //
   template< int K, typename M > void
   CVKFolds< K, M >::train()
-    {}
+    {
+      try
+	{
+	  std::cout << "Multi-threading" << std::endl;
+	  // Start the pool of threads
+	  // Please do not remove the bracket!!
+	  {
+	    Alps::ThreadDispatching pool( K );
+	    for ( int k = 0 ; k < K ; k++ )
+	      pool.enqueue( std::ref( *this ), k );
+	  }
+	}
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+      }
+    }
+
   //
   //
   template< int K, typename M > void
   CVKFolds< K, M >::use()
     {}
+  //
+  //
+  template< int K, typename M > void
+  CVKFolds< K, M >::operator()( const int Fold )
+  {
+    std::cout << "Prediction treatment for parameters: " 
+	      << std::endl;
+    M mountain;
+
+    //
+    //
+
+    double a = 1.e-13;
+    for ( int i = 0 ; i < 10000000 ; i++ )
+      a *= 2;
+
+    //
+    //
+    //mountain.forward() ...
+  }
 }
 #endif

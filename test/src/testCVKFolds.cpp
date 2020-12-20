@@ -23,7 +23,7 @@ TEST_F(CVKFoldsTest, ByDefaultGetStatusIsTrue) {
   // Load the dataset
   Alps::LoadDataSet::instance("data_set_GP.json");
   //
-  // Test the Cross validation 
+  // Test the Cross validation constructor 
   Alps::CVKFolds< 3, Alps::MountainDummy > cv;
   
   //
@@ -31,6 +31,19 @@ TEST_F(CVKFoldsTest, ByDefaultGetStatusIsTrue) {
   EXPECT_EQ( Alps::LoadDataSet::instance()->get_status(), true );
 }
 
+TEST_F(CVKFoldsTest, ByDefaultGetTrainStatusIsTrue) {
+  //
+  // Load the dataset
+  Alps::LoadDataSet::instance("data_set_GP.json");
+  //
+  // Test the Cross validation 
+  Alps::CVKFolds< 3, Alps::MountainDummy > cv;
+  cv.train();
+  
+  //
+  //
+  EXPECT_EQ( Alps::LoadDataSet::instance()->get_status(), true );
+}
 //TEST_F(CVKFoldsTest, ByDefaultGetLoadITKIsTrue) {
 //  Alps::LoadDataSet::instance("data_set_GP.json");
 //  EXPECT_EQ(Alps::LoadDataSet::instance()->Load_ITK_images(), true);
