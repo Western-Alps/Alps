@@ -68,7 +68,7 @@ namespace Alps
       // folds construction
       std::size_t
 	number_of_subjects = Alps::LoadDataSet::instance()->get_data()["inputs"]["images"][0].size();
-      std::cout << "nombre subjects: " << number_of_subjects << std::endl;
+      //std::cout << "nombre subjects: " << number_of_subjects << std::endl;
       // check we don't have more folds than subjects
       if ( K > number_of_subjects )
 	throw MAC::MACException( __FILE__, __LINE__,
@@ -77,8 +77,8 @@ namespace Alps
       //
       testing_size_  = number_of_subjects / K;
       training_size_ = number_of_subjects - testing_size_;
-      std::cout << "testing_size_: "  << testing_size_  << std::endl;
-      std::cout << "training_size_: " << training_size_ << std::endl;
+      //std::cout << "testing_size_: "  << testing_size_  << std::endl;
+      //std::cout << "training_size_: " << training_size_ << std::endl;
       // resize the sets
       testing_set_.resize( K );
       training_set_.resize( K );
