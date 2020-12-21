@@ -13,8 +13,6 @@
 #include "AlpsClimber.h"
 #include "AlpsMountain.h"
 #include "AlpsSubject.h"
-//#include "AlpsSubjectCPU.h"
-#include "AlpsSubjectGPU.h"
 #include "AlpsTools.h"
 //
 //
@@ -46,7 +44,8 @@ namespace Alps
 
     //
     // Accessors
-
+    std::vector< std::shared_ptr< Alps::Subject< Dim > > > get_subjects()
+    { return subjects_;};
 
     //
     // functions

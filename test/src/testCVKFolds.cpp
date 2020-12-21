@@ -24,7 +24,7 @@ TEST_F(CVKFoldsTest, ByDefaultGetStatusIsTrue) {
   Alps::LoadDataSet::instance("data_set_GP.json");
   //
   // Test the Cross validation constructor 
-  Alps::CVKFolds< 3, Alps::MountainDummy > cv;
+  Alps::CVKFolds< Alps::MountainDummy, /*K_flods*/ 3, /*Dim*/ 2 > cv;
   
   //
   //
@@ -37,7 +37,7 @@ TEST_F(CVKFoldsTest, ByDefaultGetTrainStatusIsTrue) {
   Alps::LoadDataSet::instance("data_set_GP.json");
   //
   // Test the Cross validation 
-  Alps::CVKFolds< 3, Alps::MountainDummy > cv;
+  Alps::CVKFolds< Alps::MountainDummy, /*K_flods*/ 3, /*Dim*/ 2 > cv;
   cv.train();
   
   //

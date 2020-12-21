@@ -11,6 +11,7 @@
 //
 #include "AlpsThreadDispatching.h"
 #include "MACException.h"
+#include "AlpsSubjects.h"
 #include "AlpsValidation.h"
 #include "AlpsLoadDataSet.h"
 //
@@ -24,7 +25,7 @@ namespace Alps
    * following the k-folds strategy for weigths adjustments.
    * 
    */
-  template< int K, typename Mountain >
+  template< typename Mountain, int K_folds, int Dim >
     class CVKFolds : public Validation
     {
     public:
@@ -48,9 +49,8 @@ namespace Alps
       void operator ()( const int Fold );
       
     private:
-//      //
-//      // Solver used in the cross-validation
-//      Solver solver_;
+      // Load the subjects
+      Alps::Subjects< /*Functions,*/ Dim > subjects_{ std::make_shared< Mountain >() };
       // testing size
       int testing_size_{0};
       std::vector< std::list<int> > testing_set_;
@@ -61,56 +61,52 @@ namespace Alps
 
   //
   //
-  template< int K, typename M >
-  CVKFolds< K, M >::CVKFolds()
+  template< typename M, int K, int D >
+  CVKFolds< M, K, D >::CVKFolds()
     {
-      //
-      // folds construction
-      std::size_t
-	number_of_subjects = Alps::LoadDataSet::instance()->get_data()["inputs"]["images"][0].size();
-      //std::cout << "nombre subjects: " << number_of_subjects << std::endl;
-      // check we don't have more folds than subjects
-      if ( K > number_of_subjects )
-	throw MAC::MACException( __FILE__, __LINE__,
-				 "It can't be more folds than subjects.",
-				 ITK_LOCATION );
-      //
-      testing_size_  = number_of_subjects / K;
-      training_size_ = number_of_subjects - testing_size_;
-      //std::cout << "testing_size_: "  << testing_size_  << std::endl;
-      //std::cout << "training_size_: " << training_size_ << std::endl;
-      // resize the sets
-      testing_set_.resize( K );
-      training_set_.resize( K );
-      //
-      int offset = 0;
-      for ( int kk = 0 ; kk < K ; kk++ )
+      try
 	{
-	  for ( int s = 0 ; s < number_of_subjects ; s++ )
-	    if ( s < testing_size_+offset && s >= offset )
-	      testing_set_[kk].push_back(s);
-	    else
-	      training_set_[kk].push_back(s);
 	  //
-	  offset += testing_size_;
+	  // folds construction
+	  std::size_t
+	    number_of_subjects = Alps::LoadDataSet::instance()->get_data()["inputs"]["images"][0].size();
+	  // 
+	  if ( K > number_of_subjects )
+	    throw MAC::MACException( __FILE__, __LINE__,
+				     "It can't be more folds than subjects.",
+				     ITK_LOCATION );
+	  //
+	  testing_size_  = number_of_subjects / K;
+	  training_size_ = number_of_subjects - testing_size_;
+	  // resize the sets
+	  testing_set_.resize( K );
+	  training_set_.resize( K );
+	  //
+	  std::size_t offset = 0;
+	  for ( int kk = 0 ; kk < K ; kk++ )
+	    {
+	      for ( std::size_t s = 0 ; s < number_of_subjects ; s++ )
+		if ( s < testing_size_+offset && s >= offset )
+		  testing_set_[kk].push_back(s);
+		else
+		  training_set_[kk].push_back(s);
+	      //
+	      offset += testing_size_;
+	    }
 	}
-
-      for ( int kk = 0 ; kk < K ; kk++ )
+      catch( itk::ExceptionObject & err )
 	{
-	  for ( auto s = training_set_[kk].begin() ; s != training_set_[kk].end() ; s++ )
-	    std::cout << " ~ " << *s << std::endl;
-	  //
-	  std::cout << std::endl;
+	  std::cerr << err << std::endl;
 	}
     }
   //
   //
-  template< int K, typename M > void
-  CVKFolds< K, M >::train()
+  template< typename M, int K, int D > void
+  CVKFolds< M, K, D >::train()
     {
       try
 	{
-	  std::cout << "Multi-threading" << std::endl;
+	  std::cout << "Multi-threading Cross Validation" << std::endl;
 	  // Start the pool of threads
 	  // Please do not remove the bracket!!
 	  {
@@ -127,24 +123,28 @@ namespace Alps
 
   //
   //
-  template< int K, typename M > void
-  CVKFolds< K, M >::use()
+  template< typename M, int K, int D > void
+  CVKFolds< M, K, D >::use()
     {}
   //
   //
-  template< int K, typename M > void
-  CVKFolds< K, M >::operator()( const int Fold )
+  template< typename M, int K, int D > void
+  CVKFolds< M, K, D >::operator()( const int Fold )
   {
-    std::cout << "Prediction treatment for parameters: " 
-	      << std::endl;
+    // Mountain selected
     M mountain;
 
     //
     //
-
-    double a = 1.e-13;
-    for ( int i = 0 ; i < 10000000 ; i++ )
-      a *= 2;
+    std::list< int > fold_subjects =  training_set_[Fold];
+    for ( int sub : fold_subjects )
+      {
+	std::cout
+	  << "Fold " << Fold
+	  << " Subject " << sub
+	  << " -- In subject " << ( subjects_.get_subjects() )[ sub ]->get_subject_number()
+	  << std::endl;
+      }
 
     //
     //
