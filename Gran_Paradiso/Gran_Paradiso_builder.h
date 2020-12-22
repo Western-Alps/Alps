@@ -17,9 +17,10 @@
 //
 //
 #include "MACException.h"
-#include "Subject.h"
-#include "NeuralNetwork.h"
-#include "NeuralNetworkComposite.h"
+#include "AlpsSubject.h"
+#include "AlpsMountain.h"
+#include "AlpsNeuralNetwork.h"
+#include "AlpsNeuralNetworkComposite.h"
 //
 //
 //
@@ -32,7 +33,7 @@ namespace MAC
    * 
    * 
    */
-  class Gran_Paradiso_builder : public NeuralNetwork
+  class Gran_Paradiso_builder : public Alps::NeuralNetwork, public Alps::Mountain
     {
     public:
       /** Constructor. */
@@ -44,37 +45,40 @@ namespace MAC
       virtual ~Gran_Paradiso_builder(){};
 
       //
+      // Overriding from Network
       // Initialization
-      virtual void initialization();
-      //
+      //virtual void initialization();
       // get the layer name
-      virtual std::string get_layer_name(){ return std::string("Monte Rosa neural network.");};
-      //
+      virtual const std::string get_layer_name()                            const override
+        { return std::string("Gran Paradiso network.");};
       // get the layer name
-      virtual Layer get_layer_type(){ return Gran_Paradiso_layer;};
-      //
+      //virtual Layer get_layer_type(){ return Gran_Paradiso_layer;};
       // get the layer name
-      virtual double get_energy(){ return 1. /*ToDo*/;};
-      //
+      virtual const double      get_energy()                                const override
+        { return 1. /*ToDo*/;};
+      // Get number of weigths
+      virtual const int         get_number_weights()                        const override
+        { return 1;};
       // Forward propagation
-      virtual void forward( Subject&, const Weights& W = Weights() );
-      //
-      //
-      virtual void backward();
-      //
+      virtual       void        forward( std::shared_ptr< Alps::Climber > )       override;
+      // Backward propagation
+      virtual       void        backward()                                        override;
       // Backward error propagation
-      virtual void backward_error_propagation(){};
+      //virtual void backward_error_propagation(){};
+      // Add network layers
+      virtual       void add( std::shared_ptr< Alps::NeuralNetwork > )            override{};
       //
-      //
-      virtual void add( std::shared_ptr< NeuralNetwork > ){};
-      //
-      //
-      virtual int get_number_weights() const { return 1;};
+      // Overriding from Maountains
+      virtual void attach( std::shared_ptr< Alps::Climber > )                     override {};
+      // Notify the observers for updates
+      virtual void notify()                                                       override {};
+
+      
 
     private:
       //
       //
-      NeuralNetworkComposite mr_nn_;
+      Alps::NeuralNetworkComposite mr_nn_;
     };
 }
 #endif

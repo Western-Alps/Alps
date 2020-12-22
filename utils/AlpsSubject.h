@@ -32,14 +32,14 @@ namespace Alps
    *
    */
   template< /*class Function,*/ int Dim >
-  class Subject
+  class Subject : public Climber
   {
   public:
 
     //
     /** Constructor */
     explicit Subject( const int,
-		      const std::size_t );
+		       const std::size_t );
     /* Destructor */
     virtual ~Subject(){};
     //
@@ -55,7 +55,7 @@ namespace Alps
     bool check_modalities()                  const
       { return (number_modalities_ == modalities_.size() ? true : false);};
     // Update the subject information
-    void update(){};
+    virtual void update() override {};
 
   private:
     //

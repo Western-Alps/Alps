@@ -12,8 +12,7 @@
 //
 //
 //
-MAC::Gran_Paradiso_builder::Gran_Paradiso_builder():
-  MAC::NeuralNetwork::NeuralNetwork()
+MAC::Gran_Paradiso_builder::Gran_Paradiso_builder()
 {
   //
   // Neural network anatomy
@@ -56,18 +55,18 @@ MAC::Gran_Paradiso_builder::Gran_Paradiso_builder():
 //
 //
 //
-void
-MAC::Gran_Paradiso_builder::initialization()
-{
-  mr_nn_.initialization();
-};
+//void
+//MAC::Gran_Paradiso_builder::initialization()
+//{
+//  mr_nn_.initialization();
+//};
 //
 //
 //
 void
-MAC::Gran_Paradiso_builder::forward( Subject& Sub, const Weights& W )
+MAC::Gran_Paradiso_builder::forward( std::shared_ptr< Alps::Climber > Sub )
 {
-  mr_nn_.forward( Sub, W );
+  mr_nn_.forward( Sub );
 };
 //
 //
