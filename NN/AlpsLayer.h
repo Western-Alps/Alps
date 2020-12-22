@@ -4,6 +4,7 @@
 //
 //
 #include <iostream>
+#include <vector>
 //
 #include "MACException.h"
 /*! \namespace Alps

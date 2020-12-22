@@ -17,7 +17,6 @@ MAC::Gran_Paradiso_builder::Gran_Paradiso_builder()
   //
   // Neural network anatomy
   //
-  //using FullyConnected = MAC::FullyConnected_layer< Activation_tanh >;
   using weights        = Alps::WeightsFclCPU;
   using FullyConnected = Alps::FullyConnectedLayer< Activation_tanh, weights, 2 >;
    
@@ -46,9 +45,9 @@ MAC::Gran_Paradiso_builder::Gran_Paradiso_builder()
   // Anatomy
   //
   
-  //mr_nn_.add( nn_1 );
-  //mr_nn_.add( nn_2 );
-  //mr_nn_.add( nn_3 );
+  mr_nn_.add( nn_1 );
+  mr_nn_.add( nn_2 );
+  mr_nn_.add( nn_3 );
 
   //MAC::Singleton::instance()->get_subjects()[0].write_clone();
 };

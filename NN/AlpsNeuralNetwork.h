@@ -19,6 +19,7 @@
 #include "MACException.h"
 //#include "AlpsLoadDataSet.h"
 #include "AlpsClimber.h"
+#include "AlpsLayer.h"
 #include "Weights.h"
 //
 //
@@ -54,16 +55,16 @@ namespace Alps
       virtual const int         get_number_weights()                      const = 0;
       //
       // Forward propagation
-      virtual       void        forward( std::shared_ptr< Alps::Climber > )     = 0;
+      virtual       void        forward( std::shared_ptr< Alps::Climber >  )     = 0;
       //
       // Backward propagation
-      virtual       void        backward()                                      = 0;
+      virtual       void        backward()                                       = 0;
       //
       // Backward error propagation
       //virtual      void backward_error_propagation() = 0;
       //
       //
-      virtual       void        add( std::shared_ptr< NeuralNetwork > )          = 0;
+      virtual       void        add( std::shared_ptr< Alps::Layer > )            = 0;
     };
 }
 #endif

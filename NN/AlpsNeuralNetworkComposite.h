@@ -112,7 +112,7 @@ namespace Alps
 //      virtual void backward_error_propagation(){};
       //
       //
-      virtual       void add( std::shared_ptr< Alps::NeuralNetwork > NN )    override
+      virtual       void add( std::shared_ptr< Alps::Layer > NN )            override
       {
 	nn_composite_.push_back( NN );
       };
@@ -128,7 +128,7 @@ namespace Alps
       
       //
       // Structure of the composite neural network
-      std::list< std::shared_ptr< Alps::NeuralNetwork > > nn_composite_;
+      std::list< std::shared_ptr< Alps::Layer > > nn_composite_;
 
       //
       // Cuda error status
