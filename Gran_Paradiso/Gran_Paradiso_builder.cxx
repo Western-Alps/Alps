@@ -12,14 +12,14 @@
 //
 //
 //
-MAC::Gran_Paradiso_builder::Gran_Paradiso_builder()
+Alps::Gran_Paradiso_builder::Gran_Paradiso_builder()
 {
   //
   // Neural network anatomy
   //
   using weights        = Alps::WeightsFclCPU;
-  using FullyConnected = Alps::FullyConnectedLayer< Activation_tanh, weights, 2 >;
-   
+  using FullyConnected = Alps::FullyConnectedLayer< MAC::Activation_tanh, weights, 2 >;
+
   //
   // Fully connected layers
   // The *bias* is not included
@@ -39,7 +39,6 @@ MAC::Gran_Paradiso_builder::Gran_Paradiso_builder()
 					std::vector<int>( 1, 3 ), // 1 layer of 3 elements
 					nn_2 );
   nn_2->set_next_layer( nn_3 );
-  
 
   //
   // Anatomy
@@ -48,14 +47,12 @@ MAC::Gran_Paradiso_builder::Gran_Paradiso_builder()
   mr_nn_.add( nn_1 );
   mr_nn_.add( nn_2 );
   mr_nn_.add( nn_3 );
-
-  //MAC::Singleton::instance()->get_subjects()[0].write_clone();
 };
 //
 //
 //
 //void
-//MAC::Gran_Paradiso_builder::initialization()
+//Alps::Gran_Paradiso_builder::initialization()
 //{
 //  mr_nn_.initialization();
 //};
@@ -63,7 +60,7 @@ MAC::Gran_Paradiso_builder::Gran_Paradiso_builder()
 //
 //
 void
-MAC::Gran_Paradiso_builder::forward( std::shared_ptr< Alps::Climber > Sub )
+Alps::Gran_Paradiso_builder::forward( std::shared_ptr< Alps::Climber > Sub )
 {
   mr_nn_.forward( Sub );
 };
@@ -71,7 +68,7 @@ MAC::Gran_Paradiso_builder::forward( std::shared_ptr< Alps::Climber > Sub )
 //
 //
 void
-MAC::Gran_Paradiso_builder::backward()
+Alps::Gran_Paradiso_builder::backward()
 {
   mr_nn_.backward();
 };

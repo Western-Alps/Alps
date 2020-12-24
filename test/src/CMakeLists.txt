@@ -8,7 +8,7 @@ target_link_libraries( testCVKFolds ${gtest_LIB_DEPENDS}
   ${gmock_BINARY_DIR}/gtest/libgtest_main.a
   ${gmock_BINARY_DIR}/libgmock.a
   ${gmock_BINARY_DIR}/libgmock_main.a
-  _Alps_utils ${ITK_LIBRARIES} )
+  _Alps_utils _Alps_nn ${ITK_LIBRARIES} )
 #
 file( GLOB SRCS main.cxx testFullSamples.h testFullSamples.cpp )
 add_executable(testFullSamples ${SRCS})
@@ -17,7 +17,7 @@ target_link_libraries( testFullSamples ${gtest_LIB_DEPENDS}
   ${gmock_BINARY_DIR}/gtest/libgtest_main.a
   ${gmock_BINARY_DIR}/libgmock.a
   ${gmock_BINARY_DIR}/libgmock_main.a
-  _Alps_utils ${ITK_LIBRARIES} )
+  _Alps_utils _Alps_nn ${ITK_LIBRARIES} )
 #
 file( GLOB SRCS main.cxx testLoadDataSet.h testLoadDataSet.cpp )
 add_executable(testLoadDataSet ${SRCS})
@@ -54,7 +54,7 @@ target_link_libraries( testSubjects ${gtest_LIB_DEPENDS}
   ${gmock_BINARY_DIR}/gtest/libgtest_main.a
   ${gmock_BINARY_DIR}/libgmock.a
   ${gmock_BINARY_DIR}/libgmock_main.a
-  _Alps_utils ${ITK_LIBRARIES} )
+  _Alps_utils _Alps_nn ${ITK_LIBRARIES} )
 #
 file( GLOB SRCS main.cxx testWeightsFclCPU.h testWeightsFclCPU.cpp )
 add_executable(testWeightsFclCPU ${SRCS})

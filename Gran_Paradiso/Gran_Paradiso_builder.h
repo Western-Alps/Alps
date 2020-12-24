@@ -24,7 +24,7 @@
 //
 //
 //
-namespace MAC
+namespace Alps
 {
 
   /** \class Gran_Paradiso_builder
@@ -66,12 +66,12 @@ namespace MAC
       // Backward error propagation
       //virtual void backward_error_propagation(){};
       // Add network layers
-      virtual       void add( std::shared_ptr< Alps::Layer > )                    override{};
+      virtual       void        add( std::shared_ptr< Alps::Layer > )             override{};
       //
       // Overriding from Maountains
-      virtual void attach( std::shared_ptr< Alps::Climber > )                     override {};
+      virtual       void        attach( std::shared_ptr< Alps::Climber > )        override {};
       // Notify the observers for updates
-      virtual void notify()                                                       override {};
+      virtual       void        notify()                                          override {};
 
       
 

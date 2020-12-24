@@ -27,7 +27,8 @@ namespace Alps
    * 
    */
   template< typename ActivationFunction, typename Weights, int Dim  >
-  class FullyConnectedLayer : public Alps::Layer, public Alps::Mountain
+  class FullyConnectedLayer : public Alps::Layer,
+			      public Alps::Mountain
   {
     //
     //
@@ -97,7 +98,9 @@ namespace Alps
 	// Create the weights
 	std::shared_ptr< W >
 	  weights = std::make_shared< W >( std::shared_ptr< FullyConnectedLayer< AF, W, D > >( this ),
-					   Fc_layer_size, Prev_layer->get_layer_size() );
+					   Fc_layer_size,
+					   (Prev_layer ? Prev_layer->get_layer_size() : std::vector< int >()) );
+
 	//
 	//
 	climbers_ = std::make_tuple( std::vector< Alps::Image< /*AF,*/ D > >(),

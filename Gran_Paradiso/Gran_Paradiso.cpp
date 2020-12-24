@@ -15,6 +15,7 @@ using json = nlohmann::json;
 //
 #include "MACException.h"
 #include "AlpsCVKFolds.h"
+#include "AlpsFullSamples.h"
 #include "AlpsLoadDataSet.h"
 #include "Gran_Paradiso_builder.h"
 //
@@ -98,13 +99,15 @@ main( const int argc, const char **argv )
 	      // Start //
 	      ///////////
 
-	      Alps::CVKFolds< MAC::Gran_Paradiso_builder, /*K_flods*/ 3, /*Dim*/ 2 > cross_validation;
+	      //Alps::CVKFolds< Alps::Gran_Paradiso_builder, /*K_flods*/ 3, /*Dim*/ 2 > cross_validation;
+	      Alps::FullSamples< Alps::Gran_Paradiso_builder, /*Dim*/ 2 > cross_validation;
+	      std::cout << "Je passe - 1!" << std::endl;
 	      cross_validation.train();
 	      
 	      
 	      //
 	      // Main object
-	      // MAC::Gran_Paradiso_builder network;
+	      // Alps::Gran_Paradiso_builder network;
 	      // Forward
 	      //network.forward( MAC::Singleton::instance()->get_subjects()[0] );
 	      //network.forward( MAC::Singleton::instance()->get_subjects()[1] );

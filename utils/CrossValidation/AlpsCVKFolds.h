@@ -50,13 +50,13 @@ namespace Alps
       
     private:
       // Load the subjects
-      Alps::Subjects< /*Functions,*/ Dim > subjects_{ std::make_shared< Mountain >() };
+      std::vector< Alps::Subjects< /*Functions,*/ Dim > > subjects_;
       // testing size
       int testing_size_{0};
-      std::vector< std::list<int> > testing_set_;
+      std::vector< std::list<int> >                       testing_set_;
       // training size
       int training_size_{0};
-      std::vector< std::list<int> > training_set_;
+      std::vector< std::list<int> >                       training_set_;
     };
 
   //
@@ -83,15 +83,17 @@ namespace Alps
 	  training_set_.resize( K );
 	  //
 	  std::size_t offset = 0;
-	  for ( int kk = 0 ; kk < K ; kk++ )
+	  for ( int k = 0 ; k < K ; k++ )
 	    {
 	      for ( std::size_t s = 0 ; s < number_of_subjects ; s++ )
 		if ( s < testing_size_+offset && s >= offset )
-		  testing_set_[kk].push_back(s);
+		  testing_set_[k].push_back(s);
 		else
-		  training_set_[kk].push_back(s);
+		  training_set_[k].push_back(s);
 	      //
 	      offset += testing_size_;
+	      // create a set of subjects per fold
+	      subjects_.push_back( Alps::Subjects< /*Functions,*/ D >(std::make_shared< M >()) );
 	    }
 	}
       catch( itk::ExceptionObject & err )
@@ -142,7 +144,7 @@ namespace Alps
 	std::cout
 	  << "Fold " << Fold
 	  << " Subject " << sub
-	  << " -- In subject " << ( subjects_.get_subjects() )[ sub ]->get_subject_number()
+	  << " -- In subject " << ( subjects_[Fold].get_subjects() )[ sub ]->get_subject_number()
 	  << std::endl;
       }
 
