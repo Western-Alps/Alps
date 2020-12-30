@@ -31,10 +31,12 @@ namespace Alps
       /** Constructor. */
     explicit FullSamples();
       
-      /**  */
-      virtual ~FullSamples( )
-	{};
+      /**  Destructor. */
+      virtual ~FullSamples(){};
 
+      
+      //
+      // Functions
       //
       // train the calssification engin
       virtual void train() override;
@@ -87,21 +89,18 @@ namespace Alps
     {
       try
 	{
-	  // Mountain selected
-	  M mountain;
-
 	  //
 	  //
 	  std::list< int > fold_subjects =  training_set_[0];
-	  while ( mountain.get_energy() > 1.e-06 )
+	  while ( std::dynamic_pointer_cast<M>(subjects_[0].get_mountain())->get_energy() > 1.e-06 )
 	    for ( int sub : fold_subjects )
 	      {
 		std::cout
 		  << " Subject " << sub
 		  << " -- In subject " << ( subjects_[0].get_subjects() )[ sub ]->get_subject_number()
 		  << std::endl;
-		// ToDo Get Mountain from subjects
-		//mountain.forward( (subjects_.get_subjects())[ sub ] );
+		// Get the observed Mountain from subjects
+		std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->forward( (subjects_[0].get_subjects())[sub] );
 	      }
 
 	  //

@@ -42,20 +42,26 @@ namespace Alps
     /* Destructor */
     virtual ~Subjects(){};
 
+    
     //
     // Accessors
-    std::vector< std::shared_ptr< Alps::Subject< Dim > > > get_subjects()
+    //
+    //
+    virtual std::shared_ptr< Alps::Mountain >                      get_mountain()       override
+    { return mountain_observed_;};
+    const   std::vector< std::shared_ptr< Alps::Subject< Dim > > > get_subjects() const 
     { return subjects_;};
 
+    
     //
     // functions
     //
-    virtual void update();
+    virtual void                                                   update()             override;
 
+    
   private:
     // Attached observed Mountain
     std::shared_ptr< Alps::Mountain > mountain_observed_;
-    
     // 
     std::vector< std::shared_ptr< Alps::Subject< Dim > > > subjects_;
     // This function is the continuous step function
@@ -82,7 +88,6 @@ namespace Alps
 	//
 	for ( std::size_t img = 0 ; img < num_img_per_mod ; img++ )
 	  {
-	    std::cout << std::endl;
 	    // create the subject
 	    subjects_.push_back( std::make_shared< Alps::Subject< D > >(subject_number++, num_modalities) );
 	    // record the modality for each subject
@@ -104,7 +109,8 @@ namespace Alps
       }
   }
   //
-  // 
+  //
+  //
   template< /*class F,*/ int D > void
   Alps::Subjects< D >::update()
   {

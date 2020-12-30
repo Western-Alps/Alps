@@ -8,11 +8,17 @@ Alps::WeightsFclCPU::WeightsFclCPU(  std::shared_ptr< Alps::Mountain > Layer,
 {
   try
     {
-      //
-      // Random create the variables between [-1,1]
-//      weights_            = std::make_shared<Eigen::MatrixXd>( Eigen::MatrixXd::Random(Layer_size[0],
-//										       Prev_layer_size[0] + 1 /* biais */) );
-//      weights_transposed_ = std::make_shared<Eigen::MatrixXd>( weights_->transpose() );
+      if ( Prev_layer_size.size() > 0 )
+	{
+	  //
+	  // The previous layer is not the inputs
+	  initialized_        = true;
+	  //
+	  // Random create the variables between [-1,1]
+	  weights_            = std::make_shared<Eigen::MatrixXd>( Eigen::MatrixXd::Random(Layer_size[0],
+											   Prev_layer_size[0] + 1 /* biais */) );
+	  weights_transposed_ = std::make_shared<Eigen::MatrixXd>( weights_->transpose() );
+	}
     }
   catch( itk::ExceptionObject & err )
     {

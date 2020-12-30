@@ -51,14 +51,6 @@ Alps::Gran_Paradiso_builder::Gran_Paradiso_builder()
 //
 //
 //
-//void
-//Alps::Gran_Paradiso_builder::initialization()
-//{
-//  mr_nn_.initialization();
-//};
-//
-//
-//
 void
 Alps::Gran_Paradiso_builder::forward( std::shared_ptr< Alps::Climber > Sub )
 {

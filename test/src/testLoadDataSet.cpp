@@ -16,11 +16,6 @@ void LoadDataSetTest::SetUp() {};
 
 void LoadDataSetTest::TearDown() {};
 
-TEST_F(LoadDataSetTest, ByDefaultGetStatusIsTrue) {
-  Alps::LoadDataSet::instance("neural_net.json");
-  EXPECT_EQ(Alps::LoadDataSet::instance()->get_status(), true);
-}
-
 TEST_F(LoadDataSetTest, ByDefaultGetLoadITKIsTrue) {
   Alps::LoadDataSet::instance("data_set_GP.json");
   EXPECT_EQ(Alps::LoadDataSet::instance()->Load_ITK_images(), true);

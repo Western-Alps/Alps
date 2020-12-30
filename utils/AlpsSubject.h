@@ -32,31 +32,43 @@ namespace Alps
    *
    */
   template< /*class Function,*/ int Dim >
-  class Subject : public Climber
+  class Subject : public Alps::Climber
   {
   public:
-
     //
     /** Constructor */
     explicit Subject( const int,
-		       const std::size_t );
+		      const std::size_t );
     /* Destructor */
     virtual ~Subject(){};
+
+    
     //
     // Accessors
+    //
     // Subject information
-    int get_subject_number()    const {return subject_number_;};
+    int get_subject_number()    const
+    {return subject_number_;};
     // number of modalities
-    int get_number_modalities() const {return number_modalities_;};
+    int get_number_modalities() const
+    {return number_modalities_;};
 
+    
     //
     // functions
-    void add_modalities( const std::string );
-    bool check_modalities()                  const
-      { return (number_modalities_ == modalities_.size() ? true : false);};
+    //
+    // Get the observed mountain
+    virtual std::shared_ptr< Alps::Mountain >   get_mountain()                            override
+    { return nullptr;};
     // Update the subject information
-    virtual void update() override {};
+    virtual void                                update()                                  override{};
+    //
+    void                                        add_modalities( const std::string );
+    //
+    bool                                        check_modalities()                  const
+      { return (number_modalities_ == modalities_.size() ? true : false);};
 
+    
   private:
     //
     // Subject information

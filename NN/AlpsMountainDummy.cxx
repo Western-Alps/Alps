@@ -26,5 +26,4 @@ Alps::MountainDummy::forward( std::shared_ptr< Alps::Climber > Sub )
 //
 void
 Alps::MountainDummy::backward()
-{
-};
+{};

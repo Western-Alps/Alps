@@ -19,6 +19,28 @@ void WeightsFclCPUTest::SetUp() {};
 void WeightsFclCPUTest::TearDown() {};
 //
 // Constructor
+TEST_F(WeightsFclCPUTest, ByDefaultWeigths) {
+  // Constructor of a subject
+  Alps::WeightsFclCPU W( nullptr,
+			 std::vector< int >(1, 5),
+			 std::vector< int >(1, 10) );
+  //
+  //
+  // EXPECT_EQ( W.get_subject_number(), 0) ;
+  EXPECT_EQ( W.get_status(), true ) ;
+}
+// Constructor
+TEST_F(WeightsFclCPUTest, ByDefaultWeigthsZero) {
+  // Constructor of a subject
+  Alps::WeightsFclCPU W( nullptr,
+			 std::vector< int >(1, 5),
+			 std::vector< int >() );
+  //
+  //
+  // EXPECT_EQ( W.get_subject_number(), 0) ;
+  EXPECT_EQ( W.get_status(), false ) ;
+}
+// Constructor
 TEST_F(WeightsFclCPUTest, ByDefaultSubjectZero) {
   // Constructor of a subject
   Alps::WeightsFclCPU W( nullptr,

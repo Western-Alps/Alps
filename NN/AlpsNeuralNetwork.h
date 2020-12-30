@@ -17,8 +17,6 @@
 //
 //
 #include "MACException.h"
-//#include "AlpsLoadDataSet.h"
-#include "AlpsClimber.h"
 #include "AlpsLayer.h"
 #include "Weights.h"
 //
@@ -32,39 +30,25 @@ namespace Alps
    * This class is the head of a composit design to build neural network
    * 
    */
-  class NeuralNetwork
+  class NeuralNetwork : public Alps::Layer
     {
     public:
       /** Destructor */
       virtual ~NeuralNetwork(){};
 
+
       //
-      // Initialization
-      // virtual       void        initialization()           = 0;
+      // Accessors
       //
-      // get the layer name
-      virtual const std::string get_layer_name()                          const = 0;
+      // get neural network energy
+      virtual const double get_energy()                          const = 0;
+
+
       //
-      // get the layer type
-      //virtual Layer get_layer_type() = 0;
+      // Functions
       //
-      // get the layer name
-      virtual const double      get_energy()                              const = 0;
-      //
-      //
-      virtual const int         get_number_weights()                      const = 0;
-      //
-      // Forward propagation
-      virtual       void        forward( std::shared_ptr< Alps::Climber >  )     = 0;
-      //
-      // Backward propagation
-      virtual       void        backward()                                       = 0;
-      //
-      // Backward error propagation
-      //virtual      void backward_error_propagation() = 0;
-      //
-      //
-      virtual       void        add( std::shared_ptr< Alps::Layer > )            = 0;
+      // Add a layer in the neural network
+      virtual       void   add( std::shared_ptr< Alps::Layer > )       = 0;
     };
 }
 #endif

@@ -7,6 +7,7 @@
 #include <vector>
 //
 #include "MACException.h"
+#include "AlpsClimber.h"
 /*! \namespace Alps
  *
  * Name space for Alps.
@@ -27,15 +28,28 @@ namespace Alps
     public:
       /** Destructor */
       virtual ~Layer(){};
+
+      
       //
       // Accessors
-      virtual       void             set_next_layer( std::shared_ptr< Alps::Layer > ) = 0;
-      virtual const std::vector<int> get_layer_size() const                           = 0;
+      //
+      // get the layer name
+      virtual const std::string      get_layer_name()                                 const = 0;
+      // get number of weights
+      virtual const int              get_number_weights()                             const = 0;
+      // get the layer size
+      virtual const std::vector<int> get_layer_size()                                 const = 0;
+      // attach the next layer
+      virtual       void             set_next_layer( std::shared_ptr< Alps::Layer > )       = 0;
+
+
+      //
       // Functions
+      //
       // Forward propagation
-      virtual       void forward()                                                    = 0;
+      virtual       void        forward( std::shared_ptr< Alps::Climber > )                 = 0;
       // Backward propagation
-      virtual       void backward()                                                   = 0;
+      virtual       void        backward()                                                  = 0;
     };
 }
 #endif

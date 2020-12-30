@@ -9,7 +9,8 @@
 //
 #include "MACException.h"
 #include "AlpsLayer.h"
-#include "AlpsSubjects.h"
+#include "AlpsSubject.h"
+//#include "AlpsSubjects.h"
 #include "AlpsImage.h"
 #include "AlpsMountain.h"
 //#include "AlpsLayerDependencies.h"
@@ -40,36 +41,46 @@ namespace Alps
     explicit FullyConnectedLayer( const std::string,
 				  const std::vector<int>,
 				  std::shared_ptr< Alps::Layer > );
-    
     /** Destructor */
     virtual ~FullyConnectedLayer(){};
 
+    
     //
     // Accessors
-    virtual       void             set_next_layer( std::shared_ptr< Alps::Layer > Next ) override
+    //
+    // get the layer name
+    virtual const std::string      get_layer_name()                                      const override
+    { return layer_name_;}
+    // get number of weights
+    virtual const int              get_number_weights()                                  const override
+    { return 0.;};
+    // get the layer size
+    virtual const std::vector<int> get_layer_size()                                      const override
+      {return fc_layer_size_;};
+    // attach the next layer
+    virtual       void             set_next_layer( std::shared_ptr< Alps::Layer > Next )       override
       { next_layer_ = Next;};
-    virtual const std::vector<int> get_layer_size() const                                override
-      {return fc_layer_size_;}
+
+
     //
     // Functions
+    //
     // Forward propagation
-    virtual       void             forward()                                             override {};
+    virtual       void             forward( std::shared_ptr< Alps::Climber > )                 override;
     // Backward propagation
-    virtual       void             backward()                                            override {};
+    virtual       void             backward()                                                  override {};
     // Attach observers that need to be updated
-    virtual       void             attach( std::shared_ptr< Alps::Climber > )            override {};
+    virtual       void             attach( std::shared_ptr< Alps::Climber > )                  override {};
     // Notify the observers for updates
-    virtual       void             notify()                                              override {};
+    virtual       void             notify()                                                    override {};
 
+    
   private:
-    //
-    // private member function
-    //
+    // Layer's name
+    std::string                                                layer_name_{"FullyConnectedLayer"};
 
       
     //
-    // layer's name
-    std::string                                                layer_name_;
     // number of fully connected layers
     std::vector<int>                                           fc_layer_size_;
 
@@ -84,6 +95,7 @@ namespace Alps
     std::tuple< std::vector< Alps::Image<Dim> >   /*images*/,
 		std::shared_ptr< Alps::Climber > /*weights*/ > climbers_;
   };
+  //
   //
   //
   template< typename AF, typename W, int D   >
@@ -105,6 +117,24 @@ namespace Alps
 	//
 	climbers_ = std::make_tuple( std::vector< Alps::Image< /*AF,*/ D > >(),
 				     weights );
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+	exit(-1);
+      }
+  };
+  //
+  //
+  //
+  template< typename AF, typename W, int D   > void
+  FullyConnectedLayer< AF, W, D >::forward( std::shared_ptr< Alps::Climber > Sub )
+  {
+    try
+      {
+	std::cout << "In FullyConnectedLayer " << layer_name_
+		  << " ~~ Subject: " <<  std::dynamic_pointer_cast< Alps::Subject< D > >(Sub)->get_subject_number()
+		  << std::endl;
       }
     catch( itk::ExceptionObject & err )
       {

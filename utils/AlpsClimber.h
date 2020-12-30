@@ -34,18 +34,22 @@ namespace Alps
   class Climber
   {
   public:
-
-    //
+    /* Destructor */
     virtual ~Climber(){};
 
+    
     //
     // Accessors
-
+    //
+    
 
     //
     // functions
     //
-    virtual void update() = 0;
+    // Get the observed mountain
+    virtual std::shared_ptr< Alps::Mountain > get_mountain() = 0;
+    // Update the information
+    virtual void                              update()       = 0;
   };
 }
 #endif

@@ -28,7 +28,8 @@ namespace Alps
    * connected layers (FCL) using CPU.
    *
    */
-  class WeightsFclCPU : public Weights, public Alps::Climber
+  class WeightsFclCPU : public Alps::Weights,
+			public Alps::Climber
   {
   public:
     // Costructor
@@ -39,6 +40,7 @@ namespace Alps
     virtual ~WeightsFclCPU(){};
 
 
+
   public:
     //
     // Overrrided accessors
@@ -46,20 +48,33 @@ namespace Alps
       {return weights_;};
     virtual std::shared_ptr< Eigen::MatrixXd > get_weight_transposed() const override
       {return weights_transposed_;};
+    //
+    // Accessors
+    const
+    bool                                get_status()            const
+    {return initialized_;};
 
     //
     // Function overrided
-    virtual void save_weights()                                        const override {};
+    virtual void                                save_weights()          const override {};
     // Save the weights
-    virtual void load_weights()                                              override {};
+    virtual void load_weights()                                               override {};
+    //
+    virtual std::shared_ptr< Alps::Mountain >   get_mountain()                override
+    {return nullptr;};
     // Update the weights
-    virtual void update()                                                    override {};
+    virtual void                                update()                      override {};
+
+
 
   private:
+    // Status of the weigths initialization
+    bool                               initialized_{false};
     // The mountain observed: fully connected layer
     std::shared_ptr< Alps::Mountain >  layer_;
-    //
+    // Matrix of weigths
     std::shared_ptr< Eigen::MatrixXd > weights_;
+    // Transposed matrix of weigths
     std::shared_ptr< Eigen::MatrixXd > weights_transposed_;
   };
 }

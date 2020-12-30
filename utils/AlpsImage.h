@@ -30,8 +30,6 @@ namespace Alps
   class Image : public Alps::Climber
   {
   public:
-
-    //
     /** Constructor */
     Image( std::shared_ptr< Alps::Mountain >,
 	   const std::string ){};
@@ -44,16 +42,24 @@ namespace Alps
     
     //
     // Accessors
-
+    //
+    
     //
     // Overrided function
-    // Update the subject information
-    virtual void update() override {};
+    virtual std::shared_ptr< Alps::Mountain >              get_mountain() override
+    { return nullptr;};
+
+
+    //
+    // Functions
+    //
+    // Update the image information
+    virtual void                                           update()       override{};
 
 
   private:
     // Dimension of the image along all directions
-    std::vector< std::size_t > size_;
+    std::vector< std::size_t >        size_;
     // Attached mountain
     std::shared_ptr< Alps::Mountain > mountain_observed_{nullptr};
   };
