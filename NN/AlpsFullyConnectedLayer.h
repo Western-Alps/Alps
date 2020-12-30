@@ -69,6 +69,8 @@ namespace Alps
     virtual       void             forward( std::shared_ptr< Alps::Climber > )                 override;
     // Backward propagation
     virtual       void             backward()                                                  override {};
+    //
+    //
     // Attach observers that need to be updated
     virtual       void             attach( std::shared_ptr< Alps::Climber > )                  override {};
     // Notify the observers for updates

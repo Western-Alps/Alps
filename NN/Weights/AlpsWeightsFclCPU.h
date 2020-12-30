@@ -11,8 +11,8 @@
 #include <Eigen/Eigen>
 //
 #include "MACException.h"
-#include "AlpsClimber.h"
 #include "AlpsWeights.h"
+#include "AlpsClimber.h"
 #include "AlpsMountain.h"
 /*! \namespace Alps
  *
@@ -32,50 +32,57 @@ namespace Alps
 			public Alps::Climber
   {
   public:
-    // Costructor
-    WeightsFclCPU( std::shared_ptr< Alps::Mountain >,
-		   const std::vector< int >,
-		   const std::vector< int > );
-    // Destructor
+    /** Constructor. */
+    explicit WeightsFclCPU( std::shared_ptr< Alps::Mountain >,
+			    const std::vector< int >,
+			    const std::vector< int > );
+    /** Destructor */
     virtual ~WeightsFclCPU(){};
 
 
-
-  public:
     //
-    // Overrrided accessors
+    // Accessors
+    //
+    // Get the weigths matrix
     virtual std::shared_ptr< Eigen::MatrixXd > get_weight()            const override   
       {return weights_;};
+    // Get the transposed weights matrix
     virtual std::shared_ptr< Eigen::MatrixXd > get_weight_transposed() const override
       {return weights_transposed_;};
     //
-    // Accessors
-    const
-    bool                                get_status()            const
+    // Check if the weigths were initialized
+    const   bool                               get_status()             const
     {return initialized_;};
 
+
     //
-    // Function overrided
-    virtual void                                save_weights()          const override {};
+    // Functions
+    //
     // Save the weights
-    virtual void load_weights()                                               override {};
+    virtual void                                save_weights()          const override {};
+    // Load the weights
+    virtual void                                load_weights()                override {};
     //
+    //
+    // Get the observed mountain
     virtual std::shared_ptr< Alps::Mountain >   get_mountain()                override
-    {return nullptr;};
+    {return layer_;};
     // Update the weights
     virtual void                                update()                      override {};
 
 
 
   private:
-    // Status of the weigths initialization
-    bool                               initialized_{false};
-    // The mountain observed: fully connected layer
-    std::shared_ptr< Alps::Mountain >  layer_;
     // Matrix of weigths
     std::shared_ptr< Eigen::MatrixXd > weights_;
     // Transposed matrix of weigths
     std::shared_ptr< Eigen::MatrixXd > weights_transposed_;
+    //
+    // The mountain observed: fully connected layer
+    std::shared_ptr< Alps::Mountain >  layer_;
+    //
+    // Status of the weigths initialization
+    bool                               initialized_{false};
   };
 }
 #endif
