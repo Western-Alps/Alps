@@ -43,6 +43,9 @@ namespace Alps
     //
     // Accessors
     //
+    // Get the size of the array
+    const int get_array_size()                   const
+    { return array_size_;};
     // Get Z
     std::shared_ptr< Eigen::MatrixXd > get_z()   const
     { return z_;};
@@ -77,10 +80,11 @@ namespace Alps
     //
     // Neural network properties
     //
+    int                                   array_size_{1};
     // Z
-    std::shared_ptr< Eigen::MatrixXd > z_;
+    std::shared_ptr< Eigen::MatrixXd >    z_;
     // error
-    std::shared_ptr< Eigen::MatrixXd > eps_;
+    std::shared_ptr< Eigen::MatrixXd >    eps_;
   };
   
   //
@@ -94,19 +98,18 @@ namespace Alps
 	// Create the region
 	//
 	size_ = Image_reader->GetOutput()->GetLargestPossibleRegion().GetSize();
-	int array_size = 1;
 	for ( int d = 0 ; d < D ; d++ )
 	  {
-	    start_[d]   = 0;
-	    array_size *= size_[d];
+	    start_[d]    = 0;
+	    array_size_ *= size_[d];
 	  }
 	//
 	// Resize elements
 	region_.SetSize( size_ );
 	region_.SetIndex( start_ );
 	//
-	z_   = std::make_shared<Eigen::MatrixXd>( Eigen::MatrixXd::Zero(array_size,1) );
-	eps_ = std::make_shared<Eigen::MatrixXd>( Eigen::MatrixXd::Zero(array_size,1) );
+	z_   = std::make_shared<Eigen::MatrixXd>( Eigen::MatrixXd::Zero(array_size_,1) );
+	eps_ = std::make_shared<Eigen::MatrixXd>( Eigen::MatrixXd::Zero(array_size_,1) );
 	//
 	ImageRegionIterator< ImageType< D > > imageIterator( Image_reader->GetOutput(),
 							     region_ );
@@ -117,7 +120,7 @@ namespace Alps
 	    ++imageIterator;
 	  }
 	// Check the vector has been created correctly
-	if ( position != array_size )
+	if ( position != array_size_ )
 	  throw MAC::MACException( __FILE__, __LINE__,
 				   "The iamge vector has not been created correctly.",
 				   ITK_LOCATION );

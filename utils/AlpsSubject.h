@@ -14,6 +14,7 @@
 //
 #include "MACException.h"
 #include "AlpsClimber.h"
+#include "AlpsImage.h"
 #include "AlpsTools.h"
 //
 //
@@ -47,26 +48,34 @@ namespace Alps
     // Accessors
     //
     // Subject information
-    int get_subject_number()    const
+    const int              get_subject_number()    const
     {return subject_number_;};
     // number of modalities
-    int get_number_modalities() const
+    const int              get_number_modalities() const
     {return number_modalities_;};
-
+    // 
+    std::vector<int> get_layer_size()        
+    {
+      std::vector<int> layer_size;
+      for ( int img_in = 0 ; img_in < number_modalities_ ; img_in++ )
+	layer_size.push_back( modalities_["__input_layer__"][img_in].get_array_size() );
+      //
+      return layer_size;
+    }
     
     //
     // functions
     //
     // Get the observed mountain
-    virtual std::shared_ptr< Alps::Mountain >   get_mountain()                            override
+    virtual std::shared_ptr< Alps::Mountain >   get_mountain()                              override
     { return nullptr;};
     // Update the subject information
-    virtual void                                update()                                  override{};
+    virtual void                                update()                                    override{};
     //
     void                                        add_modalities( const std::string );
     //
-    bool                                        check_modalities()                  const
-      { return (number_modalities_ == modalities_.size() ? true : false);};
+    const bool                                  check_modalities( const std::string Layer ) 
+      { return (number_modalities_ == modalities_[Layer].size() ? true : false);};
 
     
   private:
@@ -78,9 +87,7 @@ namespace Alps
 
     //
     // Vector of modalities 
-    std::vector< typename ImageType< Dim >::Pointer >  modalities_;
-    // images size
-    std::vector< typename ImageType< Dim >::SizeType > modality_size_;
+    std::map< std::string, std::vector< Alps::Image< Dim > > >  modalities_;
     // This function is the continuous step function
     /*Function                                         activation_function_;*/
   };
@@ -91,7 +98,9 @@ namespace Alps
   Alps::Subject<Dim>::Subject( const int SubNumber,
 			       const std::size_t NumModalities ): /*Alps::Subject(),*/
     subject_number_{SubNumber}, number_modalities_{NumModalities}
-  {}
+  {
+    modalities_["__input_layer__"] = std::vector< Alps::Image< Dim > >();
+  }
   //
   // 
   template< /*class F,*/ int D > void
@@ -101,7 +110,6 @@ namespace Alps
       {
 	if ( Alps::file_exists(Modality) )
 	  {
-	    std::cout << Modality << std::endl;
 	    //
 	    // load the image ITK pointer
 	    auto image_ptr = itk::ImageIOFactory::CreateImageIO( Modality.c_str(),
@@ -119,8 +127,8 @@ namespace Alps
 	    img_ptr->SetFileName( image_ptr->GetFileName() );
 	    img_ptr->Update();
 	    //
-	    modalities_.push_back( img_ptr->GetOutput() );
-	    modality_size_.push_back( img_ptr->GetOutput()->GetLargestPossibleRegion().GetSize() );
+	    // Load the modalities into the container
+	    modalities_["__input_layer__"].push_back( Alps::Image< D >(img_ptr) );
 	  }
 	else
 	  {

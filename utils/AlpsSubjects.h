@@ -94,7 +94,7 @@ namespace Alps
 	    for ( std::size_t mod = 0 ; mod < num_modalities ; mod++ )
 	      ( subjects_[subject_number-1].get() )->add_modalities( Alps::LoadDataSet::instance()->get_data()["inputs"]["images"][mod][img] );
 	    // Check everything is fine
-	    if ( !subjects_[subject_number-1].get()->check_modalities() )
+	    if ( !subjects_[subject_number-1].get()->check_modalities("__input_layer__") )
 	      {
 		std::string mess = "The number of modalities expected is different from the number of loaded modalities.";
 		throw MAC::MACException( __FILE__, __LINE__,

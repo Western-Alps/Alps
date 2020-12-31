@@ -35,7 +35,7 @@ TEST_F(SubjectTest, ByDefaultSubjectAddModalitiesTrue) {
   Subj.add_modalities("../images/MNITS/000000-num5.png");
   //
   //
-  EXPECT_EQ( Subj.check_modalities(), true) ;
+  EXPECT_EQ( Subj.check_modalities("__input_layer__"), true) ;
 }
 
 //TEST_F(SubjectTest, ByDefaultBazFalseIsFalse) {

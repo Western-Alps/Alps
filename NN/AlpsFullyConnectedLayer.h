@@ -76,8 +76,9 @@ namespace Alps
     
   private:
     // Layer's name
-    std::string                                                layer_name_{"FullyConnectedLayer"};
-
+    std::string                                                layer_name_{"__Fully_connected_layer__"};
+    // Status get the weights initialized
+    bool                                                       status_{false};
       
     //
     // number of fully connected layers
@@ -91,8 +92,7 @@ namespace Alps
     //
     // Observers
     // Observers containers
-    std::tuple< std::vector< Alps::Image<Dim> >   /*images*/,
-		std::shared_ptr< Alps::Climber > /*weights*/ > climbers_;
+    std::shared_ptr< Alps::Climber >                           weights_;
   };
   //
   //
@@ -105,17 +105,17 @@ namespace Alps
   {
     try
       {
-       	//
-	// Create the weights
-	std::shared_ptr< W >
-	  weights = std::make_shared< W >( std::shared_ptr< FullyConnectedLayer< AF, W, D > >( this ),
-					   Fc_layer_size,
-					   (Prev_layer ? Prev_layer->get_layer_size() : std::vector< int >()) );
-
-	//
-	//
-	climbers_ = std::make_tuple( std::vector< Alps::Image< /*AF,*/ D > >(),
-				     weights );
+//       	//
+//	// Create the weights
+//	std::shared_ptr< W >
+//	  weights = std::make_shared< W >( std::shared_ptr< FullyConnectedLayer< AF, W, D > >( this ),
+//					   Fc_layer_size,
+//					   (Prev_layer ? Prev_layer->get_layer_size() : std::vector< int >()) );
+//
+//	//
+//	//
+//	climbers_ = std::make_tuple( std::vector< Alps::Image< /*AF,*/ D > >(),
+//				     weights );
       }
     catch( itk::ExceptionObject & err )
       {
@@ -131,9 +131,23 @@ namespace Alps
   {
     try
       {
-	std::cout << "In FullyConnectedLayer " << layer_name_
-		  << " ~~ Subject: " <<  std::dynamic_pointer_cast< Alps::Subject< D > >(Sub)->get_subject_number()
-		  << std::endl;
+	//
+	// Down to subject
+	std::shared_ptr< Alps::Subject< D > > subject = std::dynamic_pointer_cast< Alps::Subject< D > >(Sub);
+	//
+	// If the weights were already initialized
+	if ( status_ )
+	  {
+	    std::cout << "Here we should be on good bases!" << std::endl;
+	  }
+	// If the weights were not initialized yet
+	else
+	  {
+	    weights_ = std::make_shared< W >( std::shared_ptr< FullyConnectedLayer< AF, W, D > >( this ),
+					      fc_layer_size_,
+					      (prev_layer_ ? prev_layer_->get_layer_size() : subject->get_layer_size() ) );
+	    status_ = true;
+	  }
       }
     catch( itk::ExceptionObject & err )
       {
