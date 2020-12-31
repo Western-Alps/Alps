@@ -1,7 +1,10 @@
 #include "testImage.h"
+// Eigen
+#include <Eigen/Core>
+#include <Eigen/Eigen>
+// ITK
+#include "ITKHeaders.h"
 #include "AlpsImage.h"
-#include "AlpsLoadDataSet.h"
-//#include "AlpsTools.h"
 
 //using ::testing::Return;
 
@@ -19,13 +22,71 @@ void ImageTest::SetUp() {};
 void ImageTest::TearDown() {};
 //
 // Constructor
-TEST_F(ImageTest, ByDefaultSubjectZero) {
+TEST_F(ImageTest, ByDefaultImageZero) {
+  // use an image
+  auto image_ptr = itk::ImageIOFactory::CreateImageIO( "../images/MNITS/000000-num5.png",
+						       itk::CommonEnums::IOFileMode::ReadMode );
+  image_ptr->SetFileName( "../images/MNITS/000000-num5.png" );
+  image_ptr->ReadImageInformation();
+  // Read the ITK image
+  typename Reader< 2 >::Pointer img_ptr = Reader< 2 >::New();
+  img_ptr->SetFileName( image_ptr->GetFileName() );
+  img_ptr->Update();
+  
+
   // Constructor of a subject
-  Alps::Image< 2 > Subj = Alps::Image< 2 >( nullptr,
-					    std::vector< size_t >(2,5) );
+  Alps::Image< 2 > Subj = Alps::Image< 2 >( img_ptr );
   //
   //
   EXPECT_EQ( 0, 0) ;
+}
+// Accessors
+TEST_F(ImageTest, ByDefaultImageGetSetEps) {
+  //
+  std::shared_ptr< Eigen::MatrixXd > epsilon = std::make_shared<Eigen::MatrixXd>( Eigen::MatrixXd::Ones(3,1) );
+  //
+  // use an image
+  auto image_ptr = itk::ImageIOFactory::CreateImageIO( "../images/MNITS/000000-num5.png",
+						       itk::CommonEnums::IOFileMode::ReadMode );
+  image_ptr->SetFileName( "../images/MNITS/000000-num5.png" );
+  image_ptr->ReadImageInformation();
+  // Read the ITK image
+  typename Reader< 2 >::Pointer img_ptr = Reader< 2 >::New();
+  img_ptr->SetFileName( image_ptr->GetFileName() );
+  img_ptr->Update();
+  // Constructor of a subject
+  Alps::Image< 2 > Subj = Alps::Image< 2 >( img_ptr );
+  //
+  // Set the Z array
+  Subj.set_eps( epsilon );
+
+  //
+  //
+  EXPECT_EQ( ( *(Subj.get_eps()) )(0,0), 1) ;
+}
+// Accessors
+TEST_F(ImageTest, ByDefaultImageGetSetZ) {
+  //
+  std::shared_ptr< Eigen::MatrixXd > zz = std::make_shared<Eigen::MatrixXd>( Eigen::MatrixXd::Ones(3,1) );
+  //
+  // use an image
+  auto image_ptr = itk::ImageIOFactory::CreateImageIO( "../images/MNITS/000000-num5.png",
+						       itk::CommonEnums::IOFileMode::ReadMode );
+  image_ptr->SetFileName( "../images/MNITS/000000-num5.png" );
+  image_ptr->ReadImageInformation();
+  // Read the ITK image
+  typename Reader< 2 >::Pointer img_ptr = Reader< 2 >::New();
+  img_ptr->SetFileName( image_ptr->GetFileName() );
+  img_ptr->Update();
+  // Constructor of a subject
+  Alps::Image< 2 > Subj = Alps::Image< 2 >( img_ptr );
+  //
+  // Set the Z array
+  Subj.set_z( zz );
+
+  //
+  //
+  EXPECT_EQ( ( *(Subj.get_z()) )(0,0), 1) ;
 }
 //// Add modalities
 //TEST_F(ImageTest, ByDefaultSubjectAddModalitiesTrue) {

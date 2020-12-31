@@ -4,12 +4,14 @@
 //
 //
 #include <iostream> 
-//
-// 
+// ITK
+#include "ITKHeaders.h"
+// Eigen
+#include <Eigen/Core>
+#include <Eigen/Eigen>
 //
 #include "MACException.h"
-#include "AlpsMountain.h"
-#include "AlpsClimber.h"
+#include "AlpsTools.h"
 //
 //
 //
@@ -27,15 +29,13 @@ namespace Alps
    *
    */
   template< /*class Function,*/ int Dim >
-  class Image : public Alps::Climber
+  class Image 
   {
   public:
     /** Constructor */
-    Image( std::shared_ptr< Alps::Mountain >,
-	   const std::string ){};
+    Image(){};
     /** Constructor */
-    Image( std::shared_ptr< Alps::Mountain >,
-	   const std::vector< std::size_t > );
+    Image( const typename Reader< Dim >::Pointer );
     /* Destructor */
     virtual ~Image(){};
 
@@ -43,43 +43,84 @@ namespace Alps
     //
     // Accessors
     //
-    
-    //
-    // Overrided function
-    virtual std::shared_ptr< Alps::Mountain >              get_mountain() override
-    { return nullptr;};
+    // Get Z
+    std::shared_ptr< Eigen::MatrixXd > get_z()   const
+    { return z_;};
+    // Get the error vector
+    std::shared_ptr< Eigen::MatrixXd > get_eps() const
+    { return eps_;};
+    // Get Z
+    void set_z( std::shared_ptr< Eigen::MatrixXd > Z )
+    { z_ = Z;};
+    // Get the error vector
+    void set_eps( std::shared_ptr< Eigen::MatrixXd > Epsilon )
+    { eps_ = Epsilon;};
 
 
     //
     // Functions
     //
-    // Update the image information
-    virtual void                                           update()       override{};
 
-
+    
   private:
-    // Dimension of the image along all directions
-    std::vector< std::size_t >        size_;
-    // Attached mountain
-    std::shared_ptr< Alps::Mountain > mountain_observed_{nullptr};
+    //
+    // Image properties
+    //
+    // Image region
+    typename ImageType< Dim >::RegionType region_;
+    // Starting point
+    typename ImageType< Dim >::IndexType  start_;
+    // Size in each dimension
+    typename ImageType< Dim >::SizeType   size_;
+
+    
+    //
+    // Neural network properties
+    //
+    // Z
+    std::shared_ptr< Eigen::MatrixXd > z_;
+    // error
+    std::shared_ptr< Eigen::MatrixXd > eps_;
   };
   
   //
   // Constructor
-  template< /*class F,*/ int Dim >
-  Alps::Image<Dim>::Image( std::shared_ptr< Alps::Mountain > Mountain,
-			   const std::vector< std::size_t >  Size ):
-    size_{Size}, mountain_observed_{Mountain}
+  template< /*class F,*/ int D >
+  Alps::Image< D >::Image( const typename Reader< D >::Pointer Image_reader )
   {
     try
       {
-	// Check the dimensions are fine
-	if ( Size.size() == Dim )
-	  {/* Do Something */}
-	else
+	//
+	// Create the region
+	//
+	size_ = Image_reader->GetOutput()->GetLargestPossibleRegion().GetSize();
+	int array_size = 1;
+	for ( int d = 0 ; d < D ; d++ )
+	  {
+	    start_[d]   = 0;
+	    array_size *= size_[d];
+	  }
+	//
+	// Resize elements
+	region_.SetSize( size_ );
+	region_.SetIndex( start_ );
+	//
+	z_   = std::make_shared<Eigen::MatrixXd>( Eigen::MatrixXd::Zero(array_size,1) );
+	eps_ = std::make_shared<Eigen::MatrixXd>( Eigen::MatrixXd::Zero(array_size,1) );
+	//
+	ImageRegionIterator< ImageType< D > > imageIterator( Image_reader->GetOutput(),
+							     region_ );
+	int position = 0;
+	while( !imageIterator.IsAtEnd() )
+	  {
+	    (*z_)( position++, 0 ) = imageIterator.Value();
+	    ++imageIterator;
+	  }
+	// Check the vector has been created correctly
+	if ( position != array_size )
 	  throw MAC::MACException( __FILE__, __LINE__,
-				     "The dimensions are different.",
-				     ITK_LOCATION );
+				   "The iamge vector has not been created correctly.",
+				   ITK_LOCATION );
       }
     catch( itk::ExceptionObject & err )
       {

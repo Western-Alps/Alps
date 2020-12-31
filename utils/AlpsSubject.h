@@ -94,8 +94,8 @@ namespace Alps
   {}
   //
   // 
-  template< /*class F,*/ int Dim > void
-  Alps::Subject<Dim>::add_modalities( const std::string Modality )
+  template< /*class F,*/ int D > void
+  Alps::Subject< D >::add_modalities( const std::string Modality )
   {
     try
       {
@@ -108,8 +108,14 @@ namespace Alps
 								 itk::CommonEnums::IOFileMode::ReadMode );
 	    image_ptr->SetFileName( Modality );
 	    image_ptr->ReadImageInformation();
+	    // Check the dimensions complies
+	    if ( image_ptr->GetNumberOfDimensions() != D )
+	      throw MAC::MACException( __FILE__, __LINE__,
+				       "The dimensions of the image and instanciation are different.",
+				       ITK_LOCATION );
+	    //
 	    // Read the ITK image
-	    typename Reader<Dim>::Pointer img_ptr = Reader<Dim>::New();
+	    typename Reader< D >::Pointer img_ptr = Reader< D >::New();
 	    img_ptr->SetFileName( image_ptr->GetFileName() );
 	    img_ptr->Update();
 	    //

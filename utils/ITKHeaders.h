@@ -34,4 +34,6 @@ template< int Dim > using FilterType            = itk::ChangeInformationImageFil
 template< int Dim > using ShrinkImageFilterType = itk::ShrinkImageFilter < ImageType< Dim >, ImageType< Dim > >;
 template< int Dim > using ShrinkImageFilterType = itk::ShrinkImageFilter < ImageType< Dim >, ImageType< Dim > >;
 //
+template< typename ImgType > using ImageRegionIterator =  itk::ImageRegionIterator< ImgType >;
+//
 #endif

@@ -9,12 +9,9 @@
 //
 #include "MACException.h"
 #include "AlpsLayer.h"
-#include "AlpsSubject.h"
-//#include "AlpsSubjects.h"
-#include "AlpsImage.h"
 #include "AlpsMountain.h"
-//#include "AlpsLayerDependencies.h"
-//#include "AlpsWeights.h"
+#include "AlpsSubject.h"
+#include "AlpsImage.h"
 //
 //
 //
