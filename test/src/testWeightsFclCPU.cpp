@@ -26,43 +26,34 @@ TEST_F(WeightsFclCPUTest, ByDefaultWeigths) {
 			 std::vector< int >(1, 10) );
   //
   //
-  // EXPECT_EQ( W.get_subject_number(), 0) ;
-  EXPECT_EQ( W.get_status(), true ) ;
+  EXPECT_EQ( 0, 0 ) ;
 }
-// Constructor
-TEST_F(WeightsFclCPUTest, ByDefaultWeigthsZero) {
+// Accessor
+TEST_F(WeightsFclCPUTest, ByDefaultWeigthsGet) {
   // Constructor of a subject
   Alps::WeightsFclCPU W( nullptr,
-			 std::vector< int >(1, 5),
-			 std::vector< int >() );
+			 /*Current  layer*/ std::vector< int >(1, 2),
+			 /*Previous layer*/ std::vector< int >(1, 3) );
+  //
+  auto weights   = W.get_weights()[0];
+  auto weights_T = W.get_weights_transposed()[0];
   //
   //
-  // EXPECT_EQ( W.get_subject_number(), 0) ;
-  EXPECT_EQ( W.get_status(), false ) ;
+  EXPECT_EQ( weights(1,2), weights_T(2,1) ) ;
 }
-// Constructor
-TEST_F(WeightsFclCPUTest, ByDefaultSubjectZero) {
+// Accessor
+TEST_F(WeightsFclCPUTest, ByDefaultWeigthsGet2) {
   // Constructor of a subject
   Alps::WeightsFclCPU W( nullptr,
-			 std::vector< int >(1, 5),
-			 std::vector< int >(1, 10) );
+			 /*Current  layer*/ std::vector< int >(1, 2),
+			 /*Previous layer*/ std::vector< int >(2, 3) );
+  //
+  auto weights   = W.get_weights()[0];
+  auto weights_T = W.get_weights_transposed()[0];
   //
   //
-  // EXPECT_EQ( W.get_subject_number(), 0) ;
-  EXPECT_EQ( (*W.get_weight())(0,1), (*W.get_weight_transposed())(1,0) ) ;
+  EXPECT_EQ( weights(1,2), weights_T(2,1) ) ;
 }
-//// Add modalities
-//TEST_F(WeightsFclCPUTest, ByDefaultSubjectAddModalitiesTrue) {
-//  // Constructor of a subject
-//  Alps::SubjectCPU< 2 > Subj = Alps::SubjectCPU< 2 >( 0, 2);
-//  // load modalities
-//  Subj.add_modalities("../images/MNITS/000000-num5.png");
-//  Subj.add_modalities("../images/MNITS/000000-num5.png");
-//  //
-//  //
-//  EXPECT_EQ( Subj.check_modalities(), true) ;
-//}
-
 //TEST_F(WeightsFclCPUTest, ByDefaultBazFalseIsFalse) {
 //    Subjects foo(m_bar);
 //    EXPECT_EQ(foo.baz(false), false);

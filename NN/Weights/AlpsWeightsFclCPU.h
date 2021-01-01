@@ -47,45 +47,38 @@ namespace Alps
     // Accessors
     //
     // Get the weigths matrix
-    virtual std::shared_ptr< Eigen::MatrixXd > get_weight()            const override   
+    virtual const std::vector< Eigen::MatrixXd >& get_weights()            const override   
       {return weights_;};
     // Get the transposed weights matrix
-    virtual std::shared_ptr< Eigen::MatrixXd > get_weight_transposed() const override
+    virtual const std::vector< Eigen::MatrixXd >& get_weights_transposed() const override
       {return weights_transposed_;};
-    //
-    // Check if the weigths were initialized
-    const   bool                               get_status()             const
-    {return initialized_;};
 
 
     //
     // Functions
     //
     // Save the weights
-    virtual void                                save_weights()          const override {};
+    virtual void                                  save_weights()           const override {};
     // Load the weights
-    virtual void                                load_weights()                override {};
+    virtual void                                  load_weights()                 override {};
     //
     //
     // Get the observed mountain
-    virtual std::shared_ptr< Alps::Mountain >   get_mountain()                override
+    virtual std::shared_ptr< Alps::Mountain >     get_mountain()                 override
     {return layer_;};
     // Update the weights
-    virtual void                                update()                      override {};
+    virtual void                                  update()                       override {};
 
 
 
   private:
     // Matrix of weigths
-    std::shared_ptr< Eigen::MatrixXd > weights_;
+    std::vector< Eigen::MatrixXd >    weights_;
     // Transposed matrix of weigths
-    std::shared_ptr< Eigen::MatrixXd > weights_transposed_;
+    std::vector< Eigen::MatrixXd >    weights_transposed_;
     //
     // The mountain observed: fully connected layer
-    std::shared_ptr< Alps::Mountain >  layer_;
-    //
-    // Status of the weigths initialization
-    bool                               initialized_{false};
+    std::shared_ptr< Alps::Mountain > layer_;
   };
 }
 #endif

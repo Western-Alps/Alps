@@ -54,7 +54,7 @@ namespace Alps
     const int              get_number_modalities() const
     {return number_modalities_;};
     // 
-    std::vector<int> get_layer_size()        
+    std::vector<int>       get_layer_size()        
     {
       std::vector<int> layer_size;
       for ( int img_in = 0 ; img_in < number_modalities_ ; img_in++ )

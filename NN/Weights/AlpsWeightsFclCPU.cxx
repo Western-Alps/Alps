@@ -8,16 +8,25 @@ Alps::WeightsFclCPU::WeightsFclCPU(  std::shared_ptr< Alps::Mountain > Layer,
 {
   try
     {
-      if ( Prev_layer_size.size() > 0 )
+      //
+      // Get the number of layers defined
+      std::size_t
+	prev_num_of_layers    = Prev_layer_size.size(),
+	current_num_of_layers = Layer_size.size();
+      //
+      // For each current layer, we create a set of weights linking to the previous layers
+      for ( std::size_t l = 0 ; l < current_num_of_layers ; l++ )
 	{
 	  //
-	  // The previous layer is not the inputs
-	  initialized_        = true;
-	  //
+	  // How many nodes we had in the previous layer:
+	  int nodes = 0;
+	  for ( std::size_t pl = 0 ; pl < prev_num_of_layers ; pl++ )
+	    nodes += Prev_layer_size[pl];
 	  // Random create the variables between [-1,1]
-	  weights_            = std::make_shared<Eigen::MatrixXd>( Eigen::MatrixXd::Random(Layer_size[0],
-											   Prev_layer_size[0] + 1 /* biais */) );
-	  weights_transposed_ = std::make_shared<Eigen::MatrixXd>( weights_->transpose() );
+	  Eigen::MatrixXd weights = Eigen::MatrixXd::Random( Layer_size[l], nodes + 1 /* biais */ );
+	  // record
+	  weights_.push_back( weights );
+	  weights_transposed_.push_back( weights.transpose() );
 	}
     }
   catch( itk::ExceptionObject & err )

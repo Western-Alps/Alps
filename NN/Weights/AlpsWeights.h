@@ -35,13 +35,13 @@ namespace Alps
     // Accessors
     //
     // Get the weigths matrix
-    virtual std::shared_ptr< Eigen::MatrixXd > get_weight()            const = 0;
+    virtual const std::vector< Eigen::MatrixXd >& get_weights()            const = 0;
     // Get the transposed weights matrix
-    virtual std::shared_ptr< Eigen::MatrixXd > get_weight_transposed() const = 0;
+    virtual const std::vector< Eigen::MatrixXd >& get_weights_transposed() const = 0;
     // Save the weights
-    virtual void save_weights()                                        const = 0;
+    virtual       void                            save_weights()           const = 0;
     // Load the weights
-    virtual void load_weights()                                              = 0;
+    virtual       void                            load_weights()                 = 0;
   };
 }
 #endif
