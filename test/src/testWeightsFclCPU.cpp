@@ -1,6 +1,7 @@
 #include "testWeightsFclCPU.h"
 #include "AlpsLoadDataSet.h"
 #include "AlpsWeightsFclCPU.h"
+#include "AlpsSubject.h"
 #include "AlpsTools.h"
 
 //using ::testing::Return;
@@ -30,7 +31,7 @@ TEST_F(WeightsFclCPUTest, ByDefaultWeigths) {
 }
 // Accessor
 TEST_F(WeightsFclCPUTest, ByDefaultWeigthsGet) {
-  // Constructor of a subject
+  // Constructor of weights
   Alps::WeightsFclCPU W( nullptr,
 			 /*Current  layer*/ std::vector< int >(1, 2),
 			 /*Previous layer*/ std::vector< int >(1, 3) );
@@ -43,7 +44,7 @@ TEST_F(WeightsFclCPUTest, ByDefaultWeigthsGet) {
 }
 // Accessor
 TEST_F(WeightsFclCPUTest, ByDefaultWeigthsGet2) {
-  // Constructor of a subject
+  // Constructor of weights
   Alps::WeightsFclCPU W( nullptr,
 			 /*Current  layer*/ std::vector< int >(1, 2),
 			 /*Previous layer*/ std::vector< int >(2, 3) );
@@ -53,6 +54,26 @@ TEST_F(WeightsFclCPUTest, ByDefaultWeigthsGet2) {
   //
   //
   EXPECT_EQ( weights(1,2), weights_T(2,1) ) ;
+}
+// Activate
+TEST_F(WeightsFclCPUTest, ByDefaultWeigthsActivate) {
+  //
+  // Constructor of a subject
+  std::shared_ptr< Alps::Subject< 2 > > Subj = std::make_shared< Alps::Subject< 2 > >( Alps::Subject< 2 >( 0, 2) );
+  // load modalities
+  Subj->add_modalities("../images/MNITS/000000-num5.png");
+  Subj->add_modalities("../images/MNITS/000000-num5.png");
+  //
+  // Constructor of weights
+  Alps::WeightsFclCPU W( nullptr,
+			 /*Current  layer*/ std::vector< int >(1, 2),
+			 /*Previous layer*/ std::vector< int >(2, 3) );
+  //
+  //
+  W.activate( Subj->get_layer_modalities("__input_layer__") );
+  //
+  //
+  EXPECT_EQ( 0, 0 ) ;
 }
 //TEST_F(WeightsFclCPUTest, ByDefaultBazFalseIsFalse) {
 //    Subjects foo(m_bar);

@@ -90,7 +90,7 @@ namespace Alps
     //
     // Observers
     // Observers containers
-    std::shared_ptr< Alps::Climber >                           weights_{nullptr};
+    std::shared_ptr< Weights >                                 weights_{nullptr};
   };
   //
   //
@@ -126,6 +126,14 @@ namespace Alps
 	  weights_ = std::make_shared< W >( std::shared_ptr< FullyConnectedLayer< AF, W, D > >( this ),
 					    fc_layer_size_,
 					    (prev_layer_ ? prev_layer_->get_layer_size() : subject->get_layer_size() ) );
+	//
+	// Build the activation
+	if ( prev_layer_ )
+	  weights_->activate( subject->get_layer_modalities(prev_layer_->get_layer_name()) );
+	else
+	  weights_->activate( subject->get_layer_modalities("__input_layer__") );
+
+	
       }
     catch( itk::ExceptionObject & err )
       {

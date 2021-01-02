@@ -12,6 +12,7 @@
 //
 //
 #include "MACException.h"
+#include "AlpsClimber.h"
 /*! \namespace Alps
  *
  * Name space for Alps.
@@ -35,13 +36,19 @@ namespace Alps
     // Accessors
     //
     // Get the weigths matrix
-    virtual const std::vector< Eigen::MatrixXd >& get_weights()            const = 0;
+    virtual const std::vector< Eigen::MatrixXd >& get_weights()                                              const = 0;
     // Get the transposed weights matrix
-    virtual const std::vector< Eigen::MatrixXd >& get_weights_transposed() const = 0;
+    virtual const std::vector< Eigen::MatrixXd >& get_weights_transposed()                                   const = 0;
+
+    //
+    // Functions
+    //
+    // Activate
+    virtual       void                            activate( std::vector< std::shared_ptr< Alps::Climber > >& )     = 0;
     // Save the weights
-    virtual       void                            save_weights()           const = 0;
+    virtual       void                            save_weights()                                             const = 0;
     // Load the weights
-    virtual       void                            load_weights()                 = 0;
+    virtual       void                            load_weights()                                                   = 0;
   };
 }
 #endif

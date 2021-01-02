@@ -1,6 +1,7 @@
 #include "AlpsWeightsFclCPU.h"
 //
 //
+//
 Alps::WeightsFclCPU::WeightsFclCPU(  std::shared_ptr< Alps::Mountain > Layer,
 				     const std::vector< int >          Layer_size,
 				     const std::vector< int >          Prev_layer_size  ):
@@ -28,6 +29,23 @@ Alps::WeightsFclCPU::WeightsFclCPU(  std::shared_ptr< Alps::Mountain > Layer,
 	  weights_.push_back( weights );
 	  weights_transposed_.push_back( weights.transpose() );
 	}
+    }
+  catch( itk::ExceptionObject & err )
+    {
+      std::cerr << err << std::endl;
+    }
+};
+//
+//
+//
+void
+Alps::WeightsFclCPU::activate( std::vector< std::shared_ptr< Alps::Climber > >& Tensors )
+{
+  try
+    {
+//      std::cout
+//	<< "" << Tensors[0]->get_array_size()
+//	<< std::endl;
     }
   catch( itk::ExceptionObject & err )
     {

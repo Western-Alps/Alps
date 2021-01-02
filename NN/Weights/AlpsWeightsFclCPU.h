@@ -14,6 +14,7 @@
 #include "AlpsWeights.h"
 #include "AlpsClimber.h"
 #include "AlpsMountain.h"
+#include "AlpsImage.h"
 //
 //
 //
@@ -47,27 +48,33 @@ namespace Alps
     // Accessors
     //
     // Get the weigths matrix
-    virtual const std::vector< Eigen::MatrixXd >& get_weights()            const override   
+    virtual const std::vector< Eigen::MatrixXd >& get_weights()                                              const override   
       {return weights_;};
     // Get the transposed weights matrix
-    virtual const std::vector< Eigen::MatrixXd >& get_weights_transposed() const override
+    virtual const std::vector< Eigen::MatrixXd >& get_weights_transposed()                                   const override
       {return weights_transposed_;};
-
-
-    //
-    // Functions
-    //
-    // Save the weights
-    virtual void                                  save_weights()           const override {};
-    // Load the weights
-    virtual void                                  load_weights()                 override {};
     //
     //
     // Get the observed mountain
-    virtual std::shared_ptr< Alps::Mountain >     get_mountain()                 override
+    virtual std::shared_ptr< Alps::Mountain >     get_mountain()                                                   override
     {return layer_;};
+    // Get layer modality
+    virtual std::vector< std::shared_ptr< Alps::Climber > >& get_layer_modalities( const std::string )             override
+    { };
+ 
+    //
+    // Functions
+    //
+    // Activate
+    virtual       void                            activate( std::vector< std::shared_ptr< Alps::Climber > >& )     override;
+    // Save the weights
+    virtual       void                            save_weights()                                             const override {};
+    // Load the weights
+    virtual       void                            load_weights()                                                   override {};
+    //
+    //
     // Update the weights
-    virtual void                                  update()                       override {};
+    virtual       void                            update()                                                         override {};
 
 
 
