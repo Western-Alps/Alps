@@ -46,6 +46,8 @@ namespace Alps
       //
       // Functions
       //
+      // Add previous layer
+      virtual       void        add_layer( std::shared_ptr< Alps::Layer > )                 = 0;
       // Forward propagation
       virtual       void        forward( std::shared_ptr< Alps::Climber > )                 = 0;
       // Backward propagation

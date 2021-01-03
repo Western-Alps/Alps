@@ -1,4 +1,4 @@
-#include "testSubject.h"
+#include "testAlpsSubject.h"
 #include "AlpsLoadDataSet.h"
 #include "AlpsSubjects.h"
 #include "AlpsTools.h"

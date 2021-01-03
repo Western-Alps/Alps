@@ -14,7 +14,7 @@
 #include "AlpsWeights.h"
 #include "AlpsClimber.h"
 #include "AlpsMountain.h"
-#include "AlpsImage.h"
+//#include "AlpsImage.h"
 //
 //
 //
@@ -32,7 +32,7 @@ namespace Alps
    * connected layers (FCL) using CPU.
    *
    */
-  class WeightsFclCPU : public Alps::Weights,
+  class WeightsFclCPU : public Alps::Weights<double>,
 			public Alps::Climber
   {
   public:
@@ -47,30 +47,36 @@ namespace Alps
     //
     // Accessors
     //
+    // Get size of the tensor
+    virtual const std::vector< std::size_t >      get_tensor_size()                                          const override{};
+    // Get the tensor
+    virtual std::shared_ptr< double >             get_tensor()                                               const override{};
+    // Set size of the tensor
+    virtual void                                  set_tensor_size( std::vector< std::size_t > )                    override{};
+    // Set the tensor
+    virtual void                                  set_tensor( std::shared_ptr< double > )                          override{};
+    //
+    //
     // Get the weigths matrix
     virtual const std::vector< Eigen::MatrixXd >& get_weights()                                              const override   
       {return weights_;};
-    // Get the transposed weights matrix
-    virtual const std::vector< Eigen::MatrixXd >& get_weights_transposed()                                   const override
-      {return weights_transposed_;};
     //
     //
     // Get the observed mountain
     virtual std::shared_ptr< Alps::Mountain >     get_mountain()                                                   override
     {return layer_;};
-    // Get layer modality
-    virtual std::vector< std::shared_ptr< Alps::Climber > >& get_layer_modalities( const std::string )             override
-    { };
  
     //
     // Functions
     //
-    // Activate
-    virtual       void                            activate( std::vector< std::shared_ptr< Alps::Climber > >& )     override;
     // Save the weights
-    virtual       void                            save_weights()                                             const override {};
+    virtual       void                            save_tensor()                                              const override {};
     // Load the weights
-    virtual       void                            load_weights()                                                   override {};
+    virtual       void                            load_tensor()                                                    override {};
+    //
+    //
+    // Activate
+    virtual       void                            activate( std::vector< std::shared_ptr< double > >& )           override;
     //
     //
     // Update the weights
@@ -81,8 +87,6 @@ namespace Alps
   private:
     // Matrix of weigths
     std::vector< Eigen::MatrixXd >    weights_;
-    // Transposed matrix of weigths
-    std::vector< Eigen::MatrixXd >    weights_transposed_;
     //
     // The mountain observed: fully connected layer
     std::shared_ptr< Alps::Mountain > layer_;

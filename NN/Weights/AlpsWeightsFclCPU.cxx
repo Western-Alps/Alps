@@ -25,9 +25,11 @@ Alps::WeightsFclCPU::WeightsFclCPU(  std::shared_ptr< Alps::Mountain > Layer,
 	    nodes += Prev_layer_size[pl];
 	  // Random create the variables between [-1,1]
 	  Eigen::MatrixXd weights = Eigen::MatrixXd::Random( Layer_size[l], nodes + 1 /* biais */ );
+	  std::cout
+	    << "Weights ["<<weights.rows()<<"x"<<weights.cols()<<"]" 
+	    << std::endl;
 	  // record
 	  weights_.push_back( weights );
-	  weights_transposed_.push_back( weights.transpose() );
 	}
     }
   catch( itk::ExceptionObject & err )
@@ -39,7 +41,7 @@ Alps::WeightsFclCPU::WeightsFclCPU(  std::shared_ptr< Alps::Mountain > Layer,
 //
 //
 void
-Alps::WeightsFclCPU::activate( std::vector< std::shared_ptr< Alps::Climber > >& Tensors )
+Alps::WeightsFclCPU::activate( std::vector< std::shared_ptr< double > >& Tensors )
 {
   try
     {

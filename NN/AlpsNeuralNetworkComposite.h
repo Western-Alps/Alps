@@ -62,11 +62,15 @@ namespace Alps
 
       //
       //
+      // Add previous layer
+      virtual       void             add_layer( std::shared_ptr< Alps::Layer > )            override{};
       // Forward propagation
       virtual       void             forward( std::shared_ptr< Alps::Climber > )            override;
-      //
+      // Backward propagation
       virtual       void             backward()                                             override;
       //
+      //
+      // Add network layers
       virtual       void             add( std::shared_ptr< Alps::Layer > )                  override;
 
     private:

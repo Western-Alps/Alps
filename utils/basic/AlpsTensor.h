@@ -4,8 +4,7 @@
 //
 //
 #include <iostream>
-#include <cassert>
-#include <string>
+#include <memory>
 #include "MACException.h"
 //
 //
@@ -16,62 +15,42 @@ namespace Alps
    *
    * \brief 
    * Tensor object represents the basic memory element for the neural network.
+   * Type:
+   *   - float  (e.g.) the tensor is one dimension  (1D).
+   *   - float* (e.g.) the tensor is two dimensions (2D).
+   *
+   * We do not implement tensors with more than 2D and less then 1D (scalars). Most
+   * of our problems should fit these two choices. /
    * 
    */
-  template< class Type, int Dim >
+  template < typename Type >
   class Tensor
     {
       //
       // 
     public:
-      /** Constructor. */
-      explicit Tensor();
-    
       /** Destructor */
       virtual ~Tensor(){};
 
       //
       // Accessors
-      inline const int get_dimension() const {return Dim;}
-      const int get_size( const int S ) const
-      {
-	assert( S < Dim );
-	return size_[S];
-      }
-      
-    private:
       //
-      // private member function
-      //
+      // Get size of the tensor
+      virtual const std::vector< std::size_t > get_tensor_size()                             const = 0;
+      // Get the tensor
+      virtual std::shared_ptr< Type >          get_tensor()                                  const = 0;
+      // Set size of the tensor
+      virtual void                             set_tensor_size( std::vector< std::size_t > )       = 0;
+      // Set the tensor
+      virtual void                             set_tensor( std::shared_ptr< Type > )               = 0;
 
-      //! Member representing the size along each dimension.
-      int* size_{nullptr};
-    };
-  //
-  //
-  //
-  template< class T, int D>
-    Tensor< T, D >::Tensor()
-  {
-    try
-      {
-      if ( D == 0 )
-	{
-	  std::string mess = "Tensor class does not handle tensor 0 yet.";
-	  throw MAC::MACException( __FILE__, __LINE__,
-				   mess.c_str(),
-				   ITK_LOCATION );
-	}
       //
-      size_ = (int*) malloc( D * sizeof(int) );
-      for ( int d = 0 ; d < D ; d++ )
-	size_[d] = 0;
-      }
-    catch( itk::ExceptionObject & err )
-      {
-	std::cerr << err << std::endl;
-	exit(-1);
-      }
-  }
+      // Functions
+      //
+      // Save the tensor values (e.g. weights)
+      virtual void                             save_tensor()                                 const = 0;
+      // Load the tensor values (e.g. weights)
+      virtual void                             load_tensor()                                       = 0;
+    };
 }
 #endif

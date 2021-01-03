@@ -48,40 +48,48 @@ namespace Alps
     // Accessors
     //
     // Get the observed mountain
-    virtual std::shared_ptr< Alps::Mountain >                get_mountain()                                  override
+    virtual std::shared_ptr< Alps::Mountain >                     get_mountain()                                  override
     { return nullptr;};
-    // Get layer modality
-    virtual std::vector< std::shared_ptr< Alps::Climber > >& get_layer_modalities( const std::string Layer ) override
-    { return modalities_[Layer]; };
+    //
     //
     // Subject information
-    const int              get_subject_number()    const
+    const int                                                     get_subject_number()    const
     {return subject_number_;};
     // number of modalities
-    const int              get_number_modalities() const
+    const int                                                     get_number_modalities() const
     {return number_modalities_;};
     // Return the size of the layers
-    std::vector<int>       get_layer_size();
-    
+    std::vector<int>                                              get_layer_size();
+    // Get layer modality z
+    std::vector< std::shared_ptr< Alps::Image< double, Dim > > >& get_layer_z( const std::string Layer )
+    { return modalities_z_[Layer]; };
+    // Get layer modality z
+    std::vector< std::shared_ptr< Alps::Image< double, Dim > > >& get_layer_eps( const std::string Layer )
+    { return modalities_eps_[Layer]; };
+
     //
     // functions
     //
     // Update the subject information
-    virtual void                                update()                                    override{};
+    virtual void                                                  update()                                    override{};
     //
-    void                                        add_modalities( const std::string );
     //
-    const bool                                  check_modalities( const std::string Layer ) 
-      { return (number_modalities_ == modalities_[Layer].size() ? true : false);};
+    // Add a modality
+    void                                                          add_modalities( const std::string );
+    // Check the modalities
+    const bool                                                    check_modalities( const std::string Layer ) 
+      { return (number_modalities_ == modalities_z_[Layer].size() ? true : false);};
 
     
   private:
     //
     // Vector of modalities 
-    std::map< std::string, std::vector< std::shared_ptr< Alps::Climber > > >  modalities_;
+    std::map< std::string, std::vector< std::shared_ptr< Alps::Image< double, Dim > > > >  modalities_z_;
+    // Vector of modalities 
+    std::map< std::string, std::vector< std::shared_ptr< Alps::Image< double, Dim > > > >  modalities_eps_;
     //
     // Subject information
-    int subject_number_{0};
+    int         subject_number_{0};
     // number of modalities
     std::size_t number_modalities_{0};
     //
@@ -91,12 +99,12 @@ namespace Alps
   //
   //
   // Constructor
-  template< /*class F,*/ int Dim >
-  Alps::Subject<Dim>::Subject( const int SubNumber,
-			       const std::size_t NumModalities ): /*Alps::Subject(),*/
+  template< /*class F,*/ int D >
+  Alps::Subject<D>::Subject( const int SubNumber,
+			     const std::size_t NumModalities ):
     subject_number_{SubNumber}, number_modalities_{NumModalities}
   {
-    modalities_["__input_layer__"] = std::vector< std::shared_ptr< Alps::Climber > >();
+    modalities_z_["__input_layer__"] = std::vector< std::shared_ptr< Alps::Image< double, D > > >();
   }
   //
   //
@@ -126,7 +134,7 @@ namespace Alps
 	    img_ptr->Update();
 	    //
 	    // Load the modalities into the container
-	    modalities_["__input_layer__"].push_back( std::make_shared< Alps::Image< D > >(Alps::Image< D >(img_ptr)) );
+	    modalities_z_["__input_layer__"].push_back( std::make_shared< Alps::Image< double, D > >(Alps::Image< double, D >(img_ptr)) );
 	  }
 	else
 	  {
@@ -152,7 +160,7 @@ namespace Alps
       {
 	std::vector<int> layer_size;
 	for ( int img_in = 0 ; img_in < number_modalities_ ; img_in++ )
-	  layer_size.push_back( std::dynamic_pointer_cast< Alps::Image< D > >(modalities_["__input_layer__"][img_in])->get_array_size() );
+	  layer_size.push_back( std::dynamic_pointer_cast< Alps::Image< double, D > >(modalities_z_["__input_layer__"][img_in])->get_tensor_size()[0] );
 	//
 	return layer_size;
       }

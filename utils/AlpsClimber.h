@@ -44,10 +44,8 @@ namespace Alps
     //
     // Get the observed mountain
     virtual std::shared_ptr< Alps::Mountain >                get_mountain()                            = 0;
-    // Get layer modality
-    virtual std::vector< std::shared_ptr< Alps::Climber > >& get_layer_modalities( const std::string ) = 0;
 
-
+    
     //
     // functions
     //

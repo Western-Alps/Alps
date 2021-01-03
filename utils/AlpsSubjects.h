@@ -49,8 +49,6 @@ namespace Alps
     // Get the observed mountain
     virtual std::shared_ptr< Alps::Mountain >                      get_mountain()                                  override
     { return mountain_observed_;};
-    // Get layer modality
-    virtual std::vector< std::shared_ptr< Alps::Climber > >&       get_layer_modalities( const std::string )       override{};
     //
     //
     const   std::vector< std::shared_ptr< Alps::Subject< Dim > > > get_subjects()                            const 
@@ -65,7 +63,7 @@ namespace Alps
     
   private:
     // Attached observed Mountain
-    std::shared_ptr< Alps::Mountain > mountain_observed_;
+    std::shared_ptr< Alps::Mountain >                      mountain_observed_;
     // 
     std::vector< std::shared_ptr< Alps::Subject< Dim > > > subjects_;
     // This function is the continuous step function
@@ -76,7 +74,6 @@ namespace Alps
   // Constructor
   template< /*class F,*/ int D >
   Alps::Subjects</*A,*/ D >::Subjects( std::shared_ptr< Alps::Mountain > Mountain ):
-    Alps::Climber(),
     mountain_observed_{Mountain}
   {
     try
