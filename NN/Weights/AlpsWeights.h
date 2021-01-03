@@ -13,6 +13,7 @@
 //
 #include "MACException.h"
 #include "AlpsTensor.h"
+#include "AlpsImage.h"
 /*! \namespace Alps
  *
  * Name space for Alps.
@@ -25,8 +26,8 @@ namespace Alps
    * neural networks layers. 
    *
    */
-  template< typename Type >
-  class Weights : public Alps::Tensor< Type >
+  template< typename Type, int Order >
+  class Weights : public Alps::Tensor< Type, Order >
   {
   public:
     // Destructor
@@ -36,14 +37,13 @@ namespace Alps
     //
     // Accessors
     //
-    // Get the weigths matrix
-    virtual const std::vector< Eigen::MatrixXd >& get_weights()                                              const = 0;
 
+    
     //
     // Functions
     //
     // Activate
-    virtual void                                  activate( std::vector< std::shared_ptr< Type > >& )              = 0;
+    virtual void activate( std::vector< std::shared_ptr< Alps::Image< double, 1 > > >& ) = 0;
   };
 }
 #endif

@@ -23,7 +23,7 @@ namespace Alps
    * of our problems should fit these two choices. /
    * 
    */
-  template < typename Type >
+  template< typename Type, int Order >
   class Tensor
     {
       //

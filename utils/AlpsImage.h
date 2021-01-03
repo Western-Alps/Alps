@@ -30,7 +30,7 @@ namespace Alps
    *
    */
   template< /*class Function,*/ typename Type, int Dim >
-  class Image : public Alps::Tensor< Type >
+  class Image : public Alps::Tensor< Type, 1 >
   {
   public:
     /** Constructor */
