@@ -48,7 +48,8 @@ namespace Alps
     // Accessors
     //
     // Get size of the tensor
-    virtual const std::vector< std::size_t >      get_tensor_size()                                          const override{};
+    virtual const std::vector< std::size_t >      get_tensor_size()                                          const override
+    { return std::vector< std::size_t >(); };
     // Get the tensor
     virtual std::shared_ptr< Eigen::MatrixXd >    get_tensor()                                               const override
     {return weights_;};

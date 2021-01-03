@@ -111,7 +111,7 @@ namespace Alps
 	//
 	ImageRegionIterator< ImageType< D > > imageIterator( Image_reader->GetOutput(),
 							     region_ );
-	int position = 0;
+	std::size_t position = 0;
 	while( !imageIterator.IsAtEnd() )
 	  {
 	    ( z_.get() )[ position++ ] = imageIterator.Value();

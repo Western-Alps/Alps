@@ -36,8 +36,8 @@ TEST_F(WeightsFclCPUTest, ByDefaultWeigthsGet) {
 			 /*Current  layer*/ std::vector< int >(1, 2),
 			 /*Previous layer*/ std::vector< int >(1, 3) );
   //
-  auto weights   = *W.get_tensor().get();
-  auto weights_T = W.get_tensor().get()->transpose();
+  auto weights   = *(W.get_tensor().get());
+  auto weights_T = weights.transpose();
   //
   //
   EXPECT_EQ( weights(1,2), weights_T(2,1) ) ;
@@ -49,8 +49,8 @@ TEST_F(WeightsFclCPUTest, ByDefaultWeigthsGet2) {
 			 /*Current  layer*/ std::vector< int >(1, 2),
 			 /*Previous layer*/ std::vector< int >(2, 3) );
   //
-  auto weights   = *W.get_tensor().get();
-  auto weights_T = W.get_tensor().get()->transpose();
+  auto weights   = *(W.get_tensor().get());
+  auto weights_T = weights.transpose();
   //
   //
   EXPECT_EQ( weights(1,2), weights_T(2,1) ) ;

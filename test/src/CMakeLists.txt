@@ -1,5 +1,5 @@
 #
-# Basics
+# Validation
 #
 file( GLOB SRCS main.cxx testAlpsCVKFolds.h testAlpsCVKFolds.cpp )
 add_executable(testAlpsCVKFolds ${SRCS})
@@ -19,6 +19,8 @@ target_link_libraries( testAlpsFullSamples ${gtest_LIB_DEPENDS}
   ${gmock_BINARY_DIR}/libgmock_main.a
   _Alps_utils _Alps_nn ${ITK_LIBRARIES} )
 #
+# Input file
+#
 file( GLOB SRCS main.cxx testAlpsLoadDataSet.h testAlpsLoadDataSet.cpp )
 add_executable(testAlpsLoadDataSet ${SRCS})
 target_link_libraries( testAlpsLoadDataSet ${gtest_LIB_DEPENDS}
@@ -28,6 +30,17 @@ target_link_libraries( testAlpsLoadDataSet ${gtest_LIB_DEPENDS}
   ${gmock_BINARY_DIR}/libgmock_main.a
   _Alps_utils ${ITK_LIBRARIES} )
 #
+# utils
+# 
+file( GLOB SRCS main.cxx testITKFunctions.h testITKFunctions.cpp )
+add_executable(testITKFunctions ${SRCS})
+target_link_libraries( testITKFunctions ${gtest_LIB_DEPENDS}
+  ${gmock_BINARY_DIR}/gtest/libgtest.a
+  ${gmock_BINARY_DIR}/gtest/libgtest_main.a
+  ${gmock_BINARY_DIR}/libgmock.a
+  ${gmock_BINARY_DIR}/libgmock_main.a
+  _Alps_utils ${ITK_LIBRARIES} )
+# 
 file( GLOB SRCS main.cxx testAlpsImage.h testAlpsImage.cpp )
 add_executable(testAlpsImage ${SRCS})
 target_link_libraries( testAlpsImage ${gtest_LIB_DEPENDS}
@@ -77,6 +90,8 @@ target_link_libraries(testAlpsConvolutionWindow  ${gtest_LIB_DEPENDS}
 
 #
 # Tests
+add_test( NAME testITKFunctions          COMMAND testITKFunctions      WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+#
 add_test( NAME testAlpsCVKFolds          COMMAND testAlpsCVKFolds      WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
 add_test( NAME testAlpsFullSamples       COMMAND testAlpsFullSamples   WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
 add_test( NAME testAlpsLoadDataSet       COMMAND testAlpsLoadDataSet   WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )

@@ -126,43 +126,43 @@ namespace Alps
 	//
 	// Down to subject
 	std::shared_ptr< Alps::Subject< D > > subject = std::dynamic_pointer_cast< Alps::Subject< D > >(Sub);
-//	//
-//	// We get the number of previous layers attached to this layer. In this first loop,
-//	// we collect the number of nodes if the weights were not initialized
-//	std::cout << "Layer: " << layer_name_ << std::endl;
-//	if ( !weights_ )
-//	  {
-//	    std::vector< int > prev_layer_size;
-//	    for ( auto layer : prev_layer_ )
-//	      if ( layer )
-//		{
-//		  for ( auto mod : layer->get_layer_size() )
-//		    {
-//		      std::cout
-//			<< "Connected to: " << layer->get_layer_name()
-//			<< " with " << layer->get_layer_size()[0] << " nodes" << std::endl;
-//		      prev_layer_size.push_back( mod );
-//		    }
-//		}
-//	      else
-//		{
-//		  // the connected layer is the input layer
-//		  for ( auto mod : subject->get_layer_size() )
-//		    {
-//		      std::cout
-//			<< "Connected to: " << "__input_layer__"
-//			<< " with " << subject->get_layer_size()[0] << " nodes" << std::endl;
-//		      prev_layer_size.push_back( mod );
-//		    }
-//		}
-//	    //
-//	    // If the weights were not initialized yet
-//	    weights_ = std::make_shared< W >( std::shared_ptr< FullyConnectedLayer< AF, W, D > >( this ),
-//					      fc_layer_size_, prev_layer_size );
-//	  }
-//	//
-//	//
-//	// Build the activation
+	//
+	// We get the number of previous layers attached to this layer. In this first loop,
+	// we collect the number of nodes if the weights were not initialized
+	std::cout << "Layer: " << layer_name_ << std::endl;
+	if ( !weights_ )
+	  {
+	    std::vector< int > prev_layer_size;
+	    for ( auto layer : prev_layer_ )
+	      if ( layer )
+		{
+		  for ( auto mod : layer->get_layer_size() )
+		    {
+		      std::cout
+			<< "Connected to: " << layer->get_layer_name()
+			<< " with " << layer->get_layer_size()[0] << " nodes" << std::endl;
+		      prev_layer_size.push_back( mod );
+		    }
+		}
+	      else
+		{
+		  // the connected layer is the input layer
+		  for ( auto mod : subject->get_layer_size() )
+		    {
+		      std::cout
+			<< "Connected to: " << "__input_layer__"
+			<< " with " << subject->get_layer_size()[0] << " nodes" << std::endl;
+		      prev_layer_size.push_back( mod );
+		    }
+		}
+	    //
+	    // If the weights were not initialized yet
+	    weights_ = std::make_shared< W >( std::shared_ptr< FullyConnectedLayer< AF, W, D > >( this ),
+					      fc_layer_size_, prev_layer_size );
+	  }
+	//
+	//
+	// Build the activation
 //	// Get the tensor arrays. In this second loop we gather the information for the activation
 //	std::vector< std::tuple< /*input array*/ std::shared_ptr< double >,
 //				 /*input size*/ int > > layer_neurons;
