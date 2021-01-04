@@ -10,8 +10,10 @@
 #include "MACException.h"
 #include "AlpsLayer.h"
 #include "AlpsMountain.h"
+#include "AlpsFunction.h"
 #include "AlpsSubject.h"
 #include "AlpsImage.h"
+
 //
 //
 //
@@ -78,21 +80,23 @@ namespace Alps
     
   private:
     // Layer's name
-    std::string                                                layer_name_{"__Fully_connected_layer__"};
+    std::string                                   layer_name_{"__Fully_connected_layer__"};
+    // Activation function
+    std::shared_ptr< Alps::Function >             activation_func_{std::make_shared< ActivationFunction >()};
       
     //
     // number of fully connected layers
-    std::vector< int >                                         fc_layer_size_;
+    std::vector< int >                            fc_layer_size_;
 
     //
     // Previous  layers information
-    std::vector< std::shared_ptr< Alps::Layer > >              prev_layer_;
+    std::vector< std::shared_ptr< Alps::Layer > > prev_layer_;
     // Next layers information
-    std::shared_ptr< Alps::Layer >                             next_layer_;
+    std::shared_ptr< Alps::Layer >                next_layer_;
     //
     // Observers
     // Observers containers
-    std::shared_ptr< Weights >                                 weights_{nullptr};
+    std::shared_ptr< Weights >                    weights_{nullptr};
   };
   //
   //
@@ -130,8 +134,10 @@ namespace Alps
 	// We get the number of previous layers attached to this layer. In this first loop,
 	// we collect the number of nodes if the weights were not initialized
 	std::cout << "Layer: " << layer_name_ << std::endl;
+	std::vector< std::shared_ptr< Alps::Image< double, 2 > > > prev_layer_tensors;
 	if ( !weights_ )
 	  {
+	    // If the weights were not initialized yet
 	    std::vector< int > prev_layer_size;
 	    for ( auto layer : prev_layer_ )
 	      if ( layer )
@@ -153,50 +159,23 @@ namespace Alps
 			<< "Connected to: " << "__input_layer__"
 			<< " with " << subject->get_layer_size()[0] << " nodes" << std::endl;
 		      prev_layer_size.push_back( mod );
+		      // Concate the input iamges
+		      auto input_images = subject->get_layer_z("__input_layer__");
+		      prev_layer_tensors.insert( prev_layer_tensors.end(),
+						 input_images.begin(),
+						 input_images.end() );
 		    }
 		}
 	    //
-	    // If the weights were not initialized yet
+	    // weights instantiation
 	    weights_ = std::make_shared< W >( std::shared_ptr< FullyConnectedLayer< AF, W, D > >( this ),
 					      fc_layer_size_, prev_layer_size );
 	  }
 	//
 	//
 	// Build the activation
-//	// Get the tensor arrays. In this second loop we gather the information for the activation
-//	std::vector< std::tuple< /*input array*/ std::shared_ptr< double >,
-//				 /*input size*/ int > > layer_neurons;
-//	//
-//	for ( auto layer : prev_layer_ )
-//	  if ( layer )
-//	    {
-//	      for ( auto mod : layer->get_layer_z(layer->get_layer_name()) )
-//		{
-//		  std::cout
-//		    << "Connected to: " << layer->get_layer_name()
-//		    << " with " << layer->get_layer_size()[0] << " nodes" << std::endl;
-//		  layer_neurons.push_back( std::make_tuple( mod->get_z(), mod->get_array_size() ));
-//		}
-//	    }
-//	  else
-//	    {
-//	      // the connected layer is the input layer
-//	      for ( auto mod : subject->get_layer_z("__input_layer__") )
-//		{
-//		  std::cout
-//		    << "Connected to: " << "__input_layer__"
-//		    << " with " << subject->get_layer_size()[0] << " nodes" << std::endl;
-//		  layer_neurons.push_back( std::make_tuple( mod->get_z(), mod->get_array_size() ));
-//		}
-//	    }
-//
-//	// Create a new  std::shared_ptr<double>( new double[array_size_], std::default_delete< double[] >() );
-//	// with the size of the arrays + 1 biases
-//	// pass the new std::shared_ptr<double> in activation
-//	if ( prev_layer_ )
-//	  weights_->activate( subject->get_layer_modalities(prev_layer_->get_layer_name()) );
-//	else
-//	  weights_->activate( subject->get_layer_modalities("__input_layer__") );
+	// Get the tensor arrays. In this second loop we gather the information for the activation
+	weights_->activate( prev_layer_tensors, activation_func_ );
 
 	
       }

@@ -40,14 +40,56 @@ Alps::WeightsFclCPU::WeightsFclCPU(  std::shared_ptr< Alps::Mountain > Layer,
 //
 //
 //
-void
-Alps::WeightsFclCPU::activate( std::vector< std::shared_ptr< Alps::Image< double, 1 > > >& Image )
+std::shared_ptr< double >
+Alps::WeightsFclCPU::activate( std::vector< std::shared_ptr< Alps::Image< double, 2 > > >& Image_tensors,
+			       std::shared_ptr< Alps::Function >                           Activ_func )
 {
   try
     {
-//      std::cout
-//	<< "" << Tensors[0]->get_array_size()
-//	<< std::endl;
+      //
+      // Check the dimensions are right
+      long int tensors_size = 0;
+      for ( auto tensor : Image_tensors )
+	tensors_size += static_cast< long int >( tensor->get_tensor_size()[0] );
+      //
+      if ( weights_->cols() != tensors_size + 1 )
+	{
+	  std::string
+	    mess = std::string("There is miss match between the number of columns (")
+	    + std::to_string( weights_->cols() )
+	    + std::string(") and the size of the input tensor (")
+	    + std::to_string( tensors_size )
+	    + std::string("+1).");
+	  throw MAC::MACException( __FILE__, __LINE__,
+				   mess.c_str(),
+				   ITK_LOCATION );
+	}
+      //
+      // Converter the tensor into an Eigen matrix
+      std::shared_ptr< double > z_out = std::shared_ptr< double >( new  double[weights_->rows()],
+								  std::default_delete<  double[] >() );
+      Eigen::MatrixXd           a_out = Eigen::MatrixXd::Zero( weights_->rows(), 1 );
+      Eigen::MatrixXd           z_in  = Eigen::MatrixXd::Zero( weights_->cols(), 1 );
+      // Load the tensor image into a Eigen vector
+      std::size_t shift = 1;
+      z_in(0,0) = 1.; // bias
+      for ( auto tensor : Image_tensors )
+	{
+	  std::size_t img_size = tensor->get_tensor_size()[0];
+	  for ( std::size_t s = 0 ; s < img_size ; s++ )
+	    z_in(s+shift,0) = tensor->get_tensor().get()[s];
+	  shift += img_size;
+	}
+      // process
+      a_out = *( weights_.get() ) * z_in;
+      // Apply the activation function
+      long int activation_size = weights_->rows();
+      for ( long int s = 0 ; s < activation_size ; s++ )
+	z_out.get()[s] = Activ_func->f( a_out(s,0) );
+
+      //
+      //
+      return z_out;
     }
   catch( itk::ExceptionObject & err )
     {

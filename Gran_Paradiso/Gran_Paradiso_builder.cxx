@@ -1,14 +1,9 @@
-//
-// CUDA
-//
-//
-//
 #include "MACException.h"
 #include "NeuralNetwork.h"
 #include "NeuralNetworkComposite.h"
 #include "Gran_Paradiso_builder.h"
 #include "AlpsWeightsFclCPU.h"
-#include "Activations.h"
+#include "AlpsActivations.h"
 //
 //
 //
@@ -17,8 +12,9 @@ Alps::Gran_Paradiso_builder::Gran_Paradiso_builder()
   //
   // Neural network anatomy
   //
-  using weights        = Alps::WeightsFclCPU;
-  using FullyConnected = Alps::FullyConnectedLayer< MAC::Activation_tanh, weights, 2 >;
+  using Weights        = Alps::WeightsFclCPU;
+  using Activation     = Alps::Activation_tanh;
+  using FullyConnected = Alps::FullyConnectedLayer< Activation, Weights, /*Dimension*/ 2 >;
 
   //
   // Fully connected layers

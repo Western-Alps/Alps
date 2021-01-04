@@ -29,7 +29,7 @@ namespace Alps
    * be vectorized in an array of 1D.
    *
    */
-  template< /*class Function,*/ typename Type, int Dim >
+  template< typename Type, int Dim >
   class Image : public Alps::Tensor< Type, 1 >
   {
   public:
@@ -88,7 +88,7 @@ namespace Alps
   //
   //
   // Constructor
-  template< /*class F,*/ typename T,int D >
+  template< typename T,int D >
   Alps::Image< T, D >::Image( const typename Reader< D >::Pointer Image_reader )
   {
     try

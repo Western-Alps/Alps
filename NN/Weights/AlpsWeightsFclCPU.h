@@ -14,7 +14,6 @@
 #include "AlpsWeights.h"
 #include "AlpsClimber.h"
 #include "AlpsMountain.h"
-//#include "AlpsImage.h"
 //
 //
 //
@@ -48,19 +47,19 @@ namespace Alps
     // Accessors
     //
     // Get size of the tensor
-    virtual const std::vector< std::size_t >      get_tensor_size()                                          const override
+    virtual const std::vector< std::size_t >      get_tensor_size()                                const override
     { return std::vector< std::size_t >(); };
     // Get the tensor
-    virtual std::shared_ptr< Eigen::MatrixXd >    get_tensor()                                               const override
+    virtual std::shared_ptr< Eigen::MatrixXd >    get_tensor()                                     const override
     {return weights_;};
     // Set size of the tensor
-    virtual void                                  set_tensor_size( std::vector< std::size_t > )                    override{};
+    virtual void                                  set_tensor_size( std::vector< std::size_t > )          override{};
     // Set the tensor
-    virtual void                                  set_tensor( std::shared_ptr< Eigen::MatrixXd > )                 override{};
+    virtual void                                  set_tensor( std::shared_ptr< Eigen::MatrixXd > )       override{};
     //
     //
     // Get the observed mountain
-    virtual std::shared_ptr< Alps::Mountain >     get_mountain()                                                   override
+    virtual std::shared_ptr< Alps::Mountain >     get_mountain()                                         override
     {return layer_;};
 
     
@@ -68,17 +67,18 @@ namespace Alps
     // Functions
     //
     // Save the weights
-    virtual       void                            save_tensor()                                              const override {};
+    virtual void                            save_tensor()                                     const override{};
     // Load the weights
-    virtual       void                            load_tensor()                                                    override {};
+    virtual void                            load_tensor()                                           override{};
     //
     //
     // Activate
-    virtual       void                            activate( std::vector< std::shared_ptr< Alps::Image< double, 1 > > >& )           override;
+    virtual std::shared_ptr< double >       activate( std::vector< std::shared_ptr< Alps::Image< double, 2 > > >&,
+						      std::shared_ptr< Alps::Function > )           override;
     //
     //
     // Update the weights
-    virtual       void                            update()                                                         override {};
+    virtual void                            update()                                                override{};
 
 
 

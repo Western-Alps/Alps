@@ -14,6 +14,7 @@
 #include "MACException.h"
 #include "AlpsTensor.h"
 #include "AlpsImage.h"
+#include "AlpsFunction.h"
 /*! \namespace Alps
  *
  * Name space for Alps.
@@ -43,7 +44,8 @@ namespace Alps
     // Functions
     //
     // Activate
-    virtual void activate( std::vector< std::shared_ptr< Alps::Image< double, 1 > > >& ) = 0;
+    virtual std::shared_ptr< double > activate( std::vector< std::shared_ptr< Alps::Image< double, 2 > > >&,
+						std::shared_ptr< Alps::Function > ) = 0;
   };
 }
 #endif
