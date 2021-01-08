@@ -47,6 +47,9 @@ namespace Alps
       //
       // Accessors
       //
+      // get the layer identification
+      virtual const std::size_t      get_layer_id() const                                  override
+      { return layer_id_;}
       // get the layer name
       virtual const std::string      get_layer_name()                                 const override
         { return std::string("Gran Paradiso network.");};
@@ -54,8 +57,8 @@ namespace Alps
       virtual const int              get_number_weights()                             const override
         { return 1;};
       // get the layer size
-      virtual const std::vector<int> get_layer_size()                                 const override
-      { return std::vector<int>();};
+      virtual const std::vector<std::size_t> get_layer_size()                                 const override
+      { return std::vector<std::size_t>();};
       // attach the next layer
       virtual       void             set_next_layer( std::shared_ptr< Alps::Layer > )       override{};
       //
@@ -88,7 +91,8 @@ namespace Alps
       
 
     private:
-      //
+      // layer unique ID
+      std::size_t                                   layer_id_{0};
       //
       Alps::NeuralNetworkComposite mr_nn_;
     };

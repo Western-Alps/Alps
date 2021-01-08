@@ -4,7 +4,7 @@
 //
 //
 #include <iostream>
-#include <tuple>
+#include <random>
 #include <memory>
 //
 #include "MACException.h"
@@ -12,7 +12,7 @@
 #include "AlpsMountain.h"
 #include "AlpsFunction.h"
 #include "AlpsSubject.h"
-#include "AlpsImage.h"
+#include "AlpsLayerTensors.h"
 
 //
 //
@@ -38,7 +38,7 @@ namespace Alps
   public:
     /** Constructor. */
     explicit FullyConnectedLayer( const std::string,
-				  const std::vector<int> );
+				  const std::vector< std::size_t > );
     /** Destructor */
     virtual ~FullyConnectedLayer(){};
 
@@ -46,17 +46,20 @@ namespace Alps
     //
     // Accessors
     //
+    // get the layer identification
+    virtual const std::size_t      get_layer_id() const                                  override
+    { return layer_id_;}
     // get the layer name
-    virtual const std::string      get_layer_name()                                      const override
+    virtual const std::string      get_layer_name() const                                override
     { return layer_name_;}
     // get number of weights
-    virtual const int              get_number_weights()                                  const override
+    virtual const int              get_number_weights() const                            override
     { return 0.;};
     // get the layer size
-    virtual const std::vector<int> get_layer_size()                                      const override
+    virtual const std::vector<std::size_t> get_layer_size() const                                override
       {return fc_layer_size_;};
     // attach the next layer
-    virtual       void             set_next_layer( std::shared_ptr< Alps::Layer > Next )       override
+    virtual       void             set_next_layer( std::shared_ptr< Alps::Layer > Next ) override
       { next_layer_ = Next;};
 
 
@@ -64,21 +67,23 @@ namespace Alps
     // Functions
     //
     // Add previous layer
-    virtual       void             add_layer( std::shared_ptr< Alps::Layer > Layer )           override
+    virtual       void             add_layer( std::shared_ptr< Alps::Layer > Layer )     override
     { prev_layer_.push_back( Layer );};
     // Forward propagation
-    virtual       void             forward( std::shared_ptr< Alps::Climber > )                 override;
+    virtual       void             forward( std::shared_ptr< Alps::Climber > )           override;
     // Backward propagation
-    virtual       void             backward()                                                  override {};
+    virtual       void             backward()                                            override {};
     //
     //
     // Attach observers that need to be updated
-    virtual       void             attach( std::shared_ptr< Alps::Climber > )                  override {};
+    virtual       void             attach( std::shared_ptr< Alps::Climber > )            override {};
     // Notify the observers for updates
-    virtual       void             notify()                                                    override {};
+    virtual       void             notify()                                              override {};
 
     
   private:
+    // layer unique ID
+    std::size_t                                   layer_id_{0};
     // Layer's name
     std::string                                   layer_name_{"__Fully_connected_layer__"};
     // Activation function
@@ -86,7 +91,7 @@ namespace Alps
       
     //
     // number of fully connected layers
-    std::vector< int >                            fc_layer_size_;
+    std::vector< std::size_t >                            fc_layer_size_;
 
     //
     // Previous  layers information
@@ -102,15 +107,26 @@ namespace Alps
   //
   //
   template< typename AF, typename W, int D   >
-  FullyConnectedLayer< AF, W, D >::FullyConnectedLayer( const std::string      Layer_name,
-							const std::vector<int> Fc_layer_size ):
+  FullyConnectedLayer< AF, W, D >::FullyConnectedLayer( const std::string              Layer_name,
+							const std::vector<std::size_t> Fc_layer_size ):
     layer_name_{Layer_name}, fc_layer_size_{Fc_layer_size}
   {
     try
       {
+	//
+	// Create a unique id for the layer
+	std::random_device                   rd;
+	std::mt19937                         generator( rd() );
+	std::uniform_int_distribution< int > distribution( 0, 1UL << 16 );
+	//
+	layer_id_ = distribution( generator );
+  
+
+	//
+	//
 	if ( Fc_layer_size.size() != 1 )
 	  throw MAC::MACException( __FILE__, __LINE__,
-				   "Alps does not handle multiple layer in one Layer yet.",
+				   "Alps does not handle multiple layer in one Layer yet, except for the input layer.",
 				   ITK_LOCATION );
       }
     catch( itk::ExceptionObject & err )
@@ -134,11 +150,11 @@ namespace Alps
 	// We get the number of previous layers attached to this layer. In this first loop,
 	// we collect the number of nodes if the weights were not initialized
 	std::cout << "Layer: " << layer_name_ << std::endl;
-	std::vector< std::shared_ptr< Alps::Image< double, 2 > > > prev_layer_tensors;
+	std::vector< Alps::LayerTensors< double, 2 > > prev_layer_tensors;
 	if ( !weights_ )
 	  {
 	    // If the weights were not initialized yet
-	    std::vector< int > prev_layer_size;
+	    std::vector< std::size_t > prev_layer_size;
 	    for ( auto layer : prev_layer_ )
 	      if ( layer )
 		{
@@ -160,7 +176,7 @@ namespace Alps
 			<< " with " << subject->get_layer_size()[0] << " nodes" << std::endl;
 		      prev_layer_size.push_back( mod );
 		      // Concate the input iamges
-		      auto input_images = subject->get_layer_z("__input_layer__");
+		      auto input_images = subject->get_layer("__input_layer__");
 		      prev_layer_tensors.insert( prev_layer_tensors.end(),
 						 input_images.begin(),
 						 input_images.end() );
@@ -175,7 +191,9 @@ namespace Alps
 	//
 	// Build the activation
 	// Get the tensor arrays. In this second loop we gather the information for the activation
-	weights_->activate( prev_layer_tensors, activation_func_ );
+	subject->add_layer( layer_name_, fc_layer_size_,
+			    weights_->activate(prev_layer_tensors,
+					       activation_func_) );
 
 	
       }

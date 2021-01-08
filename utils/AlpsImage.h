@@ -37,6 +37,8 @@ namespace Alps
     Image(){};
     /** Constructor */
     Image( const typename Reader< Dim >::Pointer );
+    /** Constructor */
+    Image( const std::vector< std::size_t >, std::shared_ptr< double > );
     /* Destructor */
     virtual ~Image(){};
 
@@ -45,17 +47,17 @@ namespace Alps
     // Accessors
     //
     // Get size of the tensor
-    virtual const std::vector< std::size_t > get_tensor_size()                              const
-      { return array_size_;};
+    virtual const std::vector< std::size_t > get_tensor_size() const
+      { return tensor_size_;};
     // Get the tensor
-    virtual std::shared_ptr< Type >          get_tensor()                                   const
-    { return z_;};
+    virtual std::shared_ptr< Type >          get_tensor() const
+    { return tensor_;};
     // Set size of the tensor
     virtual void                             set_tensor_size( std::vector< std::size_t > S)
-    { array_size_ = S;};
+    { tensor_size_ = S;};
     // Set the tensor
     virtual void                             set_tensor( std::shared_ptr< Type > Z )
-    { z_ = Z;};
+    { tensor_ = Z;};
 
 
     //
@@ -64,7 +66,7 @@ namespace Alps
     // Save the tensor values (e.g. weights)
     virtual void save_tensor() const{};
     // Load the tensor values (e.g. weights)
-    virtual void load_tensor()      {};
+    virtual void load_tensor( const std::string ) {};
 
   private:
     //
@@ -81,9 +83,9 @@ namespace Alps
     //
     // Neural network properties
     //
-    std::vector< std::size_t > array_size_{ std::vector< std::size_t >(1,1) };
+    std::vector< std::size_t > tensor_size_{ std::vector< std::size_t >(/*tensor order*/1,1) };
     // Z
-    std::shared_ptr< Type >    z_;
+    std::shared_ptr< Type >    tensor_;
   };
   //
   //
@@ -100,25 +102,25 @@ namespace Alps
 	for ( int d = 0 ; d < D ; d++ )
 	  {
 	    start_[d]       = 0;
-	    array_size_[0] *= size_[d];
+	    tensor_size_[0] *= size_[d];
 	  }
 	//
 	// Resize elements
 	region_.SetSize( size_ );
 	region_.SetIndex( start_ );
 	//
-	z_   = std::shared_ptr< T >( new  T [array_size_[0]], std::default_delete<  T [] >() );
+	tensor_ = std::shared_ptr< T >( new  T [tensor_size_[0]], std::default_delete<  T [] >() );
 	//
 	ImageRegionIterator< ImageType< D > > imageIterator( Image_reader->GetOutput(),
 							     region_ );
 	std::size_t position = 0;
 	while( !imageIterator.IsAtEnd() )
 	  {
-	    ( z_.get() )[ position++ ] = imageIterator.Value();
+	    ( tensor_.get() )[ position++ ] = imageIterator.Value();
 	    ++imageIterator;
 	  }
 	// Check the vector has been created correctly
-	if ( position != array_size_[0] )
+	if ( position != tensor_size_[0] )
 	  throw MAC::MACException( __FILE__, __LINE__,
 				   "The iamge vector has not been created correctly.",
 				   ITK_LOCATION );
@@ -128,5 +130,13 @@ namespace Alps
 	std::cerr << err << std::endl;
       }
   }
+  //
+  //
+  // Constructor
+  template< typename T,int D >
+  Alps::Image< T, D >::Image( const std::vector< std::size_t > Tensor_size,
+			      std::shared_ptr< double >        Tensor ):
+    tensor_size_{Tensor_size}, tensor_{Tensor}
+  {}
 }
 #endif

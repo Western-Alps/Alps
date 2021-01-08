@@ -13,6 +13,7 @@
 //
 #include "MACException.h"
 #include "AlpsTensor.h"
+#include "AlpsLayerTensors.h"
 #include "AlpsImage.h"
 #include "AlpsFunction.h"
 /*! \namespace Alps
@@ -44,7 +45,7 @@ namespace Alps
     // Functions
     //
     // Activate
-    virtual std::shared_ptr< double > activate( std::vector< std::shared_ptr< Alps::Image< double, 2 > > >&,
+    virtual std::shared_ptr< double > activate( std::vector< Alps::LayerTensors< double, 2 > >&,
 						std::shared_ptr< Alps::Function > ) = 0;
   };
 }

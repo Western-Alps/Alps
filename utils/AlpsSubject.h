@@ -14,7 +14,7 @@
 //
 #include "MACException.h"
 #include "AlpsClimber.h"
-#include "AlpsImage.h"
+#include "AlpsLayerTensors.h"
 #include "AlpsTools.h"
 //
 //
@@ -32,7 +32,7 @@ namespace Alps
    * of the subject through the processing.
    *
    */
-  template< /*class Function,*/ int Dim >
+  template< int Dim >
   class Subject : public Alps::Climber
   {
   public:
@@ -48,63 +48,60 @@ namespace Alps
     // Accessors
     //
     // Get the observed mountain
-    virtual std::shared_ptr< Alps::Mountain >                     get_mountain()                                  override
+    virtual std::shared_ptr< Alps::Mountain >         get_mountain()                       override
     { return nullptr;};
     //
     //
     // Subject information
-    const int                                                     get_subject_number()    const
+    const int                                         get_subject_number() const
     {return subject_number_;};
     // number of modalities
-    const int                                                     get_number_modalities() const
+    const int                                         get_number_modalities() const
     {return number_modalities_;};
     // Return the size of the layers
-    std::vector<int>                                              get_layer_size();
+    std::vector<std::size_t>                                  get_layer_size();
     // Get layer modality z
-    std::vector< std::shared_ptr< Alps::Image< double, Dim > > >& get_layer_z( const std::string Layer )
-    { return modalities_z_[Layer]; };
-    // Get layer modality z
-    std::vector< std::shared_ptr< Alps::Image< double, Dim > > >& get_layer_eps( const std::string Layer )
-    { return modalities_eps_[Layer]; };
+    std::vector< Alps::LayerTensors< double, Dim > >& get_layer( const std::string Layer )
+    { return modalities_[Layer]; };
+
 
     //
     // functions
     //
     // Update the subject information
-    virtual void                                                  update()                                    override{};
+    virtual void                                      update()                             override{};
     //
     //
     // Add a modality
-    void                                                          add_modalities( const std::string );
+    void                                              add_modalities( const std::string );
     // Check the modalities
-    const bool                                                    check_modalities( const std::string Layer ) 
-      { return (number_modalities_ == modalities_z_[Layer].size() ? true : false);};
+    const bool                                        check_modalities( const std::string Layer ) 
+      { return (number_modalities_ == modalities_[Layer].size() ? true : false);};
+    // Add a layer
+    void                                              add_layer( const std::string,
+								 const std::vector<std::size_t>,
+								 std::shared_ptr< double >  );
 
     
   private:
     //
     // Vector of modalities 
-    std::map< std::string, std::vector< std::shared_ptr< Alps::Image< double, Dim > > > >  modalities_z_;
-    // Vector of modalities 
-    std::map< std::string, std::vector< std::shared_ptr< Alps::Image< double, Dim > > > >  modalities_eps_;
+    std::map< std::string, std::vector< Alps::LayerTensors< double, Dim > > > modalities_;
     //
     // Subject information
     int         subject_number_{0};
     // number of modalities
     std::size_t number_modalities_{0};
-    //
-    // This function is the continuous step function
-    /*Function                                         activation_function_;*/
   };
   //
   //
   // Constructor
   template< /*class F,*/ int D >
-  Alps::Subject<D>::Subject( const int SubNumber,
+  Alps::Subject<D>::Subject( const int         SubNumber,
 			     const std::size_t NumModalities ):
     subject_number_{SubNumber}, number_modalities_{NumModalities}
   {
-    modalities_z_["__input_layer__"] = std::vector< std::shared_ptr< Alps::Image< double, D > > >();
+    modalities_["__input_layer__"] = std::vector< Alps::LayerTensors< double, D > >();
   }
   //
   //
@@ -117,29 +114,13 @@ namespace Alps
 	if ( Alps::file_exists(Modality) )
 	  {
 	    //
-	    // load the image ITK pointer
-	    auto image_ptr = itk::ImageIOFactory::CreateImageIO( Modality.c_str(),
-								 itk::CommonEnums::IOFileMode::ReadMode );
-	    image_ptr->SetFileName( Modality );
-	    image_ptr->ReadImageInformation();
-	    // Check the dimensions complies
-	    if ( image_ptr->GetNumberOfDimensions() != D )
-	      throw MAC::MACException( __FILE__, __LINE__,
-				       "The dimensions of the image and instanciation are different.",
-				       ITK_LOCATION );
-	    //
-	    // Read the ITK image
-	    typename Reader< D >::Pointer img_ptr = Reader< D >::New();
-	    img_ptr->SetFileName( image_ptr->GetFileName() );
-	    img_ptr->Update();
-	    //
 	    // Load the modalities into the container
-	    modalities_z_["__input_layer__"].push_back( std::make_shared< Alps::Image< double, D > >(Alps::Image< double, D >(img_ptr)) );
+	    modalities_["__input_layer__"].push_back( Alps::LayerTensors< double, D >(Modality) );
 	  }
 	else
 	  {
 	    std::string mess = "Image (";
-	    mess += Modality + ") does not exists.";
+	    mess            += Modality + ") does not exists.";
 	    throw MAC::MACException( __FILE__, __LINE__,
 				     mess.c_str(),
 				     ITK_LOCATION );
@@ -153,16 +134,45 @@ namespace Alps
   //
   //
   //
-  template< /*class F,*/ int D > std::vector<int>
+  template< /*class F,*/ int D > std::vector<std::size_t>
   Alps::Subject< D >::get_layer_size()
   {
     try
       {
-	std::vector<int> layer_size;
+	std::vector<std::size_t> layer_size;
 	for ( int img_in = 0 ; img_in < number_modalities_ ; img_in++ )
-	  layer_size.push_back( std::dynamic_pointer_cast< Alps::Image< double, D > >(modalities_z_["__input_layer__"][img_in])->get_tensor_size()[0] );
+	  layer_size.push_back( modalities_["__input_layer__"][img_in].get_tensor_size()[0] );
 	//
 	return layer_size;
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+      }
+  }
+  //
+  //
+  // 
+  template< /*class F,*/ int D > void
+  Alps::Subject< D >::add_layer( const std::string         Layer_name,
+				 const std::vector<std::size_t>    Layer_size,
+				 std::shared_ptr< double > Tensor_activation )
+  {
+    try
+      {
+	//
+	// Check the layer exist
+	auto layer = modalities_.find( Layer_name );
+	//
+	if ( layer == modalities_.end() )
+	  {
+	    modalities_[ Layer_name ] = std::vector< Alps::LayerTensors< double, D > >();
+	    modalities_[ Layer_name ].push_back( Alps::LayerTensors< double, D >(Layer_size,
+										 Tensor_activation) );
+	  }
+	else
+	  modalities_[ Layer_name ][0].replace( Layer_size,
+						Tensor_activation );
       }
     catch( itk::ExceptionObject & err )
       {

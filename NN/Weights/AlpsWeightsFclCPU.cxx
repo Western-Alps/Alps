@@ -3,8 +3,8 @@
 //
 //
 Alps::WeightsFclCPU::WeightsFclCPU(  std::shared_ptr< Alps::Mountain > Layer,
-				     const std::vector< int >          Layer_size,
-				     const std::vector< int >          Prev_layer_size  ):
+				     const std::vector< std::size_t >  Layer_size,
+				     const std::vector< std::size_t >  Prev_layer_size  ):
   layer_{Layer}
 {
   try
@@ -41,8 +41,8 @@ Alps::WeightsFclCPU::WeightsFclCPU(  std::shared_ptr< Alps::Mountain > Layer,
 //
 //
 std::shared_ptr< double >
-Alps::WeightsFclCPU::activate( std::vector< std::shared_ptr< Alps::Image< double, 2 > > >& Image_tensors,
-			       std::shared_ptr< Alps::Function >                           Activ_func )
+Alps::WeightsFclCPU::activate( std::vector< Alps::LayerTensors< double, 2 > >& Image_tensors,
+			       std::shared_ptr< Alps::Function >               Activation_object )
 {
   try
     {
@@ -50,7 +50,7 @@ Alps::WeightsFclCPU::activate( std::vector< std::shared_ptr< Alps::Image< double
       // Check the dimensions are right
       long int tensors_size = 0;
       for ( auto tensor : Image_tensors )
-	tensors_size += static_cast< long int >( tensor->get_tensor_size()[0] );
+	tensors_size += static_cast< long int >( tensor.get_tensor_size()[0] );
       //
       if ( weights_->cols() != tensors_size + 1 )
 	{
@@ -75,9 +75,9 @@ Alps::WeightsFclCPU::activate( std::vector< std::shared_ptr< Alps::Image< double
       z_in(0,0) = 1.; // bias
       for ( auto tensor : Image_tensors )
 	{
-	  std::size_t img_size = tensor->get_tensor_size()[0];
+	  std::size_t img_size = tensor.get_tensor_size()[0];
 	  for ( std::size_t s = 0 ; s < img_size ; s++ )
-	    z_in(s+shift,0) = tensor->get_tensor().get()[s];
+	    z_in(s+shift,0) = tensor[TensorOrder1::NEURONS][s];
 	  shift += img_size;
 	}
       // process
@@ -85,8 +85,7 @@ Alps::WeightsFclCPU::activate( std::vector< std::shared_ptr< Alps::Image< double
       // Apply the activation function
       long int activation_size = weights_->rows();
       for ( long int s = 0 ; s < activation_size ; s++ )
-	z_out.get()[s] = Activ_func->f( a_out(s,0) );
-
+	z_out.get()[s] = Activation_object->f( a_out(s,0) );
       //
       //
       return z_out;
