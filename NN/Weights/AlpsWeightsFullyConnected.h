@@ -37,7 +37,7 @@ namespace Alps
     // Save the weights
     virtual void save_weights() const override {};
     // Save the weights
-    virtual void load_weights()      override {};
+    virtual void load_weights()       override {};
     // Save the weights
     virtual void update()             override {};
 

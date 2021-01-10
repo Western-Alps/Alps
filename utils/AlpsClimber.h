@@ -43,14 +43,14 @@ namespace Alps
     // Accessors
     //
     // Get the observed mountain
-    virtual std::shared_ptr< Alps::Mountain >                get_mountain()                            = 0;
+    virtual std::shared_ptr< Alps::Mountain > get_mountain() = 0;
 
     
     //
     // functions
     //
     // Update the information
-    virtual void                                             update()                                  = 0;
+    virtual void                              update()       = 0;
   };
 }
 #endif

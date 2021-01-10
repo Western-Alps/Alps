@@ -40,7 +40,7 @@ namespace Alps
       // get number of weights
       virtual const int              get_number_weights() const                       = 0;
       // get the layer size
-      virtual const std::vector<std::size_t> get_layer_size() const                           = 0;
+      virtual const std::vector<std::size_t> get_layer_size() const                   = 0;
       // attach the next layer
       virtual       void             set_next_layer( std::shared_ptr< Alps::Layer > ) = 0;
 

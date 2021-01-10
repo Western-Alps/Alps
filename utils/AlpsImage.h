@@ -47,16 +47,16 @@ namespace Alps
     // Accessors
     //
     // Get size of the tensor
-    virtual const std::vector< std::size_t > get_tensor_size() const
+    virtual const std::vector< std::size_t > get_tensor_size() const                        override
       { return tensor_size_;};
     // Get the tensor
-    virtual std::shared_ptr< Type >          get_tensor() const
+    virtual std::shared_ptr< Type >          get_tensor() const                             override 
     { return tensor_;};
     // Set size of the tensor
-    virtual void                             set_tensor_size( std::vector< std::size_t > S)
+    virtual void                             set_tensor_size( std::vector< std::size_t > S) override
     { tensor_size_ = S;};
     // Set the tensor
-    virtual void                             set_tensor( std::shared_ptr< Type > Z )
+    virtual void                             set_tensor( std::shared_ptr< Type > Z )        override
     { tensor_ = Z;};
 
 

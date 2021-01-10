@@ -44,55 +44,49 @@ std::shared_ptr< double >
 Alps::WeightsFclCPU::activate( std::vector< Alps::LayerTensors< double, 2 > >& Image_tensors,
 			       std::shared_ptr< Alps::Function >               Activation_object )
 {
-  try
+  //
+  // Check the dimensions are right
+  long int tensors_size = 0;
+  for ( auto tensor : Image_tensors )
+    tensors_size += static_cast< long int >( tensor.get_tensor_size()[0] );
+  //
+  if ( weights_->cols() != tensors_size + 1 )
     {
-      //
-      // Check the dimensions are right
-      long int tensors_size = 0;
-      for ( auto tensor : Image_tensors )
-	tensors_size += static_cast< long int >( tensor.get_tensor_size()[0] );
-      //
-      if ( weights_->cols() != tensors_size + 1 )
-	{
-	  std::string
-	    mess = std::string("There is miss match between the number of columns (")
-	    + std::to_string( weights_->cols() )
-	    + std::string(") and the size of the input tensor (")
-	    + std::to_string( tensors_size )
-	    + std::string("+1).");
-	  throw MAC::MACException( __FILE__, __LINE__,
-				   mess.c_str(),
-				   ITK_LOCATION );
-	}
-      //
-      // Converter the tensor into an Eigen matrix
-      std::shared_ptr< double > z_out = std::shared_ptr< double >( new  double[weights_->rows()],
-								  std::default_delete<  double[] >() );
-      Eigen::MatrixXd           a_out = Eigen::MatrixXd::Zero( weights_->rows(), 1 );
-      Eigen::MatrixXd           z_in  = Eigen::MatrixXd::Zero( weights_->cols(), 1 );
-      // Load the tensor image into a Eigen vector
-      std::size_t shift = 1;
-      z_in(0,0) = 1.; // bias
-      for ( auto tensor : Image_tensors )
-	{
-	  std::size_t img_size = tensor.get_tensor_size()[0];
-	  for ( std::size_t s = 0 ; s < img_size ; s++ )
-	    z_in(s+shift,0) = tensor[TensorOrder1::NEURONS][s];
-	  shift += img_size;
-	}
-      // process
-      a_out = *( weights_.get() ) * z_in;
-      // Apply the activation function
-      long int activation_size = weights_->rows();
-      for ( long int s = 0 ; s < activation_size ; s++ )
-	z_out.get()[s] = Activation_object->f( a_out(s,0) );
-      //
-      //
-      return z_out;
+      std::string
+	mess = std::string("There is miss match between the number of columns (")
+	+ std::to_string( weights_->cols() )
+	+ std::string(") and the size of the input tensor (")
+	+ std::to_string( tensors_size )
+	+ std::string("+1).");
+      throw MAC::MACException( __FILE__, __LINE__,
+			       mess.c_str(),
+			       ITK_LOCATION );
     }
-  catch( itk::ExceptionObject & err )
+  //
+  // Converter the tensor into an Eigen matrix
+  std::shared_ptr< double > z_out = std::shared_ptr< double >( new  double[weights_->rows()],
+							       std::default_delete<  double[] >() );
+  Eigen::MatrixXd           a_out = Eigen::MatrixXd::Zero( weights_->rows(), 1 );
+  Eigen::MatrixXd           z_in  = Eigen::MatrixXd::Zero( weights_->cols(), 1 );
+  // Load the tensor image into a Eigen vector
+  std::size_t shift = 1;
+  z_in(0,0) = 1.; // bias
+  for ( auto tensor : Image_tensors )
     {
-      std::cerr << err << std::endl;
+      std::size_t img_size = tensor.get_tensor_size()[0];
+      for ( std::size_t s = 0 ; s < img_size ; s++ )
+	z_in(s+shift,0) = tensor[TensorOrder1::NEURONS][s];
+      shift += img_size;
     }
+  // process
+  a_out = *( weights_.get() ) * z_in;
+  // Apply the activation function
+  long int activation_size = weights_->rows();
+  for ( long int s = 0 ; s < activation_size ; s++ )
+    z_out.get()[s] = Activation_object->f( a_out(s,0) );
+
+  //
+  //
+  return z_out;
 };
   

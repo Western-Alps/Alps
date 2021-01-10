@@ -52,7 +52,7 @@ namespace Alps
       virtual const int              get_number_weights() const                       override
       { return 0.;};
       // get the layer size
-      virtual const std::vector<std::size_t> get_layer_size() const                           override
+      virtual const std::vector<std::size_t> get_layer_size() const                   override
       { return std::vector<std::size_t>();};
       // attach the next layer
       virtual       void             set_next_layer( std::shared_ptr< Alps::Layer > ) override{};

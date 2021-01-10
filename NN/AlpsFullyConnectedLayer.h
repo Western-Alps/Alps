@@ -47,19 +47,19 @@ namespace Alps
     // Accessors
     //
     // get the layer identification
-    virtual const std::size_t      get_layer_id() const                                  override
-    { return layer_id_;}
-    // get the layer name
-    virtual const std::string      get_layer_name() const                                override
-    { return layer_name_;}
-    // get number of weights
-    virtual const int              get_number_weights() const                            override
+    virtual const std::size_t              get_layer_id() const                                  override
+    { return layer_id_;}	           
+    // get the layer name	           
+    virtual const std::string              get_layer_name() const                                override
+    { return layer_name_;}	           
+    // get number of weights	           
+    virtual const int                      get_number_weights() const                            override
     { return 0.;};
     // get the layer size
     virtual const std::vector<std::size_t> get_layer_size() const                                override
       {return fc_layer_size_;};
     // attach the next layer
-    virtual       void             set_next_layer( std::shared_ptr< Alps::Layer > Next ) override
+    virtual       void                     set_next_layer( std::shared_ptr< Alps::Layer > Next ) override
       { next_layer_ = Next;};
 
 
@@ -67,18 +67,18 @@ namespace Alps
     // Functions
     //
     // Add previous layer
-    virtual       void             add_layer( std::shared_ptr< Alps::Layer > Layer )     override
+    virtual       void                     add_layer( std::shared_ptr< Alps::Layer > Layer )     override
     { prev_layer_.push_back( Layer );};
     // Forward propagation
-    virtual       void             forward( std::shared_ptr< Alps::Climber > )           override;
+    virtual       void                     forward( std::shared_ptr< Alps::Climber > )           override;
     // Backward propagation
-    virtual       void             backward()                                            override {};
+    virtual       void                     backward()                                            override {};
     //
     //
     // Attach observers that need to be updated
-    virtual       void             attach( std::shared_ptr< Alps::Climber > )            override {};
+    virtual       void                     attach( std::shared_ptr< Alps::Climber > )            override {};
     // Notify the observers for updates
-    virtual       void             notify()                                              override {};
+    virtual       void                     notify()                                              override {};
 
     
   private:
@@ -91,7 +91,7 @@ namespace Alps
       
     //
     // number of fully connected layers
-    std::vector< std::size_t >                            fc_layer_size_;
+    std::vector< std::size_t >                    fc_layer_size_;
 
     //
     // Previous  layers information

@@ -47,18 +47,18 @@ namespace Alps
     // Accessors
     //
     // Get the observed mountain
-    virtual std::shared_ptr< Alps::Mountain >                      get_mountain()                                  override
+    virtual std::shared_ptr< Alps::Mountain >                      get_mountain()       override
     { return mountain_observed_;};
     //
     //
-    const   std::vector< std::shared_ptr< Alps::Subject< Dim > > > get_subjects()                            const 
+    const   std::vector< std::shared_ptr< Alps::Subject< Dim > > > get_subjects() const 
     { return subjects_;};
 
     
     //
     // functions
     //
-    virtual void                                                   update()                                        override;
+    virtual void                                                   update()             override;
 
     
   private:

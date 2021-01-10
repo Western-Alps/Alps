@@ -74,11 +74,11 @@ namespace Alps
     //
     // Activate
     virtual std::shared_ptr< double >       activate( std::vector< Alps::LayerTensors< double, 2 > >&,
-						      std::shared_ptr< Alps::Function > )           override;
+						      std::shared_ptr< Alps::Function > )          override;
     //
     //
     // Update the weights
-    virtual void                            update()                                                override{};
+    virtual void                            update()                                               override{};
 
 
 

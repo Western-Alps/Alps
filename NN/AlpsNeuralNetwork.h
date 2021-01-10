@@ -41,14 +41,14 @@ namespace Alps
       // Accessors
       //
       // get neural network energy
-      virtual const double get_energy()                          const = 0;
+      virtual const double get_energy() const                    = 0;
 
 
       //
       // Functions
       //
       // Add a layer in the neural network
-      virtual       void   add( std::shared_ptr< Alps::Layer > )       = 0;
+      virtual void         add( std::shared_ptr< Alps::Layer > ) = 0;
     };
 }
 #endif

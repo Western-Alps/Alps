@@ -59,7 +59,7 @@ namespace Alps
     const int                                         get_number_modalities() const
     {return number_modalities_;};
     // Return the size of the layers
-    std::vector<std::size_t>                                  get_layer_size();
+    std::vector<std::size_t>                          get_layer_size();
     // Get layer modality z
     std::vector< Alps::LayerTensors< double, Dim > >& get_layer( const std::string Layer )
     { return modalities_[Layer]; };

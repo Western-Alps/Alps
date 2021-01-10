@@ -56,7 +56,7 @@ namespace Alps
     //
     // Get size of the tensor
     virtual const std::vector< std::size_t >    get_tensor_size() const                       override
-    { return tensors_[0].get()->get_tensor_size();};
+    { return tensors_[0].get_tensor_size();};
     // Get the tensor
     virtual std::shared_ptr< Type >             get_tensor() const                            override
     { return nullptr;};
@@ -84,7 +84,7 @@ namespace Alps
     
   private:
     // (Z,error, )
-    std::array< std::shared_ptr< Alps::Image< Type, Dim > >, 2 > tensors_{nullptr,nullptr};
+    std::array< Alps::Image< Type, Dim >, 2 > tensors_;
   };
   //
   //
@@ -112,7 +112,7 @@ namespace Alps
 	img_ptr->Update();
 	//
 	// Load the modalities into the container
-	tensors_[ 0 ] = std::make_shared< Alps::Image< double, D > >( Alps::Image< double, D >(img_ptr) );
+	tensors_[ 0 ] = Alps::Image< double, D >( img_ptr );
       }
     catch( itk::ExceptionObject & err )
       {
@@ -130,8 +130,7 @@ namespace Alps
       {
 	//
 	// Load the modalities into the container
-	tensors_[0] = std::make_shared< Alps::Image< double, D > >( Alps::Image< double, D >(Tensor_size,
-											     Tensor) );
+	tensors_[0] = Alps::Image< double, D >( Tensor_size, Tensor );
       }
     catch( itk::ExceptionObject & err )
       {
@@ -151,14 +150,14 @@ namespace Alps
 	  throw MAC::MACException( __FILE__, __LINE__,
 				   "Indexing not implemented yet.",
 				   ITK_LOCATION );
-	//
-	//
-	return tensors_[ static_cast< int >( Idx ) ]->get_tensor().get(); 
       }
     catch( itk::ExceptionObject & err )
       {
 	std::cerr << err << std::endl;
       }
+    //
+    //
+    return tensors_[ static_cast< int >( Idx ) ].get_tensor().get(); 
   }
 }
 #endif
