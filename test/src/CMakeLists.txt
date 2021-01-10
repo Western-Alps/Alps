@@ -49,6 +49,15 @@ target_link_libraries( testAlpsImage ${gtest_LIB_DEPENDS}
   ${gmock_BINARY_DIR}/libgmock.a
   ${gmock_BINARY_DIR}/libgmock_main.a
   _Alps_utils ${ITK_LIBRARIES} )
+# 
+file( GLOB SRCS main.cxx testAlpsLayerTensors.h testAlpsLayerTensors.cpp )
+add_executable(testAlpsLayerTensors ${SRCS})
+target_link_libraries( testAlpsLayerTensors ${gtest_LIB_DEPENDS}
+  ${gmock_BINARY_DIR}/gtest/libgtest.a
+  ${gmock_BINARY_DIR}/gtest/libgtest_main.a
+  ${gmock_BINARY_DIR}/libgmock.a
+  ${gmock_BINARY_DIR}/libgmock_main.a
+  _Alps_utils ${ITK_LIBRARIES} )
 #
 file( GLOB SRCS main.cxx testAlpsSubject.h testAlpsSubject.cpp )
 add_executable(testAlpsSubject ${SRCS})
@@ -98,5 +107,6 @@ add_test( NAME testAlpsLoadDataSet       COMMAND testAlpsLoadDataSet   WORKING_D
 add_test( NAME testAlpsSubject           COMMAND testAlpsSubject       WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
 add_test( NAME testAlpsSubjects          COMMAND testAlpsSubjects      WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
 add_test( NAME testAlpsImage             COMMAND testAlpsImage         WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsLayerTensors      COMMAND testAlpsLayerTensors  WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
 add_test( NAME testAlpsWeightsFclCPU     COMMAND testAlpsWeightsFclCPU WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
 add_test( NAME testAlpsConvolutionWindow COMMAND testAlpsConvolutionWindow )
