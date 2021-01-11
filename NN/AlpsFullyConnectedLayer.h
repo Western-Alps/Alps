@@ -150,7 +150,6 @@ namespace Alps
 	// We get the number of previous layers attached to this layer. In this first loop,
 	// we collect the number of nodes if the weights were not initialized
 	std::cout << "Layer: " << layer_name_ << std::endl;
-	std::vector< Alps::LayerTensors< double, 2 > > prev_layer_tensors;
 	if ( !weights_ )
 	  {
 	    // If the weights were not initialized yet
@@ -175,11 +174,6 @@ namespace Alps
 			<< "Connected to: " << "__input_layer__"
 			<< " with " << subject->get_layer_size()[0] << " nodes" << std::endl;
 		      prev_layer_size.push_back( mod );
-		      // Concate the input iamges
-		      auto input_images = subject->get_layer("__input_layer__");
-		      prev_layer_tensors.insert( prev_layer_tensors.end(),
-						 input_images.begin(),
-						 input_images.end() );
 		    }
 		}
 	    //
@@ -188,6 +182,25 @@ namespace Alps
 					      fc_layer_size_, prev_layer_size );
 	  }
 	//
+	// In this second we concaten the tensors from any layer connected to this layer
+	std::vector< Alps::LayerTensors< double, 2 > > prev_layer_tensors;
+	for ( auto layer : prev_layer_ )
+	  if ( layer )
+	    {
+	      auto input_images = subject->get_layer( layer->get_layer_name() );
+	      prev_layer_tensors.insert( prev_layer_tensors.end(),
+					 input_images.begin(),
+					 input_images.end() );
+	    }
+	  else
+	    {
+	      // the connected layer is the input layer
+	      auto input_images = subject->get_layer("__input_layer__");
+	      prev_layer_tensors.insert( prev_layer_tensors.end(),
+					 input_images.begin(),
+					 input_images.end() );
+	    }
+	//
 	//
 	// Build the activation
 	// Get the tensor arrays. In this second loop we gather the information for the activation
@@ -195,7 +208,6 @@ namespace Alps
 			    weights_->activate(prev_layer_tensors,
 					       activation_func_) );
 
-	
       }
     catch( itk::ExceptionObject & err )
       {

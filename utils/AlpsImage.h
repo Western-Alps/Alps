@@ -85,7 +85,7 @@ namespace Alps
     //
     std::vector< std::size_t > tensor_size_{ std::vector< std::size_t >(/*tensor order*/1,1) };
     // Z
-    std::shared_ptr< Type >    tensor_;
+    std::shared_ptr< Type >    tensor_{nullptr};
   };
   //
   //

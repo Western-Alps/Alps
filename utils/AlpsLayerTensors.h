@@ -80,11 +80,13 @@ namespace Alps
     Type*                                       operator[]( Alps::TensorOrder1 Idx ); 
     //
     void                                        replace( const std::vector<std::size_t>,
-							 std::shared_ptr< double > ){};  
+							 std::shared_ptr< double > );  
     
   private:
     // (Z,error, )
-    std::array< Alps::Image< Type, Dim >, 2 > tensors_;
+    std::array< Alps::Image< Type, Dim >, 2 >                tensors_;
+    // 
+    std::vector< std::array< Alps::Image< Type, Dim >, 2 > > previous_epoque_tensors_;
   };
   //
   //
@@ -158,6 +160,29 @@ namespace Alps
     //
     //
     return tensors_[ static_cast< int >( Idx ) ].get_tensor().get(); 
+  }
+  //
+  //
+  // Operator []
+  template< typename T,int D > void
+  Alps::LayerTensors< T, D >::replace( const std::vector<std::size_t> Tensor_size,
+				       std::shared_ptr< double > Tensor )
+  {
+    try
+      {
+	//
+	// Save the previous set of neurons
+	previous_epoque_tensors_.push_back( tensors_ );
+	//
+	tensors_    = std::array< Alps::Image< T, D >, 2 >();
+	// Load new tensors
+	tensors_[0] = Alps::Image< double, D >( Tensor_size, Tensor );
+
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+      }
   }
 }
 #endif

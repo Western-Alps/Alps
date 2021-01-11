@@ -48,23 +48,23 @@ namespace Alps
       // Accessors
       //
       // get the layer identification
-      virtual const std::size_t      get_layer_id() const                                  override
+      virtual const std::size_t             get_layer_id() const                              override
       { return layer_id_;}
       // get the layer name
-      virtual const std::string      get_layer_name()                                 const override
+      virtual const std::string             get_layer_name() const                            override
         { return std::string("Gran Paradiso network.");};
       // Get number of weigths
-      virtual const int              get_number_weights()                             const override
+      virtual const int                      get_number_weights() const                       override
         { return 1;};
       // get the layer size
-      virtual const std::vector<std::size_t> get_layer_size()                                 const override
+      virtual const std::vector<std::size_t> get_layer_size() const                           override
       { return std::vector<std::size_t>();};
       // attach the next layer
-      virtual       void             set_next_layer( std::shared_ptr< Alps::Layer > )       override{};
+      virtual       void                     set_next_layer( std::shared_ptr< Alps::Layer > ) override{};
       //
       //
       // get the neural network energy
-      virtual const double           get_energy()                                     const override
+      virtual const double                   get_energy() const                               override
         { return 1. /*ToDo*/;};
 
 
@@ -72,27 +72,27 @@ namespace Alps
       // Functions
       //
       // Add previous layer
-      virtual       void        add_layer( std::shared_ptr< Alps::Layer > )                 override{};
+      virtual       void                     add_layer( std::shared_ptr< Alps::Layer > )      override{};
       // Forward propagation
-      virtual       void        forward( std::shared_ptr< Alps::Climber > )                 override;
+      virtual       void                     forward( std::shared_ptr< Alps::Climber > )      override;
       // Backward propagation
-      virtual       void        backward()                                                  override;
+      virtual       void                     backward()                                       override;
       //
       //
       // Add network layers
-      virtual       void        add( std::shared_ptr< Alps::Layer > )                       override{};
+      virtual       void                     add( std::shared_ptr< Alps::Layer > )            override{};
       //
       //
       // Overriding from Mountains
-      virtual       void        attach( std::shared_ptr< Alps::Climber > )                  override{};
+      virtual       void                     attach( std::shared_ptr< Alps::Climber > )       override{};
       // Notify the observers for updates
-      virtual       void        notify()                                                    override{};
+      virtual       void                     notify()                                         override{};
 
       
 
     private:
       // layer unique ID
-      std::size_t                                   layer_id_{0};
+      std::size_t                  layer_id_{0};
       //
       Alps::NeuralNetworkComposite mr_nn_;
     };
