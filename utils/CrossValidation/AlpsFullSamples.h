@@ -22,9 +22,17 @@ namespace Alps
    *
    * \brief FullSamples class is one of the validation class
    * following the full samples strategy for weigths adjustments.
-   * 
+   * The template arguments cover:
+   * - Mountain: ont of the predefined neural network architecture
+   * - MiniBatch: the size of the mini-bach
+   *   * MiniBatch =  1 -- stochastic gradient descent
+   *   * MiniBatch =  n -- batch of size n images, n < N the total 
+   *                       number of images
+   *   * MiniBatch = -1 -- the model uses all the images
+   * - Dim: Dimesion of the images
+   *
    */
-  template< typename Mountain, int Dim >
+  template< typename Mountain, int MiniBatch, int Dim >
     class FullSamples : public Validation
     {
     public:
@@ -57,8 +65,8 @@ namespace Alps
 
   //
   //
-  template< typename M, int D >
-  FullSamples< M, D >::FullSamples()
+  template< typename M, int MnB, int D >
+  FullSamples< M, MnB, D >::FullSamples()
     {
       try
 	{
@@ -84,27 +92,61 @@ namespace Alps
     }
   //
   //
-  template< typename M, int D > void
-  FullSamples< M, D >::train()
+  template< typename M, int MnB, int D > void
+  FullSamples< M, MnB, D >::train()
     {
       try
 	{
 	  //
 	  //
 	  std::list< int > fold_subjects =  training_set_[0];
-	  while ( std::dynamic_pointer_cast<M>(subjects_[0].get_mountain())->get_energy() > 1.e-06 )
-	    for ( int sub : fold_subjects )
-	      {
-		std::cout
-		  << " Subject " << sub
-		  << " -- In subject " << ( subjects_[0].get_subjects() )[ sub ]->get_subject_number()
-		  << std::endl;
-		// Get the observed Mountain from subjects
-		std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->forward( (subjects_[0].get_subjects())[sub] );
-	      }
+	  if ( MnB > training_size_ + testing_size_ )
+	    throw MAC::MACException( __FILE__, __LINE__,
+				     "The size of a mini-batch can't exceed the number or images. Option -1 takes the entire dataset.",
+				     ITK_LOCATION );
+	  // All the dataset
+	  if ( MnB == -1 )
+	    {
+	      while ( std::dynamic_pointer_cast<M>(subjects_[0].get_mountain())->get_energy() > 1.e-06 )
+		{
+		  //
+		  // Forward process
+		  for ( int sub : fold_subjects )
+		    {
+		      std::cout
+			<< " Subject " << sub
+			<< " -- In subject " << ( subjects_[0].get_subjects() )[ sub ]->get_subject_number()
+			<< std::endl;
+		      // Get the observed Mountain from subjects
+		      std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->forward( (subjects_[0].get_subjects())[sub] );
+		    }
+		  // update the epoques
+		  training_set_[0]++;
 
-	  //
-	  //
+		  //
+		  // Estimate the cost function
+		  
+		  
+		  //
+		  // Backward process
+		}
+	    }
+	  // minibatch size n
+	  else
+	    {
+	      //
+	      // ToDo make a cutoff on after n images to update the weights
+	      while ( std::dynamic_pointer_cast<M>(subjects_[0].get_mountain())->get_energy() > 1.e-06 )
+		for ( int sub : fold_subjects )
+		  {
+		    std::cout
+		      << " Subject " << sub
+		      << " -- In subject " << ( subjects_[0].get_subjects() )[ sub ]->get_subject_number()
+		      << std::endl;
+		    // Get the observed Mountain from subjects
+		    std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->forward( (subjects_[0].get_subjects())[sub] );
+		  }
+	    }
 	}
       catch( itk::ExceptionObject & err )
 	{
@@ -114,8 +156,8 @@ namespace Alps
 
   //
   //
-  template< typename M, int D > void
-  FullSamples< M, D >::use()
+  template< typename M, int MnB, int D > void
+  FullSamples< M, MnB, D >::use()
   {}
 }
 #endif

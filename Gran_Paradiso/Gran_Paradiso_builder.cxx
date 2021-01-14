@@ -4,6 +4,7 @@
 #include "Gran_Paradiso_builder.h"
 #include "AlpsWeightsFclCPU.h"
 #include "AlpsActivations.h"
+#include "AlpsCostFunction.h"
 //
 //
 //
@@ -22,8 +23,9 @@ Alps::Gran_Paradiso_builder::Gran_Paradiso_builder()
   // Neural network anatomy //
   ////////////////////////////
   using Weights        = Alps::WeightsFclCPU;
-  using Activation     = Alps::Activation_tanh;
-  using FullyConnected = Alps::FullyConnectedLayer< Activation, Weights, /*Dimension*/ 2 >;
+  using Activation     = Alps::Activation_tanh< double >;
+  using CostFunction   = Alps::LeastSquarreEstimate< double >;
+  using FullyConnected = Alps::FullyConnectedLayer< Activation, Weights, CostFunction, /*Dim*/ 2 >;
 
   //
   // Fully connected layers
@@ -40,7 +42,7 @@ Alps::Gran_Paradiso_builder::Gran_Paradiso_builder()
   nn_2->add_layer( nn_1 );      // connection one-to-n with the previous layer
   //
   std::shared_ptr< Alps::Layer > nn_3 =
-    std::make_shared< FullyConnected >( "output",
+    std::make_shared< FullyConnected >( "__output_layer__", // __output_layer__ signal it is the last one
 					std::vector<std::size_t>( 1, 3 ) );// 1 layer of 3 elements
   nn_2->set_next_layer( nn_3 ); // connection one-to-one with the next layer
   nn_3->add_layer( nullptr );   // connection one-to-n with the previous layer. (nullptr) means input layer

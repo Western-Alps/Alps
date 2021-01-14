@@ -10,7 +10,7 @@
 #include "MACException.h"
 #include "AlpsLayer.h"
 #include "AlpsMountain.h"
-#include "AlpsFunction.h"
+#include "AlpsBaseFunction.h"
 #include "AlpsSubject.h"
 #include "AlpsLayerTensors.h"
 
@@ -26,7 +26,7 @@ namespace Alps
    * into a densly connected neural network.
    * 
    */
-  template< typename ActivationFunction, typename Weights, int Dim  >
+  template< typename ActivationFunction, typename Weights, typename CostFunction, int Dim  >
   class FullyConnectedLayer : public Alps::Layer,
 			      public Alps::Mountain
   {
@@ -87,7 +87,9 @@ namespace Alps
     // Layer's name
     std::string                                   layer_name_{"__Fully_connected_layer__"};
     // Activation function
-    std::shared_ptr< Alps::Function >             activation_func_{std::make_shared< ActivationFunction >()};
+    std::shared_ptr< Alps::BaseFunction >         activation_func_{std::make_shared< ActivationFunction >()};
+    // Activation function
+    std::shared_ptr< Alps::BaseFunction >         cost_func_{std::make_shared< CostFunction >()};
       
     //
     // number of fully connected layers

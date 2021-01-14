@@ -59,9 +59,19 @@ namespace Alps
     // functions
     //
     virtual void                                                   update()             override;
+    //
+    //
+    // prefix increment
+    Subjects& operator++()
+    {
+      epoque_++;
+      return *this; 
+    }
 
     
   private:
+    // Number of epoques
+    std::size_t                                            epoque_{0};
     // Attached observed Mountain
     std::shared_ptr< Alps::Mountain >                      mountain_observed_;
     // 

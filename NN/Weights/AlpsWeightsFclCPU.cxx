@@ -42,7 +42,7 @@ Alps::WeightsFclCPU::WeightsFclCPU(  std::shared_ptr< Alps::Mountain > Layer,
 //
 std::shared_ptr< double >
 Alps::WeightsFclCPU::activate( std::vector< Alps::LayerTensors< double, 2 > >& Image_tensors,
-			       std::shared_ptr< Alps::Function >               Activation_object )
+			       std::shared_ptr< Alps::BaseFunction >           Activation_object )
 {
   //
   // Check the dimensions are right

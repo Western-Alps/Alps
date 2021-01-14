@@ -15,7 +15,7 @@
 #include "AlpsTensor.h"
 #include "AlpsLayerTensors.h"
 #include "AlpsImage.h"
-#include "AlpsFunction.h"
+#include "AlpsBaseFunction.h"
 /*! \namespace Alps
  *
  * Name space for Alps.
@@ -46,7 +46,7 @@ namespace Alps
     //
     // Activate
     virtual std::shared_ptr< double > activate( std::vector< Alps::LayerTensors< double, 2 > >&,
-						std::shared_ptr< Alps::Function > ) = 0;
+						std::shared_ptr< Alps::BaseFunction > ) = 0;
   };
 }
 #endif

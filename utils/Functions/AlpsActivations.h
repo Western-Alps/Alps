@@ -22,7 +22,8 @@ namespace Alps
    * \mathbb{R} \leftrightarrow [-1,1]
    * 
    */
-  class Activation_tanh : public Alps::Function
+  template< typename Type >
+  class Activation_tanh : public Alps::Function< Type >
     {
     public:
       /** Constructor. */
@@ -43,10 +44,10 @@ namespace Alps
       // Functions
       //
       // activation function
-      virtual double f( const double X ){return tanh(X) + 1.e-10;};
+      virtual Type f( const Type X ){return tanh(X) + 1.e-10;};
       //
       // activation function derivative
-      virtual double df( const double X ){return 1. - tanh(X)*tanh(X);};
+      virtual Type df( const Type X ){return 1. - tanh(X)*tanh(X);};
 
       
     private:
@@ -60,7 +61,8 @@ namespace Alps
    * \mathbb{R} \leftrightarrow [0,1]
    * 
    */
-  class Activation_sigmoid : public Alps::Function
+  template< typename Type >
+  class Activation_sigmoid : public Alps::Function<Type>
     {
     public:
       /** Constructor. */
@@ -81,10 +83,10 @@ namespace Alps
       // Functions
       //
       // activation function
-      virtual double f( const double X ){return 1. / (1. + exp(X) );};
+      virtual Type f( const Type X ){return 1. / (1. + exp(X) );};
       //
       // activation function derivative
-      virtual double df( const double X ){return f(X)*(1. - f(X));};
+      virtual Type df( const Type X ){return f(X)*(1. - f(X));};
 
       
     private:
