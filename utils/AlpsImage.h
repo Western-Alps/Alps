@@ -67,6 +67,11 @@ namespace Alps
     virtual void save_tensor() const{};
     // Load the tensor values (e.g. weights)
     virtual void load_tensor( const std::string ) {};
+    //
+    //
+    // Implementation of [] operator.  This function must return a 
+    // reference as array element can be put on left side 
+    Type         operator[]( const std::size_t Idx ); 
 
   private:
     //
@@ -138,5 +143,26 @@ namespace Alps
 			      std::shared_ptr< double >        Tensor ):
     tensor_size_{Tensor_size}, tensor_{Tensor}
   {}
+  //
+  //
+  // Operator []
+  template< typename T,int D > T
+  Alps::Image< T, D >::operator[]( const std::size_t Idx )
+  {
+    try
+      {
+	if ( Idx < 0 )
+	  throw MAC::MACException( __FILE__, __LINE__,
+				   "Indexing out of bound.",
+				   ITK_LOCATION );
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+      }
+    //
+    //
+    return (tensor_.get())[Idx]; 
+  }
 }
 #endif

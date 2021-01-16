@@ -121,7 +121,7 @@ namespace Alps
 		      std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->forward( (subjects_[0].get_subjects())[sub] );
 		    }
 		  // update the epoques
-		  training_set_[0]++;
+		  ++subjects_[0];
 
 		  //
 		  // Estimate the cost function

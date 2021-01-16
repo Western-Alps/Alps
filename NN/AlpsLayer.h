@@ -52,8 +52,6 @@ namespace Alps
       virtual void add_layer( std::shared_ptr< Alps::Layer > ) = 0;
       // Forward propagation
       virtual void forward( std::shared_ptr< Alps::Climber > ) = 0;
-      // Estimate the cost function
-      virtual void cost()                                      = 0;
       // Backward propagation
       virtual void backward()                                  = 0;
     };

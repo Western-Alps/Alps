@@ -26,13 +26,16 @@ namespace Alps
    * into a densly connected neural network.
    * 
    */
-  template< typename ActivationFunction, typename Weights, typename CostFunction, int Dim  >
+  template< typename ActivationFunction,
+	    typename Weights,
+	    typename CostFunction,
+	    int Dim  >
   class FullyConnectedLayer : public Alps::Layer,
 			      public Alps::Mountain
   {
     //
     //
-    using Self = FullyConnectedLayer< ActivationFunction, Weights, Dim >;
+    using Self = FullyConnectedLayer< ActivationFunction, Weights, CostFunction, Dim >;
     //
     // 
   public:
@@ -108,9 +111,9 @@ namespace Alps
   //
   //
   //
-  template< typename AF, typename W, int D   >
-  FullyConnectedLayer< AF, W, D >::FullyConnectedLayer( const std::string              Layer_name,
-							const std::vector<std::size_t> Fc_layer_size ):
+  template< typename AF, typename W, typename C, int D   >
+  FullyConnectedLayer< AF, W, C, D >::FullyConnectedLayer( const std::string              Layer_name,
+							   const std::vector<std::size_t> Fc_layer_size ):
     layer_name_{Layer_name}, fc_layer_size_{Fc_layer_size}
   {
     try
@@ -140,8 +143,8 @@ namespace Alps
   //
   //
   //
-  template< typename AF, typename W, int D   > void
-  FullyConnectedLayer< AF, W, D >::forward( std::shared_ptr< Alps::Climber > Sub )
+  template< typename AF, typename W, typename C, int D   > void
+  FullyConnectedLayer< AF, W, C, D >::forward( std::shared_ptr< Alps::Climber > Sub )
   {
     try
       {
@@ -180,7 +183,7 @@ namespace Alps
 		}
 	    //
 	    // weights instantiation
-	    weights_ = std::make_shared< W >( std::shared_ptr< FullyConnectedLayer< AF, W, D > >( this ),
+	    weights_ = std::make_shared< W >( std::shared_ptr< FullyConnectedLayer< AF, W, C, D > >( this ),
 					      fc_layer_size_, prev_layer_size );
 	  }
 	//
@@ -207,8 +210,7 @@ namespace Alps
 	// Build the activation
 	// Get the tensor arrays. In this second loop we gather the information for the activation
 	subject->add_layer( layer_name_, fc_layer_size_,
-			    weights_->activate(prev_layer_tensors,
-					       activation_func_) );
+			    weights_->activate(prev_layer_tensors) );
 
       }
     catch( itk::ExceptionObject & err )

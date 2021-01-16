@@ -81,12 +81,16 @@ namespace Alps
     void                                              add_layer( const std::string,
 								 const std::vector<std::size_t>,
 								 std::shared_ptr< double >  );
+    // Add target in the classification study case
+    void                                              add_target( const std::size_t, const std::size_t );
 
     
   private:
     //
     // Vector of modalities 
     std::map< std::string, std::vector< Alps::LayerTensors< double, Dim > > > modalities_;
+    // Vector of modalities 
+    Alps::Image< double, Dim >                                                target_;
     //
     // Subject information
     int         subject_number_{0};
@@ -173,6 +177,37 @@ namespace Alps
 	else
 	  modalities_[ Layer_name ][0].replace( Layer_size,
 						Tensor_activation );
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+      }
+  }
+  //
+  //
+  // 
+  template< /*class F,*/ int D > void
+  Alps::Subject< D >::add_target( const std::size_t Target,
+				  const std::size_t Universe)
+  {
+    try
+      {
+	if ( Target < Universe + 1 )
+	  {
+	///    target_ = Alps::Image< double*, D >( std::vector< std::size_t >(/*tensor order*/ 1, Universe ),
+	///					 std::shared_ptr< double* >(new double[Universe],
+	///								    std::default_delete< double[] >()) );
+	    ////// REST SHOULD BE 000000 target_[Target] = 1.;
+	  }
+	else
+	  {
+	    std::string mess = "The target (";
+	    mess            += std::to_string(Target) + ") can't be bigger than the Unverse size (";
+	    mess            += std::to_string(Universe) + ").";
+	    throw MAC::MACException( __FILE__, __LINE__,
+				     mess.c_str(),
+				     ITK_LOCATION );
+	  }
       }
     catch( itk::ExceptionObject & err )
       {

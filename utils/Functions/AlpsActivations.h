@@ -9,12 +9,40 @@
 //
 //
 #include "MACException.h"
-#include "AlpsFunction.h"
+#include "AlpsBaseFunction.h"
 //
 //
 //
 namespace Alps
 {
+  /** \class Function_base
+   *
+   * \brief 
+   * This class is the base class for all the functions.
+   * 
+   */
+  template< typename Type >
+  class Function : public Alps::BaseFunction
+    {
+    public:
+      /** Destructor */
+      virtual ~Function(){};
+
+
+      //
+      // Accessors
+      //
+
+
+      //
+      // Functions
+      //
+      // activation function
+      virtual Type f( const Type )           = 0;
+      //
+      // activation function derivative
+      virtual Type df( const Type )          = 0;
+    };
   /** \class Activation_tanh
    *
    * \brief 
@@ -52,7 +80,7 @@ namespace Alps
       
     private:
       //
-      Func name_{F_TANH};
+      Func name_{Alps::Func::F_TANH};
     };
   /** \class Activation_sigmoid
    *
@@ -84,14 +112,13 @@ namespace Alps
       //
       // activation function
       virtual Type f( const Type X ){return 1. / (1. + exp(X) );};
-      //
       // activation function derivative
-      virtual Type df( const Type X ){return f(X)*(1. - f(X));};
+      virtual Type df( const Type X ){return f(X) * (1. - f(X));};
 
       
     private:
       //
-      Func name_{F_SIGMOID};
+      Func name_{Alps::Func::F_SIGMOID};
     };
 }
 #endif

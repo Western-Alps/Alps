@@ -22,10 +22,10 @@ Alps::Gran_Paradiso_builder::Gran_Paradiso_builder()
   ////////////////////////////
   // Neural network anatomy //
   ////////////////////////////
-  using Weights        = Alps::WeightsFclCPU;
   using Activation     = Alps::Activation_tanh< double >;
-  using CostFunction   = Alps::LeastSquarreEstimate< double >;
-  using FullyConnected = Alps::FullyConnectedLayer< Activation, Weights, CostFunction, /*Dim*/ 2 >;
+  using Weights        = Alps::WeightsFclCPU< double, Activation >;
+  using LossFunction   = Alps::LeastSquarreEstimate< double, Activation >;
+  using FullyConnected = Alps::FullyConnectedLayer< Activation, Weights, LossFunction, /*Dim*/ 2 >;
 
   //
   // Fully connected layers

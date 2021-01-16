@@ -45,8 +45,7 @@ namespace Alps
     // Functions
     //
     // Activate
-    virtual std::shared_ptr< double > activate( std::vector< Alps::LayerTensors< double, 2 > >&,
-						std::shared_ptr< Alps::BaseFunction > ) = 0;
+    virtual std::shared_ptr< double > activate( std::vector< Alps::LayerTensors< double, 2 > >& ) = 0;
   };
 }
 #endif

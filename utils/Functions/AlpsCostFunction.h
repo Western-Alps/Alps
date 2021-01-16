@@ -1,5 +1,5 @@
-#ifndef FUNCTION_H
-#define FUNCTION_H
+#ifndef COSTFUNCTION_H
+#define COSTFUNCTION_H
 #include <memory>
 //
 //
@@ -8,7 +8,7 @@
 //
 //
 //
-namespace MAC
+namespace Alps
 {
   /** \class CostFunction
    *
@@ -16,8 +16,8 @@ namespace MAC
    * This class is the head of a composit design to build neural network
    * 
    */
-  template< typename Type >
-  class CostFunction
+  template< typename Type>
+  class CostFunction : public Alps::BaseFunction
   {
   public:
     /** Destructor */
@@ -33,10 +33,10 @@ namespace MAC
     // Functions
     //
     // Loss function function
-    virtual Type                    L( Type*, Type*, std::size_t )   = 0;
+    virtual Type                      L( Type*, Type*, std::size_t )  = 0;
     //
     // Loss function derivative
-    virtual std::share_ptr< Type* > dL( Type*, Type*, std::size_t )  = 0;
+    virtual std::shared_ptr< Type* > dL( Type*, Type*, std::size_t )  = 0;
   };
   /** \class Function
    *
@@ -44,12 +44,12 @@ namespace MAC
    * This class is the head of a composit design to build neural network
    * 
    */
-  template< typename Type >
+  template< typename Type, typename Activation  >
   class LeastSquarreEstimate : public Alps::CostFunction< Type >
   {
   public:
     /** Constructor */
-    explicite LeastSquarreEstimate(){};
+    explicit LeastSquarreEstimate(){};
     /** Destructor */
     virtual ~LeastSquarreEstimate(){};
     
@@ -57,28 +57,36 @@ namespace MAC
     //
     // Accessors
     //
-
+    // get function name 
+    virtual Func                    get_function_name() const {return name_;};
+ 
 
     //
     // Functions
     //
     // Loss function function
-    virtual Type  L( Type*, Type*, std::size_t );
+    virtual Type                      L( Type*, Type*, std::size_t );
     //
     // Loss function derivative
-    virtual std::share_ptr< Type* > dL( Type*, Type*, std::size_t );
+    virtual std::shared_ptr< Type* > dL( Type*, Type*, std::size_t );
+
+      
+    private:
+      //
+      Func name_{Alps::Func::L_LSE};
   };
   //
   //
   //
-  template< typename Type > Type
-  class LeastSquarreEstimate< T >::L( Type*       Optimum,
-				      Type*       Target,
-				      std::size_t N )
+  template< typename T, typename A > T
+  LeastSquarreEstimate< T, A >::L( T*          Optimum,
+				   T*          Target,
+				   std::size_t N )
   {
-    Type cost = 0;
-    for ( std::size_t i = 0 ; i < N ; i++ )
-      cost += (Optimum[i] - Target[i] ) * (Optimum[i] - Target[i] );
+    A activation;
+    T cost = 0;
+// UNIT    for ( std::size_t i = 0 ; i < N ; i++ )
+// UNIT      cost += 2 * (Optimum[i] - Target[i]) * (Optimum[i] - Target[i]) * activation.df( Optimum[i] );
     //
     //
     return cost;
@@ -86,17 +94,18 @@ namespace MAC
   //
   //
   //
-  template< typename Type > std::share_ptr< Type* >
-  class LeastSquarreEstimate< T >::dL( Type*       Optimum,
-				       Type*       Target,
-				       std::size_t N )
+  template< typename T, typename A > std::shared_ptr< T* >
+  LeastSquarreEstimate< T, A >::dL( T*          Optimum,
+				    T*          Target,
+				    std::size_t N )
   {
-    std::share_ptr< Type* > error ( new Type[N], std::default_delete<  T [] > );
-    for ( std::size_t i = 0 ; i < N ; i++ )
-      ( error.get() )[i] = (Optimum[i] - Target[i] );
+// UNIT    std::shared_ptr< T* > error ( new T[N], std::default_delete<  T [] > );
+// UNIT    for ( std::size_t i = 0 ; i < N ; i++ )
+// UNIT      ( error.get() )[i] = (Optimum[i] - Target[i]);
     //
     //
-    return error;
+    // UNITreturn error;
+    return nullptr;
   }
 }
 #endif

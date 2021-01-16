@@ -31,7 +31,7 @@ namespace Alps
    *
    */
   // Observer
-  template< /*class Function,*/ int Dim >
+  template< int Dim >
   class Subjects : public Alps::Climber
   {
   public:
@@ -62,7 +62,7 @@ namespace Alps
     //
     //
     // prefix increment
-    Subjects& operator++()
+    Subjects&                                                      operator++()
     {
       epoque_++;
       return *this; 
@@ -82,8 +82,8 @@ namespace Alps
 
   //
   // Constructor
-  template< /*class F,*/ int D >
-  Alps::Subjects</*A,*/ D >::Subjects( std::shared_ptr< Alps::Mountain > Mountain ):
+  template< int D >
+  Alps::Subjects< D >::Subjects( std::shared_ptr< Alps::Mountain > Mountain ):
     mountain_observed_{Mountain}
   {
     try
@@ -94,13 +94,21 @@ namespace Alps
 	  subject_number  = 0;
 	std::size_t
 	  num_modalities  = Alps::LoadDataSet::instance()->get_data()["inputs"]["images"].size(),
-	  num_img_per_mod = Alps::LoadDataSet::instance()->get_data()["inputs"]["images"][0].size();
+	  num_img_per_mod = Alps::LoadDataSet::instance()->get_data()["inputs"]["images"][0].size(),
+	  target_universe = Alps::LoadDataSet::instance()->get_data()["inputs"]["labels_universe"];
 	//
 	//
 	for ( std::size_t img = 0 ; img < num_img_per_mod ; img++ )
 	  {
 	    // create the subject
 	    subjects_.push_back( std::make_shared< Alps::Subject< D > >(subject_number++, num_modalities) );
+	    //
+	    // If the output is descrete load the labels
+	    if ( target_universe > 0 )
+	      {
+		std::size_t target = Alps::LoadDataSet::instance()->get_data()["inputs"]["labels"][img];
+		( subjects_[subject_number-1].get() )->add_target( target, target_universe );
+	      }
 	    // record the modality for each subject
 	    for ( std::size_t mod = 0 ; mod < num_modalities ; mod++ )
 	      ( subjects_[subject_number-1].get() )->add_modalities( Alps::LoadDataSet::instance()->get_data()["inputs"]["images"][mod][img] );
