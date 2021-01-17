@@ -24,7 +24,8 @@ TEST_F(FullSamplesTest, ByDefaultGetStatusIsTrue) {
   Alps::LoadDataSet::instance("data_set_GP.json");
   //
   // Test the Cross validation constructor 
-  Alps::FullSamples< Alps::MountainDummy, /*Dim*/ 2 > cv;
+  Alps::FullSamples< Alps::MountainDummy,
+		     /*MinBatch*/ -1, /*Dim*/ 2 > cv;
   
   //
   //
@@ -37,7 +38,8 @@ TEST_F(FullSamplesTest, ByDefaultGetTrainStatusIsTrue) {
   Alps::LoadDataSet::instance("data_set_GP.json");
   //
   // Test the Cross validation 
-  Alps::FullSamples< Alps::MountainDummy, /*Dim*/ 2 > cv;
+  Alps::FullSamples< Alps::MountainDummy,
+		     /*MinBatch*/ -1, /*Dim*/ 2 > cv;
   cv.train();
   
   //

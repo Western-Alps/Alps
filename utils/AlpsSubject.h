@@ -55,6 +55,9 @@ namespace Alps
     // Subject information
     const int                                         get_subject_number() const
     {return subject_number_;};
+    // taget tensor
+    const Alps::Image< double, Dim >&                 get_target() const
+    {return target_;};
     // number of modalities
     const int                                         get_number_modalities() const
     {return number_modalities_;};
@@ -158,9 +161,9 @@ namespace Alps
   //
   // 
   template< /*class F,*/ int D > void
-  Alps::Subject< D >::add_layer( const std::string         Layer_name,
-				 const std::vector<std::size_t>    Layer_size,
-				 std::shared_ptr< double > Tensor_activation )
+  Alps::Subject< D >::add_layer( const std::string              Layer_name,
+				 const std::vector<std::size_t> Layer_size,
+				 std::shared_ptr< double >      Tensor_activation )
   {
     try
       {
@@ -194,10 +197,14 @@ namespace Alps
       {
 	if ( Target < Universe + 1 )
 	  {
-	///    target_ = Alps::Image< double*, D >( std::vector< std::size_t >(/*tensor order*/ 1, Universe ),
-	///					 std::shared_ptr< double* >(new double[Universe],
-	///								    std::default_delete< double[] >()) );
-	    ////// REST SHOULD BE 000000 target_[Target] = 1.;
+	    target_ = Alps::Image< double, D >( std::vector< std::size_t >(/*tensor order*/ 1, Universe ),
+						std::shared_ptr< double >(new double[Universe],
+									  std::default_delete< double[] >()) );
+	    // initialize the target to zero
+	    for ( std::size_t i = 0 ; i < Universe ; i++ )
+	      (target_.get_tensor().get())[i] = 0.;
+	    // Set the target value
+	    (target_.get_tensor().get())[Target] = 1.;
 	  }
 	else
 	  {

@@ -37,6 +37,18 @@ TEST_F(SubjectTest, ByDefaultSubjectAddModalitiesTrue) {
   //
   EXPECT_EQ( Subj.check_modalities("__input_layer__"), true) ;
 }
+// Add modalities
+TEST_F(SubjectTest, ByDefaultSubjectAddTarget) {
+  // Constructor of a subject
+  Alps::Subject< 2 > Subj = Alps::Subject< 2 >( 0, 1);
+  // load modalities
+  Subj.add_modalities("../images/MNITS/000000-num5.png");
+  // Add targetted value
+  Subj.add_target( 5., 10.);
+  //
+  //
+  EXPECT_EQ( (Subj.get_target().get_tensor().get())[5], 1. ) ;
+}
 
 //TEST_F(SubjectTest, ByDefaultBazFalseIsFalse) {
 //    Subjects foo(m_bar);

@@ -1,6 +1,7 @@
 #include "testAlpsWeightsFclCPU.h"
 #include "AlpsLoadDataSet.h"
 #include "AlpsWeightsFclCPU.h"
+#include "AlpsActivations.h"
 #include "AlpsSubject.h"
 #include "AlpsTools.h"
 
@@ -22,9 +23,10 @@ void WeightsFclCPUTest::TearDown() {};
 // Constructor
 TEST_F(WeightsFclCPUTest, ByDefaultWeigths) {
   // Constructor of a subject
-  Alps::WeightsFclCPU W( nullptr,
-			 std::vector< std::size_t >(1, 5),
-			 std::vector< std::size_t >(1, 10) );
+  using Activation = Alps::Activation_tanh< double >;
+  Alps::WeightsFclCPU< double, Activation > W( nullptr,
+					       std::vector< std::size_t >(1, 5),
+					       std::vector< std::size_t >(1, 10) );
   //
   //
   EXPECT_EQ( 0, 0 ) ;
@@ -32,9 +34,10 @@ TEST_F(WeightsFclCPUTest, ByDefaultWeigths) {
 // Accessor
 TEST_F(WeightsFclCPUTest, ByDefaultWeigthsGet) {
   // Constructor of weights
-  Alps::WeightsFclCPU W( nullptr,
-			 /*Current  layer*/ std::vector< std::size_t >(1, 2),
-			 /*Previous layer*/ std::vector< std::size_t >(1, 3) );
+  using Activation = Alps::Activation_tanh< double >;
+  Alps::WeightsFclCPU< double, Activation > W( nullptr,
+					       /*Current  layer*/ std::vector< std::size_t >(1, 2),
+					       /*Previous layer*/ std::vector< std::size_t >(1, 3) );
   //
   auto weights   = *(W.get_tensor().get());
   auto weights_T = weights.transpose();
@@ -45,9 +48,10 @@ TEST_F(WeightsFclCPUTest, ByDefaultWeigthsGet) {
 // Accessor
 TEST_F(WeightsFclCPUTest, ByDefaultWeigthsGet2) {
   // Constructor of weights
-  Alps::WeightsFclCPU W( nullptr,
-			 /*Current  layer*/ std::vector< std::size_t >(1, 2),
-			 /*Previous layer*/ std::vector< std::size_t >(2, 3) );
+  using Activation = Alps::Activation_tanh< double >;
+  Alps::WeightsFclCPU< double, Activation > W( nullptr,
+					       /*Current  layer*/ std::vector< std::size_t >(1, 2),
+					       /*Previous layer*/ std::vector< std::size_t >(2, 3) );
   //
   auto weights   = *(W.get_tensor().get());
   auto weights_T = weights.transpose();

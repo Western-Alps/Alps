@@ -85,8 +85,9 @@ namespace Alps
   {
     A activation;
     T cost = 0;
-// UNIT    for ( std::size_t i = 0 ; i < N ; i++ )
-// UNIT      cost += 2 * (Optimum[i] - Target[i]) * (Optimum[i] - Target[i]) * activation.df( Optimum[i] );
+    for ( std::size_t i = 0 ; i < N ; i++ )
+      cost += (Optimum[i] - Target[i]) * (Optimum[i] - Target[i]);
+
     //
     //
     return cost;
@@ -99,9 +100,9 @@ namespace Alps
 				    T*          Target,
 				    std::size_t N )
   {
-// UNIT    std::shared_ptr< T* > error ( new T[N], std::default_delete<  T [] > );
+// UNIT    std::shared_ptr< T > error ( new T[N], std::default_delete<  T [] >() );
 // UNIT    for ( std::size_t i = 0 ; i < N ; i++ )
-// UNIT      ( error.get() )[i] = (Optimum[i] - Target[i]);
+// UNIT      ( error.get() )[i] = 2 * (Optimum[i] - Target[i]) * activation.df( Optimum[i] );
     //
     //
     // UNITreturn error;
