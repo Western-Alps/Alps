@@ -95,7 +95,9 @@ namespace Alps
 	std::size_t
 	  num_modalities  = Alps::LoadDataSet::instance()->get_data()["inputs"]["images"].size(),
 	  num_img_per_mod = Alps::LoadDataSet::instance()->get_data()["inputs"]["images"][0].size(),
-	  target_universe = Alps::LoadDataSet::instance()->get_data()["inputs"]["labels_universe"];
+	  target_universe = static_cast< std::size_t >(Alps::LoadDataSet::instance()->get_data()["inputs"]["labels_universe"]);
+
+	
 	//
 	//
 	for ( std::size_t img = 0 ; img < num_img_per_mod ; img++ )
@@ -106,7 +108,8 @@ namespace Alps
 	    // If the output is descrete load the labels
 	    if ( target_universe > 0 )
 	      {
-		std::size_t target = Alps::LoadDataSet::instance()->get_data()["inputs"]["labels"][img];
+		std::string subject_label = "label_subject_" + std::to_string(img);
+		std::size_t target = static_cast< std::size_t >(Alps::LoadDataSet::instance()->get_data()["inputs"]["labels"][subject_label]);
 		( subjects_[subject_number-1].get() )->add_target( target, target_universe );
 	      }
 	    // record the modality for each subject
