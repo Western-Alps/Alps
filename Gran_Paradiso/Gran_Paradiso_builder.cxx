@@ -1,3 +1,7 @@
+// Eigen
+#include <Eigen/Core>
+#include <Eigen/Eigen>
+//
 #include "MACException.h"
 #include "NeuralNetwork.h"
 #include "NeuralNetworkComposite.h"
@@ -23,7 +27,7 @@ Alps::Gran_Paradiso_builder::Gran_Paradiso_builder()
   // Neural network anatomy //
   ////////////////////////////
   using Activation     = Alps::Activation_tanh< double >;
-  using Weights        = Alps::WeightsFclCPU< double, Activation >;
+  using Weights        = Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation >;
   using LossFunction   = Alps::LeastSquarreEstimate< double, Activation >;
   using FullyConnected = Alps::FullyConnectedLayer< Activation, Weights, LossFunction, /*Dim*/ 2 >;
 

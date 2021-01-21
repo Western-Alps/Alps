@@ -23,6 +23,12 @@
  */
 namespace Alps
 {
+  enum class Arch
+    {
+     UNKNOWN   = -1,
+     // 
+     CPU = 1,
+     GPU = 2 };
   /*! \class Weights
    * \brief class representing the weights container used by all the 
    * neural networks layers. 
