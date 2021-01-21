@@ -32,7 +32,7 @@ namespace Alps
    *
    */
   template< typename Type, typename Activation >
-  class WeightsFclCPU : public Alps::Weights< Eigen::MatrixXd, 2 >,
+  class WeightsFclCPU : public Alps::Weights< Type, Eigen::MatrixXd >,
 			public Alps::Climber
   {
   public:

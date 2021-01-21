@@ -28,8 +28,8 @@ namespace Alps
    * neural networks layers. 
    *
    */
-  template< typename Type, int Order >
-  class Weights : public Alps::Tensor< Type, Order >
+  template< typename Tensor1_Type, typename Tensor2_Type >
+  class Weights : public Alps::Tensor< Tensor2_Type, /*Order*/ 2 >
   {
   public:
     // Destructor
@@ -45,7 +45,7 @@ namespace Alps
     // Functions
     //
     // Activate
-    virtual std::shared_ptr< double > activate( std::vector< Alps::LayerTensors< double, 2 > >& ) = 0;
+    virtual std::shared_ptr< Tensor1_Type > activate( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) = 0;
   };
 }
 #endif
