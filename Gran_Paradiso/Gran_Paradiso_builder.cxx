@@ -28,7 +28,7 @@ Alps::Gran_Paradiso_builder::Gran_Paradiso_builder()
   ////////////////////////////
   using Activation     = Alps::Activation_tanh< double >;
   using Weights        = Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation >;
-  using LossFunction   = Alps::LeastSquarreEstimate< double, Activation >;
+  using LossFunction   = Alps::LeastSquarreEstimate< double >;
   using FullyConnected = Alps::FullyConnectedLayer< Activation, Weights, LossFunction, /*Dim*/ 2 >;
 
   //

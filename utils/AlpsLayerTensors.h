@@ -35,8 +35,12 @@ namespace Alps
   /*! \class LayerTensors
    *
    * \brief class LayerTensors records the Layer flatten images
-   * (tensor order 1). And memorized the tensors from 
-   * previous epoques.
+   * (tensor order 1). It holds for an image m:
+   * [0] Activation
+   * [1] Derivative of the activation
+   * [2] error from the layer
+   *
+   * And memorized the tensors from  previous epoques.
    *
    */
   template< typename Type, int Dim >
@@ -46,7 +50,10 @@ namespace Alps
     /** Constructor */
     LayerTensors( const std::string );
     /** Constructor */
-    LayerTensors( const std::vector< std::size_t >, std::shared_ptr< double > );
+    LayerTensors( const std::vector< std::size_t >,
+		   std::tuple< std::shared_ptr< double >,
+		               std::shared_ptr< double >,
+		               std::shared_ptr< double > > );
     /* Destructor */
     virtual ~LayerTensors(){};
 
@@ -80,13 +87,15 @@ namespace Alps
     Type*                                       operator[]( Alps::TensorOrder1 Idx ); 
     //
     void                                        replace( const std::vector<std::size_t>,
-							 std::shared_ptr< double > );  
+							  std::tuple< std::shared_ptr< double >,
+							              std::shared_ptr< double >,
+							              std::shared_ptr< double > >);  
     
   private:
     // (Z,error, )
-    std::array< Alps::Image< Type, Dim >, 2 >                tensors_;
+    std::array< Alps::Image< Type, Dim >, 3 >                tensors_;
     // 
-    std::vector< std::array< Alps::Image< Type, Dim >, 2 > > previous_epoque_tensors_;
+    std::vector< std::array< Alps::Image< Type, Dim >, 3 > > previous_epoque_tensors_;
   };
   //
   //
@@ -125,14 +134,18 @@ namespace Alps
   //
   // Constructor
   template< typename T,int D >
-  Alps::LayerTensors< T, D >::LayerTensors( const std::vector< std::size_t > Tensor_size,
-					    std::shared_ptr< double >        Tensor )
+  Alps::LayerTensors< T, D >::LayerTensors( const std::vector< std::size_t >        Tensor_size,
+					     std::tuple< std::shared_ptr< double >,
+					                 std::shared_ptr< double >,
+					                 std::shared_ptr< double > > Tensors )
   {
     try
       {
 	//
 	// Load the modalities into the container
-	tensors_[0] = Alps::Image< double, D >( Tensor_size, Tensor );
+	tensors_[0] = Alps::Image< double, D >( Tensor_size, std::get< 0 >( Tensors ) );
+	tensors_[1] = Alps::Image< double, D >( Tensor_size, std::get< 1 >( Tensors ) );
+	tensors_[2] = Alps::Image< double, D >( Tensor_size, std::get< 2 >( Tensors ) );
       }
     catch( itk::ExceptionObject & err )
       {
@@ -165,8 +178,10 @@ namespace Alps
   //
   // Operator []
   template< typename T,int D > void
-  Alps::LayerTensors< T, D >::replace( const std::vector<std::size_t> Tensor_size,
-				       std::shared_ptr< double > Tensor )
+  Alps::LayerTensors< T, D >::replace( const std::vector<std::size_t>          Tensor_size,
+				        std::tuple< std::shared_ptr< double >,
+				                    std::shared_ptr< double >,
+					            std::shared_ptr< double > > Tensors )
   {
     try
       {
@@ -174,10 +189,11 @@ namespace Alps
 	// Save the previous set of neurons
 	previous_epoque_tensors_.push_back( tensors_ );
 	//
-	tensors_    = std::array< Alps::Image< T, D >, 2 >();
+	tensors_    = std::array< Alps::Image< T, D >, 3 >();
 	// Load new tensors
-	tensors_[0] = Alps::Image< double, D >( Tensor_size, Tensor );
-
+	tensors_[0] = Alps::Image< double, D >( Tensor_size, std::get< 0 >( Tensors ) );
+	tensors_[1] = Alps::Image< double, D >( Tensor_size, std::get< 1 >( Tensors ) );
+	tensors_[2] = Alps::Image< double, D >( Tensor_size, std::get< 2 >( Tensors ) );
       }
     catch( itk::ExceptionObject & err )
       {

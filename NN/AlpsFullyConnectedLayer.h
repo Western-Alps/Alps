@@ -89,10 +89,10 @@ namespace Alps
     std::size_t                                   layer_id_{0};
     // Layer's name
     std::string                                   layer_name_{"__Fully_connected_layer__"};
-    // Activation function
-    std::shared_ptr< Alps::BaseFunction >         activation_func_{std::make_shared< ActivationFunction >()};
-    // Activation function
-    std::shared_ptr< Alps::BaseFunction >         cost_func_{std::make_shared< CostFunction >()};
+//    // Activation function
+//    std::shared_ptr< Alps::BaseFunction >         activation_func_{std::make_shared< ActivationFunction >()};
+//    // Activation function
+//    std::shared_ptr< Alps::BaseFunction >         cost_func_{std::make_shared< CostFunction >()};
       
     //
     // number of fully connected layers
@@ -207,11 +207,48 @@ namespace Alps
 	    }
 	//
 	//
+	// Get the activation tuple (<0> - activation; <1> - derivative; <2> - error)
+	auto activation_tuple = weights_->activate(prev_layer_tensors);
+	// If we are at the last level, we can estimate the error of the image target
+	// with the fit
+	if ( layer_name_ == "__outout_layer__" )
+	  {
+	    //
+	    // Get image target from subject
+	    auto target = subject->get_target();
+	    //
+	    // Get the size of the target and compare to the fit
+	    std::vector< std::size_t > size_target = target.get_tensor_size();
+	    //
+	    if( size_target[0] != fc_layer_size_[0])
+	      {
+		std::string
+		  mess = "The target (" + std::to_string( size_target[0] );
+		mess  += ") and the fit (" + std::to_string( fc_layer_size_[0] );
+		mess  += ") does not match.";
+		throw MAC::MACException( __FILE__, __LINE__,
+					 mess.c_str(),
+					 ITK_LOCATION );
+	      }
+	    //
+	    // Cost function
+	    C cost_function;
+	    std::get< 2 >( activation_tuple ) = cost_function.dL( (std::get< 0 >( activation_tuple )).get(),
+								  target.get_tensor().get(),
+								  (std::get< 1 >( activation_tuple )).get(),
+								  fc_layer_size_[0] );
+	    // Save the energy for this image
+	    double energy = cost_function.L( (std::get< 0 >( activation_tuple )).get(),
+					     target.get_tensor().get(),
+					     fc_layer_size_[0] );
+	    // AAAAAAAAAAAAAAA ->  subject->set_energy( energy );
+	  }
+	//
 	// Build the activation
-	// Get the tensor arrays. In this second loop we gather the information for the activation
+	// Get the tensor arrays. In this second loop we gather the information
+	// for the activation
 	subject->add_layer( layer_name_, fc_layer_size_,
-			    weights_->activate(prev_layer_tensors) );
-
+			    activation_tuple );
       }
     catch( itk::ExceptionObject & err )
       {

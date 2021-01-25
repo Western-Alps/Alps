@@ -33,10 +33,10 @@ namespace Alps
     // Functions
     //
     // Loss function function
-    virtual Type                      L( Type*, Type*, std::size_t )  = 0;
+    virtual Type                      L( Type*, Type*, std::size_t )         = 0;
     //
     // Loss function derivative
-    virtual std::shared_ptr< Type* > dL( Type*, Type*, std::size_t )  = 0;
+    virtual std::shared_ptr< Type >  dL( Type*, Type*, Type*, std::size_t )  = 0;
   };
   /** \class Function
    *
@@ -44,7 +44,7 @@ namespace Alps
    * This class is the head of a composit design to build neural network
    * 
    */
-  template< typename Type, typename Activation  >
+  template< typename Type >
   class LeastSquarreEstimate : public Alps::CostFunction< Type >
   {
   public:
@@ -68,7 +68,7 @@ namespace Alps
     virtual Type                      L( Type*, Type*, std::size_t );
     //
     // Loss function derivative
-    virtual std::shared_ptr< Type* > dL( Type*, Type*, std::size_t );
+    virtual std::shared_ptr< Type >  dL( Type*, Type*, Type*, std::size_t );
 
       
     private:
@@ -78,12 +78,11 @@ namespace Alps
   //
   //
   //
-  template< typename T, typename A > T
-  LeastSquarreEstimate< T, A >::L( T*          Optimum,
-				   T*          Target,
-				   std::size_t N )
+  template< typename T > T
+  LeastSquarreEstimate< T >::L( T*          Optimum,
+				T*          Target,
+				std::size_t N )
   {
-    A activation;
     T cost = 0;
     for ( std::size_t i = 0 ; i < N ; i++ )
       cost += (Optimum[i] - Target[i]) * (Optimum[i] - Target[i]);
@@ -95,14 +94,15 @@ namespace Alps
   //
   //
   //
-  template< typename T, typename A > std::shared_ptr< T* >
-  LeastSquarreEstimate< T, A >::dL( T*          Optimum,
+  template< typename T > std::shared_ptr< T >
+  LeastSquarreEstimate< T >::dL( T*          Optimum,
 				    T*          Target,
+				    T*          DOptimum,
 				    std::size_t N )
   {
-// UNIT    std::shared_ptr< T > error ( new T[N], std::default_delete<  T [] >() );
-// UNIT    for ( std::size_t i = 0 ; i < N ; i++ )
-// UNIT      ( error.get() )[i] = 2 * (Optimum[i] - Target[i]) * activation.df( Optimum[i] );
+    std::shared_ptr< T > error ( new T[N], std::default_delete<  T [] >() );
+    for ( std::size_t i = 0 ; i < N ; i++ )
+      ( error.get() )[i] = (Optimum[i] - Target[i]) * DOptimum[i];
     //
     //
     // UNITreturn error;

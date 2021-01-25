@@ -83,7 +83,9 @@ namespace Alps
     // Add a layer
     void                                              add_layer( const std::string,
 								  const std::vector<std::size_t>,
-								  std::shared_ptr< double >  );
+								  std::tuple< std::shared_ptr< double >,
+								              std::shared_ptr< double >,
+								              std::shared_ptr< double > > );
     // Add target in the classification study case
     void                                              add_target( const std::size_t, const std::size_t );
 
@@ -96,16 +98,16 @@ namespace Alps
     Alps::Image< double, Dim >                                                target_;
     //
     // Subject information
-    int         subject_number_{0};
+    int                                                                       subject_number_{0};
     // number of modalities
-    std::size_t number_modalities_{0};
+    std::size_t                                                               number_modalities_{0};
   };
   //
   //
   // Constructor
   template< /*class F,*/ int D >
-  Alps::Subject<D>::Subject( const int         SubNumber,
-			     const std::size_t NumModalities ):
+  Alps::Subject< D >::Subject( const int         SubNumber,
+			        const std::size_t NumModalities ):
     subject_number_{SubNumber}, number_modalities_{NumModalities}
   {
     modalities_["__input_layer__"] = std::vector< Alps::LayerTensors< double, D > >();
@@ -161,9 +163,11 @@ namespace Alps
   //
   // 
   template< /*class F,*/ int D > void
-  Alps::Subject< D >::add_layer( const std::string              Layer_name,
-				 const std::vector<std::size_t> Layer_size,
-				 std::shared_ptr< double >      Tensor_activation )
+  Alps::Subject< D >::add_layer( const std::string                       Layer_name,
+				  const std::vector<std::size_t>          Layer_size,
+				  std::tuple< std::shared_ptr< double >,
+				              std::shared_ptr< double >,
+				              std::shared_ptr< double > > Tensors_activation )
   {
     try
       {
@@ -175,11 +179,11 @@ namespace Alps
 	  {
 	    modalities_[ Layer_name ] = std::vector< Alps::LayerTensors< double, D > >();
 	    modalities_[ Layer_name ].push_back( Alps::LayerTensors< double, D >(Layer_size,
-										 Tensor_activation) );
+										 Tensors_activation) );
 	  }
 	else
 	  modalities_[ Layer_name ][0].replace( Layer_size,
-						Tensor_activation );
+						Tensors_activation );
       }
     catch( itk::ExceptionObject & err )
       {

@@ -85,8 +85,8 @@ TEST_F(WeightsFclCPUTest, ByDefaultWeigthsActivate) {
   t2.get()[3] = -0.1;
   //
   Alps::LayerTensors< double, 2 >
-    lt1( s1, t1 ),
-    lt2( s2, t2 );
+    lt1( s1, std::make_tuple(t1, nullptr, nullptr) ),
+    lt2( s2, std::make_tuple(t2, nullptr, nullptr) );
   //
   using Activation = Alps::Activation_tanh< double >;
   Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation > W( nullptr,
@@ -110,12 +110,12 @@ TEST_F(WeightsFclCPUTest, ByDefaultWeigthsActivate) {
   //
   auto activ_res = W.activate( prev_layer_tensors );
 
-  std::cout << "rest: " << (activ_res.get())[0] << std::endl;
+  std::cout << "rest: " << (std::get< 0 >(activ_res).get())[0] << std::endl;
   
 
   //
   //
-  EXPECT_EQ( func.f( a(0,0) ), (activ_res.get())[0] ) ;
+  EXPECT_EQ( func.f( a(0,0) ), (std::get< 0 >(activ_res).get())[0] ) ;
 }
 //TEST_F(WeightsFclCPUTest, ByDefaultBazFalseIsFalse) {
 //    Subjects foo(m_bar);

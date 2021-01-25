@@ -50,7 +50,7 @@ namespace Alps
     { return std::vector< std::size_t >(); };						      
     // Get the tensor			     						      
     virtual std::shared_ptr< Tensor2_Type >    get_tensor() const                                     override
-    { return nullptr;};			     						      
+    { return weights_;};			     						      
     // Set size of the tensor		     						      
     virtual void                               set_tensor_size( std::vector< std::size_t > )          override{};
     // Set the tensor			     						      
@@ -59,25 +59,37 @@ namespace Alps
     //					     						      
     // Get the observed mountain	     						      
     virtual std::shared_ptr< Alps::Mountain >  get_mountain()                                         override
-    { return nullptr;};
+    { return layer_;};
 
     												      
     //												      
     // Functions										      
     //												      
     // Save the weights										      
-    virtual void                            save_tensor() const                                       override{};
+    virtual void                               save_tensor() const                                    override{};
     // Load the weights										      
-    virtual void                            load_tensor( const std::string )                          override{};
+    virtual void                               load_tensor( const std::string )                       override{};
     //
     //
     // Activate
-    virtual std::shared_ptr< Tensor1_Type > activate( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) override
-    { return nullptr;};
+    virtual std::tuple < std::shared_ptr< Tensor1_Type >,
+			 std::shared_ptr< Tensor1_Type >,
+			 std::shared_ptr< Tensor1_Type > > activate( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) override{};
     //
     //
     // Update the weights
-    virtual void                            update()                                                  override{};
+    virtual void                               update()                                               override{};
+
+
+
+  private:
+    // Matrix of weigths
+    std::shared_ptr< Tensor2_Type >   weights_{nullptr};
+    // weights activation
+    Activation                        activation_;
+    //
+    // The mountain observed: fully connected layer
+    std::shared_ptr< Alps::Mountain > layer_{nullptr};
   };
   /*! \class WeightsFullyConnected
    * \brief class representing the weights container for fully
@@ -121,17 +133,19 @@ namespace Alps
     // Functions										      
     //												      
     // Save the weights										      
-    virtual void                            save_tensor() const                                       override{};
+    virtual void                                  save_tensor() const                                 override{};
     // Load the weights										      
-    virtual void                            load_tensor( const std::string )                          override{};
+    virtual void                                  load_tensor( const std::string )                    override{};
     //
     //
     // Activate
-    virtual std::shared_ptr< Type >         activate( std::vector< Alps::LayerTensors< Type, 2 > >& ) override;
+    virtual std::tuple < std::shared_ptr< Type >,
+			 std::shared_ptr< Type >,
+			 std::shared_ptr< Type > > activate( std::vector< Alps::LayerTensors< Type, 2 > >& ) override;
     //
     //
     // Update the weights
-    virtual void                            update()                                                  override{};
+    virtual void                                  update()                                            override{};
 
 
 
@@ -186,7 +200,7 @@ namespace Alps
   //
   //
   //
-  template< typename T, typename A > std::shared_ptr< T >
+  template< typename T, typename A > std::tuple< std::shared_ptr< T >, std::shared_ptr< T >, std::shared_ptr< T > >
   Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A >::activate( std::vector< Alps::LayerTensors< T, 2 > >& Image_tensors )
   {
     //
@@ -209,10 +223,14 @@ namespace Alps
       }
     //
     // Converter the tensor into an Eigen matrix
-    std::shared_ptr< T > z_out = std::shared_ptr< T >( new  T[weights_->rows()],
-						       std::default_delete<  T[] >() );
-    Eigen::MatrixXd      a_out = Eigen::MatrixXd::Zero( weights_->rows(), 1 );
-    Eigen::MatrixXd      z_in  = Eigen::MatrixXd::Zero( weights_->cols(), 1 );
+    std::shared_ptr< T > z_out  = std::shared_ptr< T >( new  T[weights_->rows()],
+							std::default_delete<  T[] >() );
+    std::shared_ptr< T > dz_out = std::shared_ptr< T >( new  T[weights_->rows()],
+							std::default_delete<  T[] >() );
+    std::shared_ptr< T > error  = std::shared_ptr< T >( new  T[weights_->rows()],
+							std::default_delete<  T[] >() );
+    Eigen::MatrixXd      a_out  = Eigen::MatrixXd::Zero( weights_->rows(), 1 );
+    Eigen::MatrixXd      z_in   = Eigen::MatrixXd::Zero( weights_->cols(), 1 );
     // Load the tensor image into a Eigen vector
     std::size_t shift = 1;
     z_in(0,0) = 1.; // bias
@@ -228,11 +246,16 @@ namespace Alps
     // Apply the activation function
     long int activation_size = weights_->rows();
     for ( long int s = 0 ; s < activation_size ; s++ )
-      z_out.get()[s] = activation_.f( a_out(s,0) );
+      {
+	z_out.get()[s]  = activation_.f( a_out(s,0) );
+	dz_out.get()[s] = activation_.df( a_out(s,0) );
+	error.get()[s]  = 0.0;
+      }
 
     //
     //
-    return z_out;
+    //return std::make_tuple< std::shared_ptr< T >, std::shared_ptr< T > >( z_out, dz_out );
+    return std::make_tuple( z_out, dz_out, error );
   };
   /*! \class WeightsFullyConnected
    * \brief class representing the weights container for fully
@@ -282,7 +305,9 @@ namespace Alps
     //
     //
     // Activate
-    virtual std::shared_ptr< Type1 >        activate( std::vector< Alps::LayerTensors< Type1, 2 > >& ) override{};
+    virtual std::tuple < std::shared_ptr< Type1 >,
+			 std::shared_ptr< Type1 >,
+			 std::shared_ptr< Type1 > > activate( std::vector< Alps::LayerTensors< Type1, 2 > >& ) override{};
     //
     //
     // Update the weights
