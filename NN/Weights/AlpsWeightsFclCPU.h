@@ -1,5 +1,5 @@
-#ifndef ALPSWEIGHTSFCLCPU_H
-#define ALPSWEIGHTSFCLCPU_H
+#ifndef ALPSWEIGHTSFCL_H
+#define ALPSWEIGHTSFCL_H
 //
 //
 //
@@ -46,19 +46,19 @@ namespace Alps
     // Accessors
     //
     // Get size of the tensor
-    virtual const std::vector< std::size_t >      get_tensor_size() const                             override
-    { return std::vector< std::size_t >(); };							      
-    // Get the tensor										      
-    virtual std::shared_ptr< Tensor2_Type >       get_tensor() const                                  override
-    { return nullptr;};										      
-    // Set size of the tensor									      
-    virtual void                                  set_tensor_size( std::vector< std::size_t > )       override{};
-    // Set the tensor										      
-    virtual void                                  set_tensor( std::shared_ptr< Tensor2_Type > )       override{};
-    //												      
-    //												      
-    // Get the observed mountain								      
-    virtual std::shared_ptr< Alps::Mountain >     get_mountain()                                      override
+    virtual const std::vector< std::size_t >   get_tensor_size() const                                override
+    { return std::vector< std::size_t >(); };						      
+    // Get the tensor			     						      
+    virtual std::shared_ptr< Tensor2_Type >    get_tensor() const                                     override
+    { return nullptr;};			     						      
+    // Set size of the tensor		     						      
+    virtual void                               set_tensor_size( std::vector< std::size_t > )          override{};
+    // Set the tensor			     						      
+    virtual void                               set_tensor( std::shared_ptr< Tensor2_Type > )          override{};
+    //					     						      
+    //					     						      
+    // Get the observed mountain	     						      
+    virtual std::shared_ptr< Alps::Mountain >  get_mountain()                                         override
     { return nullptr;};
 
     												      
@@ -148,7 +148,7 @@ namespace Alps
   //
   //
   template< typename T, typename A >
-  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A >::WeightsFcl(  std::shared_ptr< Alps::Mountain > Layer,
+  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A >::WeightsFcl( std::shared_ptr< Alps::Mountain > Layer,
 									   const std::vector< std::size_t >  Layer_size,
 									   const std::vector< std::size_t >  Prev_layer_size  ):
     layer_{Layer}

@@ -82,8 +82,8 @@ namespace Alps
       { return (number_modalities_ == modalities_[Layer].size() ? true : false);};
     // Add a layer
     void                                              add_layer( const std::string,
-								 const std::vector<std::size_t>,
-								 std::shared_ptr< double >  );
+								  const std::vector<std::size_t>,
+								  std::shared_ptr< double >  );
     // Add target in the classification study case
     void                                              add_target( const std::size_t, const std::size_t );
 

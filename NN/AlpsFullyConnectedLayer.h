@@ -187,7 +187,7 @@ namespace Alps
 					      fc_layer_size_, prev_layer_size );
 	  }
 	//
-	// In this second we concaten the tensors from any layer connected to this layer
+	// In this second loop we concaten the tensors from any layer connected to this layer
 	std::vector< Alps::LayerTensors< double, 2 > > prev_layer_tensors;
 	for ( auto layer : prev_layer_ )
 	  if ( layer )

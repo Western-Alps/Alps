@@ -62,22 +62,60 @@ TEST_F(WeightsFclCPUTest, ByDefaultWeigthsGet2) {
 // Activate
 TEST_F(WeightsFclCPUTest, ByDefaultWeigthsActivate) {
   //
-//ToDo  // Constructor of a subject
-//ToDo  std::shared_ptr< Alps::Subject< 2 > > Subj = std::make_shared< Alps::Subject< 2 > >( Alps::Subject< 2 >( 0, 2) );
-//ToDo  // load modalities
-//ToDo  Subj->add_modalities("../images/MNITS/000000-num5.png");
-//ToDo  Subj->add_modalities("../images/MNITS/000000-num5.png");
-//ToDo  //
-//ToDo  // Constructor of weights
-//ToDo  Alps::WeightsFclCPU W( nullptr,
-//ToDo			 /*Current  layer*/ std::vector< int >(1, 2),
-//ToDo			 /*Previous layer*/ std::vector< int >(2, 3) );
-//ToDo  //
-//ToDo  //
-//ToDo  W.activate( Subj->get_layer_modalities("__input_layer__") );
+  std::vector< std::size_t >
+    ss(2),
+    s1(1,3),
+    s2(1,4);
+  ss[0] = 3;
+  ss[1] = 4;
+  //
+  std::shared_ptr< double >
+    t1( new  double[3],
+	std::default_delete< double[] >() ),
+    t2( new  double[4],
+	std::default_delete< double[] >() );
+  //
+  t1.get()[0] = -0.2;
+  t1.get()[1] =  0.3;
+  t1.get()[2] = -0.4;
+  //
+  t2.get()[0] =  0.4;
+  t2.get()[1] = -0.3;
+  t2.get()[2] =  0.2;
+  t2.get()[3] = -0.1;
+  //
+  Alps::LayerTensors< double, 2 >
+    lt1( s1, t1 ),
+    lt2( s2, t2 );
+  //
+  using Activation = Alps::Activation_tanh< double >;
+  Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation > W( nullptr,
+									      /*Current  layer*/ std::vector< std::size_t >(1, 2),
+									      /*Previous layer*/ ss );
+  //
+  auto weights = *( W.get_tensor().get() );
+  Eigen::MatrixXd V( 8, 1);
+  V << 1.,-0.2,0.3,-0.4,0.4,-0.3,0.2,-0.1;
+  //
+  auto a = weights * V;
+  Activation func;
+  std::cout << "Activation: \n" << a << std::endl;
+  std::cout << "z(0,0): \n" << func.f( a(0,0) ) << std::endl;
+  
   //
   //
-  EXPECT_EQ( 0, 0 ) ;
+  std::vector< Alps::LayerTensors< double, 2 > > prev_layer_tensors;
+  prev_layer_tensors.push_back( lt1 );
+  prev_layer_tensors.push_back( lt2 );
+  //
+  auto activ_res = W.activate( prev_layer_tensors );
+
+  std::cout << "rest: " << (activ_res.get())[0] << std::endl;
+  
+
+  //
+  //
+  EXPECT_EQ( func.f( a(0,0) ), (activ_res.get())[0] ) ;
 }
 //TEST_F(WeightsFclCPUTest, ByDefaultBazFalseIsFalse) {
 //    Subjects foo(m_bar);
