@@ -49,6 +49,9 @@ namespace Alps
     // Get the observed mountain
     virtual std::shared_ptr< Alps::Mountain >                      get_mountain()       override
     { return mountain_observed_;};
+    // get images energy
+    virtual const double                                           get_energy() const   override
+    { return /*ToDo*/-1.;};
     //
     //
     const   std::vector< std::shared_ptr< Alps::Subject< Dim > > > get_subjects() const 

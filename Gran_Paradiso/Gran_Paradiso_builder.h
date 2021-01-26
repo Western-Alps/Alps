@@ -60,39 +60,42 @@ namespace Alps
       virtual const std::vector<std::size_t> get_layer_size() const                           override
       { return std::vector<std::size_t>();};
       // attach the next layer
-      virtual       void                     set_next_layer( std::shared_ptr< Alps::Layer > ) override{};
+      virtual void                           set_next_layer( std::shared_ptr< Alps::Layer > ) override{};
       //
       //
       // get the neural network energy
       virtual const double                   get_energy() const                               override
-        { return 1. /*ToDo*/;};
+        { return energy_;};
 
 
       //
       // Functions
       //
       // Add previous layer
-      virtual       void                     add_layer( std::shared_ptr< Alps::Layer > )      override{};
+      virtual void                           add_layer( std::shared_ptr< Alps::Layer > )      override{};
       // Forward propagation
-      virtual       void                     forward( std::shared_ptr< Alps::Climber > )      override;
+      virtual void                           forward( std::shared_ptr< Alps::Climber > )      override;
       // Backward propagation
-      virtual       void                     backward()                                       override;
+      virtual void                           backward()                                       override;
       //
       //
       // Add network layers
-      virtual       void                     add( std::shared_ptr< Alps::Layer > )            override{};
+      virtual void                           add( std::shared_ptr< Alps::Layer > )            override{};
       //
       //
       // Overriding from Mountains
-      virtual       void                     attach( std::shared_ptr< Alps::Climber > )       override{};
+      virtual void                           attach( std::shared_ptr< Alps::Climber > )       override{};
       // Notify the observers for updates
-      virtual       void                     notify()                                         override{};
+      virtual void                           notify()                                         override{};
 
       
 
     private:
+      //
       // layer unique ID
-      std::size_t                  layer_id_{0};
+      std::size_t layer_id_{0};
+      // energy of the epoque
+      double      energy_{1.e+06};
       //
       Alps::NeuralNetworkComposite mr_nn_;
     };

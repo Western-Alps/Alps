@@ -3,33 +3,6 @@
 //
 #include "MACException.h"
 #include "AlpsNeuralNetworkComposite.h"
-
-//
-//
-//
-Alps::NeuralNetworkComposite::NeuralNetworkComposite()
-{
-  try
-    {}
-  catch( itk::ExceptionObject & err )
-    {
-      std::cerr << err << std::endl;
-      exit(EXIT_FAILURE);
-    }
-}
-//
-//
-//
-Alps::NeuralNetworkComposite::~NeuralNetworkComposite()
-{
-  try
-    {}
-  catch( itk::ExceptionObject & err )
-    {
-      std::cerr << err << std::endl;
-      exit(EXIT_FAILURE);
-    }
-}
 //
 //
 //
@@ -40,14 +13,8 @@ Alps::NeuralNetworkComposite::forward( std::shared_ptr< Alps::Climber > Sub )
     {
       //
       for ( auto nn_elem : nn_composite_ )
-	{
-	  std::cout << "New elem" << std::endl;
-	  nn_elem->forward( Sub );
-	  // we just want to save the last energy
-	  // energies are already cumulated in the container
-	  // energy_ = nn_elem->get_energy();
-	}
-      }
+	nn_elem->forward( Sub );
+    }
   catch( itk::ExceptionObject & err )
     {
       std::cerr << err << std::endl;

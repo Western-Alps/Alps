@@ -187,7 +187,7 @@ namespace Alps
 					      fc_layer_size_, prev_layer_size );
 	  }
 	//
-	// In this second loop we concaten the tensors from any layer connected to this layer
+	// We concaten the tensors from any layer connected to this layer
 	std::vector< Alps::LayerTensors< double, 2 > > prev_layer_tensors;
 	for ( auto layer : prev_layer_ )
 	  if ( layer )
@@ -211,15 +211,14 @@ namespace Alps
 	auto activation_tuple = weights_->activate(prev_layer_tensors);
 	// If we are at the last level, we can estimate the error of the image target
 	// with the fit
-	if ( layer_name_ == "__outout_layer__" )
+	if ( layer_name_ == "__output_layer__" )
 	  {
 	    //
 	    // Get image target from subject
 	    auto target = subject->get_target();
-	    //
 	    // Get the size of the target and compare to the fit
 	    std::vector< std::size_t > size_target = target.get_tensor_size();
-	    //
+	    // Check we are comparing the same thing
 	    if( size_target[0] != fc_layer_size_[0])
 	      {
 		std::string
@@ -231,8 +230,9 @@ namespace Alps
 					 ITK_LOCATION );
 	      }
 	    //
-	    // Cost function
+	    // Cost function. 
 	    C cost_function;
+	    // It return the error at the image level
 	    std::get< 2 >( activation_tuple ) = cost_function.dL( (std::get< 0 >( activation_tuple )).get(),
 								  target.get_tensor().get(),
 								  (std::get< 1 >( activation_tuple )).get(),
@@ -241,7 +241,8 @@ namespace Alps
 	    double energy = cost_function.L( (std::get< 0 >( activation_tuple )).get(),
 					     target.get_tensor().get(),
 					     fc_layer_size_[0] );
-	    // AAAAAAAAAAAAAAA ->  subject->set_energy( energy );
+	    subject->set_energy( energy );
+	    std::cout << "Layer: " << layer_name_ << " & energy: " << energy << std::endl;
 	  }
 	//
 	// Build the activation

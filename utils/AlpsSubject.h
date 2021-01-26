@@ -50,22 +50,31 @@ namespace Alps
     // Get the observed mountain
     virtual std::shared_ptr< Alps::Mountain >         get_mountain()                       override
     { return nullptr;};
+    // get images energy
+    virtual const double                              get_energy() const                   override
+    { return energy_.back();};
     //
     //
     // Subject information
     const int                                         get_subject_number() const
-    {return subject_number_;};
+    { return subject_number_;};
+    // get images energy
+    const std::vector< double >&                      get_energies() const
+    { return energy_;};
     // taget tensor
     const Alps::Image< double, Dim >&                 get_target() const
-    {return target_;};
+    { return target_;};
     // number of modalities
     const int                                         get_number_modalities() const
-    {return number_modalities_;};
+    { return number_modalities_;};
     // Return the size of the layers
     std::vector<std::size_t>                          get_layer_size();
     // Get layer modality z
     std::vector< Alps::LayerTensors< double, Dim > >& get_layer( const std::string Layer )
     { return modalities_[Layer]; };
+    // set images energy
+    void                                              set_energy( const double E ) 
+    { energy_.push_back(E);};
 
 
     //
@@ -92,6 +101,8 @@ namespace Alps
     
   private:
     //
+    // energy for the set of input images for each epoque
+    std::vector< double >                                                     energy_;
     // Vector of modalities 
     std::map< std::string, std::vector< Alps::LayerTensors< double, Dim > > > modalities_;
     // Vector of modalities 
@@ -146,18 +157,11 @@ namespace Alps
   template< /*class F,*/ int D > std::vector<std::size_t>
   Alps::Subject< D >::get_layer_size()
   {
-    try
-      {
-	std::vector<std::size_t> layer_size;
-	for ( int img_in = 0 ; img_in < number_modalities_ ; img_in++ )
-	  layer_size.push_back( modalities_["__input_layer__"][img_in].get_tensor_size()[0] );
-	//
-	return layer_size;
-      }
-    catch( itk::ExceptionObject & err )
-      {
-	std::cerr << err << std::endl;
-      }
+    std::vector<std::size_t> layer_size;
+    for ( std::size_t img_in = 0 ; img_in < number_modalities_ ; img_in++ )
+      layer_size.push_back( modalities_["__input_layer__"][img_in].get_tensor_size()[0] );
+    //
+    return layer_size;
   }
   //
   //

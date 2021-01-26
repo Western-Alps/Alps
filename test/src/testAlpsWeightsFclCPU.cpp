@@ -1,6 +1,6 @@
 #include "testAlpsWeightsFclCPU.h"
 #include "AlpsLoadDataSet.h"
-#include "AlpsWeightsFclCPU.h"
+#include "AlpsWeightsFcl.h"
 #include "AlpsActivations.h"
 #include "AlpsSubject.h"
 #include "AlpsTools.h"

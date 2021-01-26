@@ -43,7 +43,9 @@ namespace Alps
     // Accessors
     //
     // Get the observed mountain
-    virtual std::shared_ptr< Alps::Mountain > get_mountain() = 0;
+    virtual std::shared_ptr< Alps::Mountain > get_mountain()     = 0;
+    // Get energy
+    virtual const double                      get_energy() const = 0;
 
     
     //
