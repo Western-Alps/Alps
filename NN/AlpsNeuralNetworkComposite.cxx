@@ -25,7 +25,7 @@ Alps::NeuralNetworkComposite::forward( std::shared_ptr< Alps::Climber > Sub )
 //
 //
 void
-Alps::NeuralNetworkComposite::backward()
+Alps::NeuralNetworkComposite::backward( std::shared_ptr< Alps::Climber > Sub )
 {
   try
     {

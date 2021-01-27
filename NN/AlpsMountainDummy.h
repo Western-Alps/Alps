@@ -55,7 +55,7 @@ namespace Alps
     virtual const int              get_number_weights() const                       override
     { return 1;};
     // get the layer size
-    virtual const std::vector<std::size_t> get_layer_size() const                           override
+    virtual const std::vector<std::size_t> get_layer_size() const                   override
     { return std::vector<std::size_t>();};
     // attach the next layer
     virtual       void             set_next_layer( std::shared_ptr< Alps::Layer > ) override{};
@@ -74,17 +74,18 @@ namespace Alps
     // Forward propagation
     virtual       void             forward( std::shared_ptr< Alps::Climber > )      override;
     // Backward propagation
-    virtual       void             backward()                                       override;
+    virtual       void             backward( std::shared_ptr< Alps::Climber > )     override;
     // Add network layers
     virtual       void             add( std::shared_ptr< Alps::Layer > )            override{};
     //
     // Attach observers that need to be updated
-    virtual       void             attach( std::shared_ptr< Alps::Climber > )       override{};
+    virtual       void             attach( std::shared_ptr< Alps::Climber >  )      override{};
     // Notify the observers for updates
     virtual       void             notify()                                         override{};
 
 
   private:
+    std::shared_ptr< Alps::Climber > attached_climber_;
     double energy_{10.};
   };
 }

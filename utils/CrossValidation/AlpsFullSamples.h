@@ -109,6 +109,9 @@ namespace Alps
 	    {
 	      while ( std::dynamic_pointer_cast<M>(subjects_[0].get_mountain())->get_energy() > 1.e-06 )
 		{
+		  // update the epoques
+		  ++subjects_[0];
+
 		  //
 		  // Forward process
 		  for ( int sub : fold_subjects )
@@ -120,11 +123,18 @@ namespace Alps
 		      // Get the observed Mountain from subjects
 		      std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->forward( (subjects_[0].get_subjects())[sub] );
 		    }
-		  // update the epoques
-		  ++subjects_[0];
 
 		  //
 		  // Estimate the cost function
+		  for ( int sub : fold_subjects )
+		    {
+		      std::cout
+			<< " Subject " << sub
+			<< " -- In subject " << ( subjects_[0].get_subjects() )[ sub ]->get_subject_number()
+			<< std::endl;
+		      // Get the observed Mountain from subjects
+		      std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->backward( (subjects_[0].get_subjects())[sub] );
+		    }
 		  
 		  
 		  //

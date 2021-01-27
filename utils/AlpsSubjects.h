@@ -65,11 +65,7 @@ namespace Alps
     //
     //
     // prefix increment
-    Subjects&                                                      operator++()
-    {
-      epoque_++;
-      return *this; 
-    }
+    Subjects&                                                      operator++();
 
     
   private:
@@ -139,13 +135,19 @@ namespace Alps
   template< /*class F,*/ int D > void
   Alps::Subjects< D >::update()
   {
-    try
-      {
-      }
-    catch( itk::ExceptionObject & err )
-      {
-	std::cerr << err << std::endl;
-      }
+    mountain_observed_->notify();
+  }
+  //
+  //
+  //
+  template< /*class F,*/ int D > Alps::Subjects< D >&
+  Alps::Subjects< D >::operator++()
+  {
+    epoque_++;
+    update();
+    //
+    //
+    return *this; 
   }
 }
 #endif

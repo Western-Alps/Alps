@@ -75,7 +75,7 @@ namespace Alps
     // Forward propagation
     virtual       void                     forward( std::shared_ptr< Alps::Climber > )           override;
     // Backward propagation
-    virtual       void                     backward()                                            override {};
+    virtual       void                     backward( std::shared_ptr< Alps::Climber > )          override;
     //
     //
     // Attach observers that need to be updated
@@ -250,6 +250,21 @@ namespace Alps
 	// for the activation
 	subject->add_layer( layer_name_, fc_layer_size_,
 			    activation_tuple );
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+	exit(-1);
+      }
+  };
+  //
+  //
+  //
+  template< typename AF, typename W, typename C, int D   > void
+  FullyConnectedLayer< AF, W, C, D >::backward( std::shared_ptr< Alps::Climber > Sub )
+  {
+    try
+      {
       }
     catch( itk::ExceptionObject & err )
       {

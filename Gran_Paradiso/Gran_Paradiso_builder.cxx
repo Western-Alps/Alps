@@ -67,12 +67,21 @@ Alps::Gran_Paradiso_builder::forward( std::shared_ptr< Alps::Climber > Sub )
 {
   mr_nn_.forward( Sub );
   energy_ += Sub->get_energy();
+  std::cout << "Gran Paradiso: " << energy_ << std::endl;
 };
 //
 //
 //
 void
-Alps::Gran_Paradiso_builder::backward()
+Alps::Gran_Paradiso_builder::backward( std::shared_ptr< Alps::Climber > Sub )
 {
-  mr_nn_.backward();
+  mr_nn_.backward( Sub );
+};
+//
+//
+//
+void
+Alps::Gran_Paradiso_builder::notify()
+{
+  energy_ = 0.;
 };
