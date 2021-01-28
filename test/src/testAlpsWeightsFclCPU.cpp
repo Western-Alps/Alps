@@ -1,6 +1,7 @@
 #include "testAlpsWeightsFclCPU.h"
 #include "AlpsLoadDataSet.h"
 #include "AlpsWeightsFcl.h"
+#include "AlpsSGD.h"
 #include "AlpsActivations.h"
 #include "AlpsSubject.h"
 #include "AlpsTools.h"
@@ -24,9 +25,10 @@ void WeightsFclCPUTest::TearDown() {};
 TEST_F(WeightsFclCPUTest, ByDefaultWeigths) {
   // Constructor of a subject
   using Activation = Alps::Activation_tanh< double >;
-  Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation > W( nullptr,
-									      std::vector< std::size_t >(1, 5),
-									      std::vector< std::size_t >(1, 10) );
+  using Solver     = Alps::SGD< double >;
+  Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Solver > W( nullptr,
+										      std::vector< std::size_t >(1, 5),
+										      std::vector< std::size_t >(1, 10) );
   //
   //
   EXPECT_EQ( 0, 0 ) ;
@@ -35,9 +37,10 @@ TEST_F(WeightsFclCPUTest, ByDefaultWeigths) {
 TEST_F(WeightsFclCPUTest, ByDefaultWeigthsGet) {
   // Constructor of weights
   using Activation = Alps::Activation_tanh< double >;
-  Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation > W( nullptr,
-									      /*Current  layer*/ std::vector< std::size_t >(1, 2),
-									      /*Previous layer*/ std::vector< std::size_t >(1, 3) );
+  using Solver     = Alps::SGD< double >;
+  Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Solver > W( nullptr,
+										      /*Current  layer*/ std::vector< std::size_t >(1, 2),
+										      /*Previous layer*/ std::vector< std::size_t >(1, 3) );
   //
   auto weights   = *(W.get_tensor().get());
   auto weights_T = weights.transpose();
@@ -49,9 +52,10 @@ TEST_F(WeightsFclCPUTest, ByDefaultWeigthsGet) {
 TEST_F(WeightsFclCPUTest, ByDefaultWeigthsGet2) {
   // Constructor of weights
   using Activation = Alps::Activation_tanh< double >;
-  Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation > W( nullptr,
-									      /*Current  layer*/ std::vector< std::size_t >(1, 2),
-									      /*Previous layer*/ std::vector< std::size_t >(2, 3) );
+  using Solver     = Alps::SGD< double >;
+  Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Solver > W( nullptr,
+										      /*Current  layer*/ std::vector< std::size_t >(1, 2),
+										      /*Previous layer*/ std::vector< std::size_t >(2, 3) );
   //
   auto weights   = *(W.get_tensor().get());
   auto weights_T = weights.transpose();
@@ -89,9 +93,10 @@ TEST_F(WeightsFclCPUTest, ByDefaultWeigthsActivate) {
     lt2( s2, std::make_tuple(t2, nullptr, nullptr) );
   //
   using Activation = Alps::Activation_tanh< double >;
-  Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation > W( nullptr,
-									      /*Current  layer*/ std::vector< std::size_t >(1, 2),
-									      /*Previous layer*/ ss );
+  using Solver     = Alps::SGD< double >;
+  Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Solver > W( nullptr,
+										      /*Current  layer*/ std::vector< std::size_t >(1, 2),
+										      /*Previous layer*/ ss );
   //
   auto weights = *( W.get_tensor().get() );
   Eigen::MatrixXd V( 8, 1);

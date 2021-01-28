@@ -89,10 +89,6 @@ namespace Alps
     std::size_t                                   layer_id_{0};
     // Layer's name
     std::string                                   layer_name_{"__Fully_connected_layer__"};
-//    // Activation function
-//    std::shared_ptr< Alps::BaseFunction >         activation_func_{std::make_shared< ActivationFunction >()};
-//    // Activation function
-//    std::shared_ptr< Alps::BaseFunction >         cost_func_{std::make_shared< CostFunction >()};
       
     //
     // number of fully connected layers
@@ -265,6 +261,7 @@ namespace Alps
   {
     try
       {
+	weights_->solve();
       }
     catch( itk::ExceptionObject & err )
       {

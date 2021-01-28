@@ -7,6 +7,7 @@
 #include "NeuralNetworkComposite.h"
 #include "Gran_Paradiso_builder.h"
 #include "AlpsWeightsFcl.h"
+#include "AlpsSGD.h"
 #include "AlpsActivations.h"
 #include "AlpsCostFunction.h"
 //
@@ -27,7 +28,8 @@ Alps::Gran_Paradiso_builder::Gran_Paradiso_builder()
   // Neural network anatomy //
   ////////////////////////////
   using Activation     = Alps::Activation_tanh< double >;
-  using Weights        = Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation >;
+  using Solver         = Alps::SGD< double >;
+  using Weights        = Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Solver >;
   using LossFunction   = Alps::LeastSquarreEstimate< double >;
   using FullyConnected = Alps::FullyConnectedLayer< Activation, Weights, LossFunction, /*Dim*/ 2 >;
 

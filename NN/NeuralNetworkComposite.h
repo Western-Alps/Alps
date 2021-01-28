@@ -21,8 +21,8 @@
 #include "Subject.h"
 #include "AlpsTools.h"
 // Gradients
-#include "Gradient.h"
-#include "SGD.h"
+#include "AlpsGradient.h"
+#include "AlpsSGD.h"
 // Weights
 #include "Weights.h"
 #include "Convolutional_window.h"
