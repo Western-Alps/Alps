@@ -63,7 +63,7 @@ namespace Alps
       {return fc_layer_size_;};
     // attach the next layer
     virtual       void                     set_next_layer( std::shared_ptr< Alps::Layer > Next ) override
-      { next_layer_ = Next;};
+    { next_layer_.push_back( Next );};
 
 
     //
@@ -86,23 +86,23 @@ namespace Alps
     
   private:
     // layer unique ID
-    std::size_t                                   layer_id_{0};
+    std::size_t                                         layer_id_{0};
     // Layer's name
-    std::string                                   layer_name_{"__Fully_connected_layer__"};
+    std::string                                         layer_name_{"__Fully_connected_layer__"};
       
     //
     // number of fully connected layers
-    std::vector< std::size_t >                    fc_layer_size_;
+    std::vector< std::size_t >                          fc_layer_size_;
 
     //
     // Previous  layers information
-    std::vector< std::shared_ptr< Alps::Layer > > prev_layer_;
+    std::vector< std::shared_ptr< Alps::Layer > >       prev_layer_;
     // Next layers information
-    std::shared_ptr< Alps::Layer >                next_layer_;
+    std::vector< std::shared_ptr< Alps::Layer > >       next_layer_;
     //
     // Observers
     // Observers containers
-    std::shared_ptr< Weights >                    weights_{nullptr};
+    std::map< std::string, std::shared_ptr< Weights > > weights_;
   };
   //
   //
@@ -147,64 +147,93 @@ namespace Alps
 	//
 	// Down to subject
 	std::shared_ptr< Alps::Subject< D > > subject = std::dynamic_pointer_cast< Alps::Subject< D > >(Sub);
+
+	
+	////////////////////////
+	// Create the weights //
+	////////////////////////
 	//
 	// We get the number of previous layers attached to this layer. In this first loop,
 	// we collect the number of nodes if the weights were not initialized
 	std::cout << "Layer: " << layer_name_ << std::endl;
-	if ( !weights_ )
+	if ( weights_.size() == 0 )
 	  {
 	    // If the weights were not initialized yet
-	    std::vector< std::size_t > prev_layer_size;
 	    for ( auto layer : prev_layer_ )
-	      if ( layer )
-		{
-		  for ( auto mod : layer->get_layer_size() )
-		    {
-		      std::cout
-			<< "Connected to: " << layer->get_layer_name()
-			<< " with " << layer->get_layer_size()[0] << " nodes" << std::endl;
-		      prev_layer_size.push_back( mod );
-		    }
-		}
-	      else
-		{
-		  // the connected layer is the input layer
-		  for ( auto mod : subject->get_layer_size() )
-		    {
-		      std::cout
-			<< "Connected to: " << "__input_layer__"
-			<< " with " << subject->get_layer_size()[0] << " nodes" << std::endl;
-		      prev_layer_size.push_back( mod );
-		    }
-		}
+	      {
+		std::string name = "__input_layer__";
+		if ( layer )
+		  {
+		    name = layer->get_layer_name();
+		    //
+		    std::cout
+		      << "Connected to: " << name
+		      << " with " << layer->get_layer_size()[0] << " nodes" << std::endl;
+		    //
+		    weights_[name] = std::make_shared< W >( std::shared_ptr< FullyConnectedLayer< AF, W, C, D > >( this ),
+							    fc_layer_size_,
+							    layer->get_layer_size() );
+		  }
+		else
+		  {
+		    std::cout
+		      << "Connected to: " << name
+		      << " with " << subject->get_layer_size()[0] << " nodes" << std::endl;
+		    //
+		    weights_[name] = std::make_shared< W >( std::shared_ptr< FullyConnectedLayer< AF, W, C, D > >( this ),
+							    fc_layer_size_,
+							    subject->get_layer_size() );
+		  }
+	      }
+	  }
+	
+	/////////////////
+	// Activations //
+	/////////////////
+	//
+	//
+	std::size_t layer_size = fc_layer_size_[0];
+	//
+	std::shared_ptr< double > z     = std::shared_ptr< double >( new  double[layer_size],
+								     std::default_delete< double[] >() );
+	std::shared_ptr< double > dz    = std::shared_ptr< double >( new  double[layer_size],
+								     std::default_delete< double[] >() );
+	std::shared_ptr< double > error = std::shared_ptr< double >( new  double[layer_size],
+								     std::default_delete< double[] >() );
+	// initialize to 0
+	for ( std::size_t s = 0 ; s < layer_size ; s++ )
+	  {
+	    z.get()[s]     = 0.;
+	    dz.get()[s]    = 0.;
+	    error.get()[s] = 0.;
+	  }
+	// We concaten the tensors from any layer connected to this layer
+	for ( auto layer : prev_layer_ )
+	  {
+	    std::string name = "__input_layer__";
+	    if ( layer )
+	      // If the pointer exist, this is not the input layer
+	      name = layer->get_layer_name();
 	    //
-	    // weights instantiation
-	    weights_ = std::make_shared< W >( std::shared_ptr< FullyConnectedLayer< AF, W, C, D > >( this ),
-					      fc_layer_size_, prev_layer_size );
+	    auto tuple = weights_[name]->activate( subject->get_layer(name) );
+	    //
+	    for ( std::size_t s = 0 ; s < layer_size ; s++ )
+	      {
+		z.get()[s]  += std::get<0>(tuple).get()[s];
+		dz.get()[s] += std::get<1>(tuple).get()[s];
+	      }
 	  }
 	//
-	// We concaten the tensors from any layer connected to this layer
-	std::vector< Alps::LayerTensors< double, 2 > > prev_layer_tensors;
-	for ( auto layer : prev_layer_ )
-	  if ( layer )
-	    {
-	      auto input_images = subject->get_layer( layer->get_layer_name() );
-	      prev_layer_tensors.insert( prev_layer_tensors.end(),
-					 input_images.begin(),
-					 input_images.end() );
-	    }
-	  else
-	    {
-	      // the connected layer is the input layer
-	      auto input_images = subject->get_layer("__input_layer__");
-	      prev_layer_tensors.insert( prev_layer_tensors.end(),
-					 input_images.begin(),
-					 input_images.end() );
-	    }
-	//
-	//
 	// Get the activation tuple (<0> - activation; <1> - derivative; <2> - error)
-	auto activation_tuple = weights_->activate(prev_layer_tensors);
+	std::tuple< std::shared_ptr< double >,
+		    std::shared_ptr< double >,
+		    std::shared_ptr< double > > activation_tuple = std::make_tuple( z, dz, error );
+
+	
+	//////////////////////////////////////
+	// Save the activation information //
+	/////////////////////////////////////
+	//
 	// If we are at the last level, we can estimate the error of the image target
 	// with the fit
 	if ( layer_name_ == "__output_layer__" )
@@ -227,18 +256,18 @@ namespace Alps
 	      }
 	    //
 	    // Cost function. 
-	    C cost_function;
+	    C cost;
 	    // It return the error at the image level
-	    std::get< 2 >( activation_tuple ) = cost_function.dL( (std::get< 0 >( activation_tuple )).get(),
-								  target.get_tensor().get(),
-								  (std::get< 1 >( activation_tuple )).get(),
-								  fc_layer_size_[0] );
+	    std::get< 2 >( activation_tuple ) = cost.dL( (std::get< 0 >( activation_tuple )).get(),
+							 target.get_tensor().get(),
+							 (std::get< 1 >( activation_tuple )).get(),
+							 fc_layer_size_[0] );
 	    // Save the energy for this image
-	    double energy = cost_function.L( (std::get< 0 >( activation_tuple )).get(),
-					     target.get_tensor().get(),
-					     fc_layer_size_[0] );
+	    double energy = cost.L( (std::get< 0 >( activation_tuple )).get(),
+				    target.get_tensor().get(),
+				    fc_layer_size_[0] );
+	    // record the energy for the image
 	    subject->set_energy( energy );
-	    std::cout << "Layer: " << layer_name_ << " & energy: " << energy << std::endl;
 	  }
 	//
 	// Build the activation
@@ -261,7 +290,58 @@ namespace Alps
   {
     try
       {
-	weights_->solve();
+	//
+	// Down to subject
+	std::shared_ptr< Alps::Subject< D > > subject = std::dynamic_pointer_cast< Alps::Subject< D > >(Sub);
+	std::cout << "Layer backwards: " << layer_name_ << std::endl;
+
+	//
+	// If we don't have any next layer, we are at the last layer
+	if ( next_layer_.size() == 0 )
+	  {
+	    std::cout
+	      << "We are in the last layer: " << layer_name_
+	      << " with " << fc_layer_size_[0] << " nodes" << std::endl;
+	    
+	  }
+	else
+	  for ( auto layer : next_layer_ )
+	    {
+	      std::string name = "__output_layer__";
+	      if ( layer )
+		{
+		  name = layer->get_layer_name();
+		  //
+		  std::cout
+		    << "Back connected from: " << name
+		    << " with " << layer->get_layer_size()[0] << " nodes" << std::endl;
+		}
+	      else
+		throw MAC::MACException( __FILE__, __LINE__,
+				   "We should be connected to another layer.",
+				   ITK_LOCATION );
+	    }
+	
+	////////////////////////
+	// Create the weights //
+	////////////////////////
+	//
+	// We get the number of previous layers attached to this layer. In this first loop,
+	// we collect the number of nodes if the weights were not initialized
+//	//
+//	// Prepare the backward variables
+//	// Previous layer as alreay been saveed from the forward function
+//	// current layer
+//	weights_->set_current_dactivation();
+//	// next layer
+//	weights_->set_next_weights();
+//
+//	//
+//	// Process the image error for the current layer
+//
+//	//
+//	// Update the weights
+//	weights_->update();
       }
     catch( itk::ExceptionObject & err )
       {

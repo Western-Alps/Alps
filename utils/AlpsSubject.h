@@ -168,10 +168,10 @@ namespace Alps
   // 
   template< /*class F,*/ int D > void
   Alps::Subject< D >::add_layer( const std::string                       Layer_name,
-				  const std::vector<std::size_t>          Layer_size,
-				  std::tuple< std::shared_ptr< double >,
-				              std::shared_ptr< double >,
-				              std::shared_ptr< double > > Tensors_activation )
+				 const std::vector<std::size_t>          Layer_size,
+				 std::tuple< std::shared_ptr< double >,
+				             std::shared_ptr< double >,
+				             std::shared_ptr< double > > Tensors_activation )
   {
     try
       {

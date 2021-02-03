@@ -88,6 +88,9 @@ namespace Alps
     try
       {
 	//
+	// Attache the observer in the observed mountain
+	//mountain_observed_->attach( std::shared_ptr< Alps::Subjects< D > >(this) );
+	//
 	// Create subject and load the images
 	int
 	  subject_number  = 0;

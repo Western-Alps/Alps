@@ -84,7 +84,8 @@ namespace Alps
       //
       //
       // Overriding from Mountains
-      virtual void                           attach( std::shared_ptr< Alps::Climber >  )        override{};
+      virtual void                           attach( std::shared_ptr< Alps::Climber > C )       override
+      { attached_climber_ = C;};
       // Notify the observers for updates
       virtual void                           notify()                                           override;
 
@@ -93,7 +94,7 @@ namespace Alps
     private:
       //
       //
-      std::shared_ptr< Alps::Climber > attached_climber_{nullptr};
+      std::weak_ptr< Alps::Climber >   attached_climber_;
 
       //
       // layer unique ID

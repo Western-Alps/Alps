@@ -45,7 +45,12 @@ namespace Alps
     //
     // Accessors
     //
-
+    // Activation tensor from the previous layer
+    virtual void set_previous_activation()                                                                            = 0;
+    // Current derivative of the activation
+    virtual void set_current_dactivation()                                                                            = 0;
+    // Weights from the next layer
+    virtual void set_next_weights()                                                                                   = 0;
     
     //
     // Functions

@@ -79,13 +79,13 @@ namespace Alps
     virtual       void             add( std::shared_ptr< Alps::Layer > )            override{};
     //
     // Attach observers that need to be updated
-    virtual       void             attach( std::shared_ptr< Alps::Climber >  )      override{};
+    virtual       void             attach( std::shared_ptr< Alps::Climber > C )     override{};
     // Notify the observers for updates
     virtual       void             notify()                                         override{};
 
 
   private:
-    std::shared_ptr< Alps::Climber > attached_climber_;
+    std::weak_ptr< Alps::Climber > attached_climber_;
     double energy_{10.};
   };
 }
