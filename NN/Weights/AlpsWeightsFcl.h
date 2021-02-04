@@ -86,7 +86,6 @@ namespace Alps
     //
     // Activate
     virtual std::tuple < std::shared_ptr< Tensor1_Type >,
-			 std::shared_ptr< Tensor1_Type >,
 			 std::shared_ptr< Tensor1_Type > > activate( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) override{};
     // solver
     virtual void                                           solve()                                    override{};
@@ -166,7 +165,6 @@ namespace Alps
     //
     // Activate
     virtual std::tuple < std::shared_ptr< Type >,
-			 std::shared_ptr< Type >,
 			 std::shared_ptr< Type > > activate( std::vector< Alps::LayerTensors< Type, 2 > >& ) override;
     // solver
     virtual void                                   solve()                                            override{};
@@ -234,7 +232,6 @@ namespace Alps
   //
   //
   template< typename T, typename A, typename S > std::tuple< std::shared_ptr< T >,
-							     std::shared_ptr< T >,
 							     std::shared_ptr< T > >
   Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S >::activate( std::vector< Alps::LayerTensors< T, 2 > >& Image_tensors )
   {
@@ -264,8 +261,6 @@ namespace Alps
 							std::default_delete< T[] >() );
     std::shared_ptr< T > dz_out = std::shared_ptr< T >( new  T[weights_->rows()],
 							std::default_delete< T[] >() );
-    std::shared_ptr< T > error  = std::shared_ptr< T >( new  T[weights_->rows()],
-							std::default_delete< T[] >() );
     Eigen::MatrixXd      a_out  = Eigen::MatrixXd::Zero( weights_->rows(), 1 );
     // Load the tensor image into a Eigen vector
     std::size_t shift = 1;
@@ -285,13 +280,12 @@ namespace Alps
       {
 	z_out.get()[s]  = activation_.f( a_out(s,0) );
 	dz_out.get()[s] = activation_.df( a_out(s,0) );
-	error.get()[s]  = 0.0;
       }
 
     //
     //
     //return std::make_tuple< std::shared_ptr< T >, std::shared_ptr< T > >( z_out, dz_out );
-    return std::make_tuple( z_out, dz_out, error );
+    return std::make_tuple( z_out, dz_out );
   };
   /*! \class WeightsFullyConnected
    * \brief class representing the weights container for fully
@@ -354,7 +348,6 @@ namespace Alps
     //
     // Activate
     virtual std::tuple < std::shared_ptr< Type1 >,
-			 std::shared_ptr< Type1 >,
 			 std::shared_ptr< Type1 > > activate( std::vector< Alps::LayerTensors< Type1, 2 > >& ) override{};
     // solver
     virtual void                                    solve()                                            override{};

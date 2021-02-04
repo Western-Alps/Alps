@@ -93,6 +93,20 @@ namespace Alps
     //
     // number of fully connected layers
     std::vector< std::size_t >                          fc_layer_size_;
+    // enumeration for the naming convention
+    enum Act
+      {
+       UNKNOWN        = -1,
+       ACTIVATION     =  0,
+       DERIVATIVE     =  1,
+       ERROR          =  2,
+       WEIGHTED_ERROR =  3
+      };
+    // Activation tuple (<0> - activation; <1> - derivative; <2> - error; <3> - weighted error)
+    std::tuple< std::shared_ptr< double >,
+		std::shared_ptr< double >,
+		std::shared_ptr< double >,
+		std::shared_ptr< double > >             current_activation_;
 
     //
     // Previous  layers information
@@ -193,12 +207,17 @@ namespace Alps
 	//
 	//
 	std::size_t layer_size = fc_layer_size_[0];
-	//
+	// activation function
 	std::shared_ptr< double > z     = std::shared_ptr< double >( new  double[layer_size],
 								     std::default_delete< double[] >() );
+	// Derivative of the activation function
 	std::shared_ptr< double > dz    = std::shared_ptr< double >( new  double[layer_size],
 								     std::default_delete< double[] >() );
+	// Error back propagated in building the gradient
 	std::shared_ptr< double > error = std::shared_ptr< double >( new  double[layer_size],
+								     std::default_delete< double[] >() );
+	// Weighted error back propagated in building the gradient
+	std::shared_ptr< double > werr  = std::shared_ptr< double >( new  double[layer_size],
 								     std::default_delete< double[] >() );
 	// initialize to 0
 	for ( std::size_t s = 0 ; s < layer_size ; s++ )
@@ -206,6 +225,7 @@ namespace Alps
 	    z.get()[s]     = 0.;
 	    dz.get()[s]    = 0.;
 	    error.get()[s] = 0.;
+	    werr.get()[s]  = 0.;
 	  }
 	// We concaten the tensors from any layer connected to this layer
 	for ( auto layer : prev_layer_ )
@@ -215,6 +235,7 @@ namespace Alps
 	      // If the pointer exist, this is not the input layer
 	      name = layer->get_layer_name();
 	    //
+	    // activation tuple (<0> - activation; <1> - derivative)
 	    auto tuple = weights_[name]->activate( subject->get_layer(name) );
 	    //
 	    for ( std::size_t s = 0 ; s < layer_size ; s++ )
@@ -225,9 +246,7 @@ namespace Alps
 	  }
 	//
 	// Get the activation tuple (<0> - activation; <1> - derivative; <2> - error)
-	std::tuple< std::shared_ptr< double >,
-		    std::shared_ptr< double >,
-		    std::shared_ptr< double > > activation_tuple = std::make_tuple( z, dz, error );
+	current_activation_ = std::make_tuple( z, dz, error, werr );
 
 	
 	//////////////////////////////////////
@@ -258,12 +277,12 @@ namespace Alps
 	    // Cost function. 
 	    C cost;
 	    // It return the error at the image level
-	    std::get< 2 >( activation_tuple ) = cost.dL( (std::get< 0 >( activation_tuple )).get(),
-							 target.get_tensor().get(),
-							 (std::get< 1 >( activation_tuple )).get(),
-							 fc_layer_size_[0] );
+	    std::get< 2 >( current_activation_ ) = cost.dL( (std::get< Act::ACTIVATION >( current_activation_ )).get(),
+							    target.get_tensor().get(),
+							    (std::get< Act::DERIVATIVE >( current_activation_ )).get(),
+							    fc_layer_size_[0] );
 	    // Save the energy for this image
-	    double energy = cost.L( (std::get< 0 >( activation_tuple )).get(),
+	    double energy = cost.L( (std::get< Act::ACTIVATION >( current_activation_ )).get(),
 				    target.get_tensor().get(),
 				    fc_layer_size_[0] );
 	    // record the energy for the image
@@ -274,7 +293,7 @@ namespace Alps
 	// Get the tensor arrays. In this second loop we gather the information
 	// for the activation
 	subject->add_layer( layer_name_, fc_layer_size_,
-			    activation_tuple );
+			    current_activation_ );
       }
     catch( itk::ExceptionObject & err )
       {

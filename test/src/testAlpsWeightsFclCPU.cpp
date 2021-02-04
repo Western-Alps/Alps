@@ -89,8 +89,8 @@ TEST_F(WeightsFclCPUTest, ByDefaultWeigthsActivate) {
   t2.get()[3] = -0.1;
   //
   Alps::LayerTensors< double, 2 >
-    lt1( s1, std::make_tuple(t1, nullptr, nullptr) ),
-    lt2( s2, std::make_tuple(t2, nullptr, nullptr) );
+    lt1( s1, std::make_tuple(t1, nullptr, nullptr, nullptr) ),
+    lt2( s2, std::make_tuple(t2, nullptr, nullptr, nullptr) );
   //
   using Activation = Alps::Activation_tanh< double >;
   using Solver     = Alps::SGD< double >;

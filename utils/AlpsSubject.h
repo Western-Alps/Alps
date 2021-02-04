@@ -94,6 +94,7 @@ namespace Alps
 								  const std::vector<std::size_t>,
 								  std::tuple< std::shared_ptr< double >,
 								              std::shared_ptr< double >,
+								              std::shared_ptr< double >,
 								              std::shared_ptr< double > > );
     // Add target in the classification study case
     void                                              add_target( const std::size_t, const std::size_t );
@@ -170,6 +171,7 @@ namespace Alps
   Alps::Subject< D >::add_layer( const std::string                       Layer_name,
 				 const std::vector<std::size_t>          Layer_size,
 				 std::tuple< std::shared_ptr< double >,
+				             std::shared_ptr< double >,
 				             std::shared_ptr< double >,
 				             std::shared_ptr< double > > Tensors_activation )
   {

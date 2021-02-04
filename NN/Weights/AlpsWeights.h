@@ -57,7 +57,6 @@ namespace Alps
     //
     // Activate
     virtual std::tuple < std::shared_ptr< Tensor1_Type >,
-			 std::shared_ptr< Tensor1_Type >,
 			 std::shared_ptr< Tensor1_Type > > activate( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) = 0;
     // solver
     virtual void                                           solve()                                                           = 0;

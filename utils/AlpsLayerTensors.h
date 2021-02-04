@@ -51,9 +51,10 @@ namespace Alps
     LayerTensors( const std::string );
     /** Constructor */
     LayerTensors( const std::vector< std::size_t >,
-		   std::tuple< std::shared_ptr< double >,
-		               std::shared_ptr< double >,
-		               std::shared_ptr< double > > );
+		  std::tuple< std::shared_ptr< double >,
+		              std::shared_ptr< double >,
+		              std::shared_ptr< double >,
+		              std::shared_ptr< double > > );
     /* Destructor */
     virtual ~LayerTensors(){};
 
@@ -89,13 +90,14 @@ namespace Alps
     void                                        replace( const std::vector<std::size_t>,
 							  std::tuple< std::shared_ptr< double >,
 							              std::shared_ptr< double >,
+							              std::shared_ptr< double >,
 							              std::shared_ptr< double > >);  
     
   private:
     // (Z,error, )
-    std::array< Alps::Image< Type, Dim >, 3 >                tensors_;
+    std::array< Alps::Image< Type, Dim >, 4 >                tensors_;
     // 
-    std::vector< std::array< Alps::Image< Type, Dim >, 3 > > previous_epoque_tensors_;
+    std::vector< std::array< Alps::Image< Type, Dim >, 4 > > previous_epoque_tensors_;
   };
   //
   //
@@ -137,6 +139,7 @@ namespace Alps
   Alps::LayerTensors< T, D >::LayerTensors( const std::vector< std::size_t >        Tensor_size,
 					     std::tuple< std::shared_ptr< double >,
 					                 std::shared_ptr< double >,
+					                 std::shared_ptr< double >,
 					                 std::shared_ptr< double > > Tensors )
   {
     try
@@ -146,6 +149,7 @@ namespace Alps
 	tensors_[0] = Alps::Image< double, D >( Tensor_size, std::get< 0 >( Tensors ) );
 	tensors_[1] = Alps::Image< double, D >( Tensor_size, std::get< 1 >( Tensors ) );
 	tensors_[2] = Alps::Image< double, D >( Tensor_size, std::get< 2 >( Tensors ) );
+	tensors_[3] = Alps::Image< double, D >( Tensor_size, std::get< 3 >( Tensors ) );
       }
     catch( itk::ExceptionObject & err )
       {
@@ -179,9 +183,10 @@ namespace Alps
   // Operator []
   template< typename T,int D > void
   Alps::LayerTensors< T, D >::replace( const std::vector<std::size_t>          Tensor_size,
-				        std::tuple< std::shared_ptr< double >,
-				                    std::shared_ptr< double >,
-					            std::shared_ptr< double > > Tensors )
+				       std::tuple< std::shared_ptr< double >,
+				                   std::shared_ptr< double >,
+				                   std::shared_ptr< double >,
+					           std::shared_ptr< double > > Tensors )
   {
     try
       {
@@ -189,11 +194,12 @@ namespace Alps
 	// Save the previous set of neurons
 	previous_epoque_tensors_.push_back( tensors_ );
 	//
-	tensors_    = std::array< Alps::Image< T, D >, 3 >();
+	tensors_    = std::array< Alps::Image< T, D >, 4 >();
 	// Load new tensors
 	tensors_[0] = Alps::Image< double, D >( Tensor_size, std::get< 0 >( Tensors ) );
 	tensors_[1] = Alps::Image< double, D >( Tensor_size, std::get< 1 >( Tensors ) );
 	tensors_[2] = Alps::Image< double, D >( Tensor_size, std::get< 2 >( Tensors ) );
+	tensors_[3] = Alps::Image< double, D >( Tensor_size, std::get< 3 >( Tensors ) );
       }
     catch( itk::ExceptionObject & err )
       {
