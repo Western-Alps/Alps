@@ -241,7 +241,7 @@ namespace Alps
     for ( auto tensor : Image_tensors )
       tensors_size += static_cast< long int >( tensor.get_tensor_size()[0] );
     //
-    if ( weights_->cols() != tensors_size + 1 )
+    if ( weights_->cols() != tensors_size + 1 /*bias*/ )
       {
 	std::string
 	  mess = std::string("There is miss match between the number of columns (")
@@ -284,7 +284,6 @@ namespace Alps
 
     //
     //
-    //return std::make_tuple< std::shared_ptr< T >, std::shared_ptr< T > >( z_out, dz_out );
     return std::make_tuple( z_out, dz_out );
   };
   /*! \class WeightsFullyConnected

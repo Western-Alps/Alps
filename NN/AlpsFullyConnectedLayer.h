@@ -170,6 +170,7 @@ namespace Alps
 	//
 	// We get the number of previous layers attached to this layer. In this first loop,
 	// we collect the number of nodes if the weights were not initialized
+	// if the prev layer is nullptr, it represents the input data.
 	std::cout << "Layer: " << layer_name_ << std::endl;
 	if ( weights_.size() == 0 )
 	  {
@@ -277,7 +278,7 @@ namespace Alps
 	    //
 	    // Cost function. 
 	    C cost;
-	    // It return the error at the image level
+	    // It returns the error at the image level
 	    std::get< Act::ERROR >( current_activation_ ) = cost.dL( (std::get< Act::ACTIVATION >( current_activation_ )).get(),
 								     target.get_tensor().get(),
 								     (std::get< Act::DERIVATIVE >( current_activation_ )).get(),
@@ -290,9 +291,8 @@ namespace Alps
 	    subject->set_energy( energy );
 	  }
 	//
-	// Build the activation
-	// Get the tensor arrays. In this second loop we gather the information
-	// for the activation
+	// If the layer does not exist, for the image, it creates it.
+	// Otherwise, it replace teh values from the last epoque and save the previouse epoque.
 	subject->add_layer( layer_name_, fc_layer_size_,
 			    current_activation_ );
       }
@@ -310,20 +310,20 @@ namespace Alps
   {
     try
       {
-//	//
-//	// Down to subject
-//	std::shared_ptr< Alps::Subject< D > > subject = std::dynamic_pointer_cast< Alps::Subject< D > >(Sub);
-//	std::cout << "Layer backwards: " << layer_name_ << std::endl;
-//
-//	//
-//	// If we don't have any next layer, we are at the last layer
-//	if ( next_layer_.size() == 0 )
-//	  {
-//	    std::cout
-//	      << "We are in the last layer: " << layer_name_
-//	      << " with " << fc_layer_size_[0] << " nodes" << std::endl;
-//	    //
-//	    // 
+	//
+	// Down to subject
+	std::shared_ptr< Alps::Subject< D > > subject = std::dynamic_pointer_cast< Alps::Subject< D > >(Sub);
+	std::cout << "Layer backwards: " << layer_name_ << std::endl;
+
+	//
+	// If we don't have any next layer, we are at the last layer
+	if ( next_layer_.size() == 0 )
+	  {
+	    std::cout
+	      << "We are in the last layer: " << layer_name_
+	      << " with " << fc_layer_size_[0] << " nodes" << std::endl;
+	    //
+	    // 
 //	    for ( auto layer_weights = weights_.begin(); it != weights_.end(); ++it )
 //	      {
 //		//
@@ -333,27 +333,28 @@ namespace Alps
 //		subject->get_layer( (*layer_weights).first );  // which is a vector< Alps::LayerTensors< T, 2 > >
 //		  (*layer_weights).second->weighted_error( std::get< Act::ERROR >(current_activation_) );
 //		
-//	      }
 //
-//	    
-//	  }
-//	else
-//	  for ( auto layer : next_layer_ )
-//	    {
-//	      std::string name = "__output_layer__";
-//	      if ( layer )
-//		{
-//		  name = layer->get_layer_name();
-//		  //
-//		  std::cout
-//		    << "Back connected from: " << name
-//		    << " with " << layer->get_layer_size()[0] << " nodes" << std::endl;
-//		}
-//	      else
-//		throw MAC::MACException( __FILE__, __LINE__,
-//				   "We should be connected to another layer.",
-//				   ITK_LOCATION );
-//	    }
+	  }
+
+	    
+	  }
+	else
+	  for ( auto layer : next_layer_ )
+	    {
+	      std::string name = "__output_layer__";
+	      if ( layer )
+		{
+		  name = layer->get_layer_name();
+		  //
+		  std::cout
+		    << "Back connected from: " << name
+		    << " with " << layer->get_layer_size()[0] << " nodes" << std::endl;
+		}
+	      else
+		throw MAC::MACException( __FILE__, __LINE__,
+				   "We should be connected to another layer.",
+				   ITK_LOCATION );
+	    }
 	
 	////////////////////////
 	// Create the weights //
