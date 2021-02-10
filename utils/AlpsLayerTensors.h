@@ -27,9 +27,11 @@ namespace Alps
 {
   enum class TensorOrder1
     { 
-     UNKNOWN = -1,
-     NEURONS =  0,
-     ERRORS  =  1,
+     UNKNOWN        = -1,
+     ACTIVATION     =  0,
+     DERIVATIVE     =  1,
+     ERROR          =  2,
+     WEIGHTED_ERROR =  3
     };
 
   /*! \class LayerTensors
@@ -136,11 +138,11 @@ namespace Alps
   //
   // Constructor
   template< typename T,int D >
-  Alps::LayerTensors< T, D >::LayerTensors( const std::vector< std::size_t >        Tensor_size,
-					     std::tuple< std::shared_ptr< double >,
-					                 std::shared_ptr< double >,
-					                 std::shared_ptr< double >,
-					                 std::shared_ptr< double > > Tensors )
+  Alps::LayerTensors< T, D >::LayerTensors( const std::vector< std::size_t >         Tensor_size,
+					    std::tuple< std::shared_ptr< double >,
+					                std::shared_ptr< double >,
+					                std::shared_ptr< double >,
+					                std::shared_ptr< double > > Tensors )
   {
     try
       {

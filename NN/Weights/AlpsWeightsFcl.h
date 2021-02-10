@@ -269,7 +269,7 @@ namespace Alps
       {
 	std::size_t img_size = tensor.get_tensor_size()[0];
 	for ( std::size_t s = 0 ; s < img_size ; s++ )
-	  z_in_(s+shift,0) = tensor[TensorOrder1::NEURONS][s];
+	  z_in_(s+shift,0) = tensor[TensorOrder1::ACTIVATION][s];
 	shift += img_size;
       }
     // process

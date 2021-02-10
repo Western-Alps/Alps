@@ -39,7 +39,7 @@ TEST_F(LayerTensorsTest, ByDefaultLayerTensorsOperator) {
   Alps::LayerTensors< double, 2 > Subj("../images/MNITS/000000-num5.png");
   //
   //
-	 EXPECT_EQ( Subj[Alps::TensorOrder1::NEURONS][206], 253 );
+	 EXPECT_EQ( Subj[Alps::TensorOrder1::ACTIVATION][206], 253 );
 }
 //// Accessors
 //TEST_F(LayerTensorsTest, ByDefaultImageSet) {

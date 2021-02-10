@@ -116,7 +116,8 @@ namespace Alps
     //
     // Observers
     // Observers containers
-    std::map< std::string, std::shared_ptr< Weights > > weights_;
+    std::map< /* Layer_name */ std::string,
+	      std::shared_ptr< Weights > >              weights_;
   };
   //
   //
@@ -192,11 +193,11 @@ namespace Alps
 		  {
 		    std::cout
 		      << "Connected to: " << name
-		      << " with " << subject->get_layer_size()[0] << " nodes" << std::endl;
+		      << " with " << subject->get_layer_size( name )[0] << " nodes" << std::endl;
 		    //
 		    weights_[name] = std::make_shared< W >( std::shared_ptr< FullyConnectedLayer< AF, W, C, D > >( this ),
 							    fc_layer_size_,
-							    subject->get_layer_size() );
+							    subject->get_layer_size( name ) );
 		  }
 	      }
 	  }
@@ -240,8 +241,8 @@ namespace Alps
 	    //
 	    for ( std::size_t s = 0 ; s < layer_size ; s++ )
 	      {
-		z.get()[s]  += std::get<0>(tuple).get()[s];
-		dz.get()[s] += std::get<1>(tuple).get()[s];
+		z.get()[s]  += std::get< Act::ACTIVATION >(tuple).get()[s];
+		dz.get()[s] += std::get< Act::DERIVATIVE >(tuple).get()[s];
 	      }
 	  }
 	//
@@ -277,10 +278,10 @@ namespace Alps
 	    // Cost function. 
 	    C cost;
 	    // It return the error at the image level
-	    std::get< 2 >( current_activation_ ) = cost.dL( (std::get< Act::ACTIVATION >( current_activation_ )).get(),
-							    target.get_tensor().get(),
-							    (std::get< Act::DERIVATIVE >( current_activation_ )).get(),
-							    fc_layer_size_[0] );
+	    std::get< Act::ERROR >( current_activation_ ) = cost.dL( (std::get< Act::ACTIVATION >( current_activation_ )).get(),
+								     target.get_tensor().get(),
+								     (std::get< Act::DERIVATIVE >( current_activation_ )).get(),
+								     fc_layer_size_[0] );
 	    // Save the energy for this image
 	    double energy = cost.L( (std::get< Act::ACTIVATION >( current_activation_ )).get(),
 				    target.get_tensor().get(),
@@ -309,37 +310,50 @@ namespace Alps
   {
     try
       {
-	//
-	// Down to subject
-	std::shared_ptr< Alps::Subject< D > > subject = std::dynamic_pointer_cast< Alps::Subject< D > >(Sub);
-	std::cout << "Layer backwards: " << layer_name_ << std::endl;
-
-	//
-	// If we don't have any next layer, we are at the last layer
-	if ( next_layer_.size() == 0 )
-	  {
-	    std::cout
-	      << "We are in the last layer: " << layer_name_
-	      << " with " << fc_layer_size_[0] << " nodes" << std::endl;
-	    
-	  }
-	else
-	  for ( auto layer : next_layer_ )
-	    {
-	      std::string name = "__output_layer__";
-	      if ( layer )
-		{
-		  name = layer->get_layer_name();
-		  //
-		  std::cout
-		    << "Back connected from: " << name
-		    << " with " << layer->get_layer_size()[0] << " nodes" << std::endl;
-		}
-	      else
-		throw MAC::MACException( __FILE__, __LINE__,
-				   "We should be connected to another layer.",
-				   ITK_LOCATION );
-	    }
+//	//
+//	// Down to subject
+//	std::shared_ptr< Alps::Subject< D > > subject = std::dynamic_pointer_cast< Alps::Subject< D > >(Sub);
+//	std::cout << "Layer backwards: " << layer_name_ << std::endl;
+//
+//	//
+//	// If we don't have any next layer, we are at the last layer
+//	if ( next_layer_.size() == 0 )
+//	  {
+//	    std::cout
+//	      << "We are in the last layer: " << layer_name_
+//	      << " with " << fc_layer_size_[0] << " nodes" << std::endl;
+//	    //
+//	    // 
+//	    for ( auto layer_weights = weights_.begin(); it != weights_.end(); ++it )
+//	      {
+//		//
+//		// We have to create a way to get the vector and cut it to the right dimension
+//		// of all the modalities that are going to be transfered to the layers attached
+//		// to this layer.
+//		subject->get_layer( (*layer_weights).first );  // which is a vector< Alps::LayerTensors< T, 2 > >
+//		  (*layer_weights).second->weighted_error( std::get< Act::ERROR >(current_activation_) );
+//		
+//	      }
+//
+//	    
+//	  }
+//	else
+//	  for ( auto layer : next_layer_ )
+//	    {
+//	      std::string name = "__output_layer__";
+//	      if ( layer )
+//		{
+//		  name = layer->get_layer_name();
+//		  //
+//		  std::cout
+//		    << "Back connected from: " << name
+//		    << " with " << layer->get_layer_size()[0] << " nodes" << std::endl;
+//		}
+//	      else
+//		throw MAC::MACException( __FILE__, __LINE__,
+//				   "We should be connected to another layer.",
+//				   ITK_LOCATION );
+//	    }
 	
 	////////////////////////
 	// Create the weights //

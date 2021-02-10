@@ -2,6 +2,7 @@
 #include "AlpsLoadDataSet.h"
 #include "AlpsSubjects.h"
 #include "AlpsTools.h"
+#include "AlpsLayerTensors.h"
 
 //using ::testing::Return;
 
@@ -33,9 +34,22 @@ TEST_F(SubjectTest, ByDefaultSubjectAddModalitiesTrue) {
   // load modalities
   Subj.add_modalities("../images/MNITS/000000-num5.png");
   Subj.add_modalities("../images/MNITS/000000-num5.png");
+
   //
   //
-  EXPECT_EQ( Subj.check_modalities("__input_layer__"), true) ;
+  //std::cout << "Size: " << Subj.get_layer_size( "__input_layer__" )[0] << std::endl;
+  //std::cout << "position 547: " << Subj.get_layer( "__input_layer__" )[0][Alps::TensorOrder1::ACTIVATION][547] << std::endl;
+  //std::cout << "position 784+547: " << Subj.get_layer( "__input_layer__" )[0][Alps::TensorOrder1::ACTIVATION][784+547] << std::endl;
+  //
+  //  std::size_t size = Subj.get_layer_size( "__input_layer__" )[0];
+  //  for (std::size_t i = 0 ; i < size ; i++ )
+  //    std::cout << "position "<< i <<": " << Subj.get_layer( "__input_layer__" )[0][Alps::TensorOrder1::ACTIVATION][i] << std::endl;
+
+  
+  //
+  //
+  EXPECT_EQ( Subj.get_layer( "__input_layer__" )[0][Alps::TensorOrder1::ACTIVATION][547],
+	     Subj.get_layer( "__input_layer__" )[0][Alps::TensorOrder1::ACTIVATION][784+547] );
 }
 // Add modalities
 TEST_F(SubjectTest, ByDefaultSubjectAddTarget) {
