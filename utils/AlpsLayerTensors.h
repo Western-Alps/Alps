@@ -27,11 +27,11 @@ namespace Alps
 {
   enum class TensorOrder1
     { 
-     UNKNOWN        = -1,
-     ACTIVATION     =  0,
-     DERIVATIVE     =  1,
-     ERROR          =  2,
-     WEIGHTED_ERROR =  3
+     UNKNOWN    = -1,
+     ACTIVATION =  0,
+     DERIVATIVE =  1,
+     ERROR      =  2,
+     WERROR     =  3  // WEIGHTED_ERROR
     };
 
   /*! \class LayerTensors
@@ -166,7 +166,7 @@ namespace Alps
   {
     try
       {
-	if ( static_cast< int >( Idx ) > 2 ||
+	if ( static_cast< int >( Idx ) > 3 ||
 	     static_cast< int >( Idx ) < 0 )
 	  throw MAC::MACException( __FILE__, __LINE__,
 				   "Indexing not implemented yet.",

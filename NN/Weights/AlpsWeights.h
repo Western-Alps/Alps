@@ -46,20 +46,23 @@ namespace Alps
     // Accessors
     //
     // Activation tensor from the previous layer
-    virtual void set_previous_activation()                                                                            = 0;
+    virtual void set_previous_activation()                                                                                         = 0;
     // Current derivative of the activation
-    virtual void set_current_dactivation()                                                                            = 0;
+    virtual void set_current_dactivation()                                                                                         = 0;
     // Weights from the next layer
-    virtual void set_next_weights()                                                                                   = 0;
+    virtual void set_next_weights()                                                                                                = 0;
     
     //
     // Functions
     //
     // Activate
     virtual std::tuple < std::shared_ptr< Tensor1_Type >,
-			 std::shared_ptr< Tensor1_Type > > activate( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) = 0;
+			 std::shared_ptr< Tensor1_Type > > activate( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& )       = 0;
+    // Weighted error
+    virtual void                                           weighted_error( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >&,
+									   std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) = 0;
     // solver
-    virtual void                                           solve()                                                           = 0;
+    virtual void                                           solve()                                                                 = 0;
   };
 }
 #endif

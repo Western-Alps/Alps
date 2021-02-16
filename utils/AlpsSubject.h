@@ -142,7 +142,6 @@ namespace Alps
 	  {
 	    //
 	    // Load the modalities into the container
-	    //layer_modalities_["__input_layer__"].push_back( Alps::LayerTensors< double, D >(Modality) );
 	    modalities_.push_back( Alps::LayerTensors< double, D >(Modality) );
 	  }
 	else
@@ -331,8 +330,18 @@ namespace Alps
 	      size += (*mod).get_tensor_size()[0];
 	    //
 	    // go over the images' tensors
-	    std::shared_ptr< double > z  = std::shared_ptr< double >( new  double[ size ],
-								      std::default_delete< double[] >() );
+	    // activation function, in this case input
+	    std::shared_ptr< double > z     = std::shared_ptr< double >( new  double[ size ],
+									 std::default_delete< double[] >() );
+	    // Derivative of the activation function
+	    std::shared_ptr< double > dz    = std::shared_ptr< double >( new  double[ size ],
+									 std::default_delete< double[] >() );
+	    // Error back propagated in building the gradient
+	    std::shared_ptr< double > error = std::shared_ptr< double >( new  double[ size ],
+									 std::default_delete< double[] >() );
+	    // Weighted error back propagated in building the gradient
+	    std::shared_ptr< double > werr  = std::shared_ptr< double >( new  double[ size ],
+									 std::default_delete< double[] >() );
 	    //
 	    std::size_t idx = 0;
 	    for ( auto mod = modalities_.begin() ;
@@ -340,7 +349,12 @@ namespace Alps
 	      {
 		std::size_t sub_idx = (*mod).get_tensor_size()[0];
 		for ( std::size_t i = 0 ; i < sub_idx ; i++)
-		  z.get()[idx++] = (*mod)[Alps::TensorOrder1::ACTIVATION][i];
+		  {
+		    z.get()[idx]      = (*mod)[Alps::TensorOrder1::ACTIVATION][i];
+		    dz.get()[idx]     = 0.;
+		    error.get()[idx]  = 0.;
+		    werr.get()[idx++] = 0.;
+		  }
 	      }
 	    //
 	    if ( idx != size )
@@ -360,10 +374,8 @@ namespace Alps
 	    std::string name = "__input_layer__";
 	    layer_size.push_back(size);
 	    layer_modalities_[name].push_back( Alps::LayerTensors< double, D >(layer_size,
-									       std::make_tuple( z,
-												nullptr,
-												nullptr,
-												nullptr )) );
+									       std::make_tuple( z, dz,
+												error, werr )) );
 	  }
 	else
 	  {

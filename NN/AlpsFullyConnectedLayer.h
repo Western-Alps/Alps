@@ -70,8 +70,7 @@ namespace Alps
     // Functions
     //
     // Add previous layer
-    virtual       void                     add_layer( std::shared_ptr< Alps::Layer > Layer )     override
-    { prev_layer_.push_back( Layer );};
+    virtual       void                     add_layer( std::shared_ptr< Alps::Layer > )           override;
     // Forward propagation
     virtual       void                     forward( std::shared_ptr< Alps::Climber > )           override;
     // Backward propagation
@@ -102,15 +101,11 @@ namespace Alps
        ERROR          =  2,
        WEIGHTED_ERROR =  3
       };
-    // Activation tuple (<0> - activation; <1> - derivative; <2> - error; <3> - weighted error)
-    std::tuple< std::shared_ptr< double >,
-		std::shared_ptr< double >,
-		std::shared_ptr< double >,
-		std::shared_ptr< double > >             current_activation_;
 
     //
     // Previous  layers information
-    std::vector< std::shared_ptr< Alps::Layer > >       prev_layer_;
+    std::map< /* Layer_name */ std::string,
+	      std::shared_ptr< Alps::Layer > >          prev_layer_;
     // Next layers information
     std::vector< std::shared_ptr< Alps::Layer > >       next_layer_;
     //
@@ -154,6 +149,25 @@ namespace Alps
   //
   //
   //
+  template< typename AF, typename W, typename C, int D   >void
+  FullyConnectedLayer< AF, W, C, D >::add_layer( std::shared_ptr< Alps::Layer > Layer )
+  {
+    try
+      {
+	if ( Layer )
+	  prev_layer_[Layer->get_layer_name()] = Layer;
+	else
+	  prev_layer_["__input_layer__"] = nullptr;
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+	exit(-1);
+      }
+  };
+  //
+  //
+  //
   template< typename AF, typename W, typename C, int D   > void
   FullyConnectedLayer< AF, W, C, D >::forward( std::shared_ptr< Alps::Climber > Sub )
   {
@@ -178,17 +192,17 @@ namespace Alps
 	    for ( auto layer : prev_layer_ )
 	      {
 		std::string name = "__input_layer__";
-		if ( layer )
+		if ( layer.second )
 		  {
-		    name = layer->get_layer_name();
+		    name = layer.first;
 		    //
 		    std::cout
 		      << "Connected to: " << name
-		      << " with " << layer->get_layer_size()[0] << " nodes" << std::endl;
+		      << " with " << layer.second->get_layer_size()[0] << " nodes" << std::endl;
 		    //
 		    weights_[name] = std::make_shared< W >( std::shared_ptr< FullyConnectedLayer< AF, W, C, D > >( this ),
 							    fc_layer_size_,
-							    layer->get_layer_size() );
+							    layer.second->get_layer_size() );
 		  }
 		else
 		  {
@@ -233,9 +247,9 @@ namespace Alps
 	for ( auto layer : prev_layer_ )
 	  {
 	    std::string name = "__input_layer__";
-	    if ( layer )
+	    if ( layer.second )
 	      // If the pointer exist, this is not the input layer
-	      name = layer->get_layer_name();
+	      name = layer.first;
 	    //
 	    // activation tuple (<0> - activation; <1> - derivative)
 	    auto tuple = weights_[name]->activate( subject->get_layer(name) );
@@ -248,7 +262,10 @@ namespace Alps
 	  }
 	//
 	// Get the activation tuple (<0> - activation; <1> - derivative; <2> - error)
-	current_activation_ = std::make_tuple( z, dz, error, werr );
+	std::tuple< std::shared_ptr< double >,
+		    std::shared_ptr< double >,
+		    std::shared_ptr< double >,
+		    std::shared_ptr< double > > current_activation = std::make_tuple( z, dz, error, werr );
 
 	
 	//////////////////////////////////////
@@ -279,12 +296,12 @@ namespace Alps
 	    // Cost function. 
 	    C cost;
 	    // It returns the error at the image level
-	    std::get< Act::ERROR >( current_activation_ ) = cost.dL( (std::get< Act::ACTIVATION >( current_activation_ )).get(),
+	    std::get< Act::ERROR >( current_activation ) = cost.dL( (std::get< Act::ACTIVATION >( current_activation )).get(),
 								     target.get_tensor().get(),
-								     (std::get< Act::DERIVATIVE >( current_activation_ )).get(),
+								     (std::get< Act::DERIVATIVE >( current_activation )).get(),
 								     fc_layer_size_[0] );
 	    // Save the energy for this image
-	    double energy = cost.L( (std::get< Act::ACTIVATION >( current_activation_ )).get(),
+	    double energy = cost.L( (std::get< Act::ACTIVATION >( current_activation )).get(),
 				    target.get_tensor().get(),
 				    fc_layer_size_[0] );
 	    // record the energy for the image
@@ -294,7 +311,7 @@ namespace Alps
 	// If the layer does not exist, for the image, it creates it.
 	// Otherwise, it replace teh values from the last epoque and save the previouse epoque.
 	subject->add_layer( layer_name_, fc_layer_size_,
-			    current_activation_ );
+			    current_activation );
       }
     catch( itk::ExceptionObject & err )
       {
@@ -314,47 +331,60 @@ namespace Alps
 	// Down to subject
 	std::shared_ptr< Alps::Subject< D > > subject = std::dynamic_pointer_cast< Alps::Subject< D > >(Sub);
 	std::cout << "Layer backwards: " << layer_name_ << std::endl;
+	// get the activation tuple
+	auto image_tensors = subject->get_layer( layer_name_ );
+	
 
 	//
 	// If we don't have any next layer, we are at the last layer
-	if ( next_layer_.size() == 0 )
+	std::cout
+	  << "We are in the last layer: " << layer_name_
+	  << " with " << fc_layer_size_[0] << " nodes" << std::endl;
+
+
+	/////////////////////
+	// Weighted error //
+	////////////////////
+	//
+	// Process the weighted error for the previous layer
+	// The latest layer weighted error should already be processed
+	for ( auto layer_weights : weights_ )
 	  {
-	    std::cout
-	      << "We are in the last layer: " << layer_name_
-	      << " with " << fc_layer_size_[0] << " nodes" << std::endl;
+	    std::cout << "weights of layer: " << layer_weights.first << std::endl;
 	    //
-	    // 
-//	    for ( auto layer_weights = weights_.begin(); it != weights_.end(); ++it )
-//	      {
-//		//
-//		// We have to create a way to get the vector and cut it to the right dimension
-//		// of all the modalities that are going to be transfered to the layers attached
-//		// to this layer.
-//		subject->get_layer( (*layer_weights).first );  // which is a vector< Alps::LayerTensors< T, 2 > >
-//		  (*layer_weights).second->weighted_error( std::get< Act::ERROR >(current_activation_) );
-//		
-//
+	    std::string name = layer_weights.first;
+	    
+	    weights_[name]->weighted_error( subject->get_layer( name ),
+					    image_tensors );
+
 	  }
 
-	    
-	  }
-	else
-	  for ( auto layer : next_layer_ )
-	    {
-	      std::string name = "__output_layer__";
-	      if ( layer )
-		{
-		  name = layer->get_layer_name();
-		  //
-		  std::cout
-		    << "Back connected from: " << name
-		    << " with " << layer->get_layer_size()[0] << " nodes" << std::endl;
-		}
-	      else
-		throw MAC::MACException( __FILE__, __LINE__,
-				   "We should be connected to another layer.",
-				   ITK_LOCATION );
-	    }
+//
+//	///////////////////////
+//	// Gradient descent //
+//	//////////////////////
+//	//
+//
+//
+//	    
+//	  }
+//	else
+//	  for ( auto layer : next_layer_ )
+//	    {
+//	      std::string name = "__output_layer__";
+//	      if ( layer )
+//		{
+//		  name = layer->get_layer_name();
+//		  //
+//		  std::cout
+//		    << "Back connected from: " << name
+//		    << " with " << layer->get_layer_size()[0] << " nodes" << std::endl;
+//		}
+//	      else
+//		throw MAC::MACException( __FILE__, __LINE__,
+//				   "We should be connected to another layer.",
+//				   ITK_LOCATION );
+//	    }
 	
 	////////////////////////
 	// Create the weights //

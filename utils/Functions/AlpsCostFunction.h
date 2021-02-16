@@ -96,17 +96,16 @@ namespace Alps
   //
   template< typename T > std::shared_ptr< T >
   LeastSquarreEstimate< T >::dL( T*          Optimum,
-				    T*          Target,
-				    T*          DOptimum,
-				    std::size_t N )
+				 T*          Target,
+				 T*          DOptimum,
+				 std::size_t N )
   {
     std::shared_ptr< T > error ( new T[N], std::default_delete<  T [] >() );
     for ( std::size_t i = 0 ; i < N ; i++ )
       ( error.get() )[i] = (Optimum[i] - Target[i]) * DOptimum[i];
     //
     //
-    // UNITreturn error;
-    return nullptr;
+    return error;
   }
 }
 #endif

@@ -41,9 +41,31 @@ TEST_F(CostFunctionTest, ByDefaultCostFunctionLSE_L) {
 }
 // Derivative of the activation function
 TEST_F(CostFunctionTest, ByDefaultCostFunctionTanh_df) {
+  // Loss
+  Alps::LeastSquarreEstimate< double > LSE;
   //
   //
-  EXPECT_EQ( 0, 0 );
+  int N = 3;
+  std::shared_ptr< double > shv1( new double[N], std::default_delete< double [] >() );
+  std::shared_ptr< double > shv2( new double[N], std::default_delete< double [] >() );
+  std::shared_ptr< double > shv3( new double[N], std::default_delete< double [] >() );
+  //  
+  shv1.get()[0] = 1.; shv1.get()[1] = 2.; shv1.get()[2] = 3.; 
+  shv2.get()[0] = 4.; shv2.get()[1] = 5.; shv2.get()[2] = 6.; 
+  shv3.get()[0] = 1.; shv3.get()[1] = 2.; shv3.get()[2] = 3.;
+  //
+  double val =0.;
+  for ( int i = 0 ; i < N ; i++ )
+    {
+//      std::cout << "dL[" << i << "] = "
+//		<< LSE.dL(shv1.get(), shv2.get(), shv3.get(), N).get()[i]
+//		<< std::endl;
+      val += LSE.dL(shv1.get(), shv2.get(), shv3.get(), N).get()[i];
+    }
+  
+  //
+  //
+  EXPECT_EQ( val, - static_cast< double >(N * (1+2+3)) );
 }
 
 //TEST_F(ImageTest, ByDefaultBazFalseIsFalse) {

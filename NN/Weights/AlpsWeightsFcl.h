@@ -86,9 +86,12 @@ namespace Alps
     //
     // Activate
     virtual std::tuple < std::shared_ptr< Tensor1_Type >,
-			 std::shared_ptr< Tensor1_Type > > activate( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) override{};
+			 std::shared_ptr< Tensor1_Type > > activate( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& )       override{};
+    // Weighted error
+    virtual void                                           weighted_error( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >&,
+									   std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) override{};
     // solver
-    virtual void                                           solve()                                    override{};
+    virtual void                                           solve()                                                                 override{};
     //
     //
     // Update the weights
@@ -165,9 +168,12 @@ namespace Alps
     //
     // Activate
     virtual std::tuple < std::shared_ptr< Type >,
-			 std::shared_ptr< Type > > activate( std::vector< Alps::LayerTensors< Type, 2 > >& ) override;
+			 std::shared_ptr< Type > > activate( std::vector< Alps::LayerTensors< Type, 2 > >& )       override;
+    // Weighted error
+    virtual void                                   weighted_error( std::vector< Alps::LayerTensors< Type, 2 > >&,
+								   std::vector< Alps::LayerTensors< Type, 2 > >& ) override;
     // solver
-    virtual void                                   solve()                                            override{};
+    virtual void                                   solve()                                                         override{};
 
 
 
@@ -183,8 +189,6 @@ namespace Alps
     std::shared_ptr< Eigen::MatrixXd > weights_;
     // weights activation
     Activation                         activation_;
-    // input image from the previous layer
-    Eigen::MatrixXd                    z_in_;
     //
     // The mountain observed: fully connected layer
     std::shared_ptr< Alps::Mountain >  layer_;
@@ -235,27 +239,36 @@ namespace Alps
 							     std::shared_ptr< T > >
   Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S >::activate( std::vector< Alps::LayerTensors< T, 2 > >& Image_tensors )
   {
-    //
-    // Check the dimensions are right
-    long int tensors_size = 0;
-    for ( auto tensor : Image_tensors )
-      tensors_size += static_cast< long int >( tensor.get_tensor_size()[0] );
-    //
-    if ( weights_->cols() != tensors_size + 1 /*bias*/ )
+    try
       {
-	std::string
-	  mess = std::string("There is miss match between the number of columns (")
-	  + std::to_string( weights_->cols() )
-	  + std::string(") and the size of the input tensor (")
-	  + std::to_string( tensors_size )
-	  + std::string("+1).");
-	throw MAC::MACException( __FILE__, __LINE__,
-				 mess.c_str(),
-				 ITK_LOCATION );
+	//
+	// Check the dimensions are right
+	long int tensors_size = 0;
+	for ( auto tensor : Image_tensors )
+	  tensors_size += static_cast< long int >( tensor.get_tensor_size()[0] );
+	//
+	if ( weights_->cols() != tensors_size + 1 /*bias*/ )
+	  {
+	    std::string
+	      mess = std::string("There is miss match between the number of columns (")
+	      + std::to_string( weights_->cols() )
+	      + std::string(") and the size of the input tensor (")
+	      + std::to_string( tensors_size )
+	      + std::string("+1).");
+	    throw MAC::MACException( __FILE__, __LINE__,
+				     mess.c_str(),
+				     ITK_LOCATION );
+	  }
       }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+	exit(-1);
+      }
+
     //
-    // reset the z_in_ and save the information in the object
-    z_in_ = Eigen::MatrixXd::Zero( weights_->cols(), 1 );
+    // reset the z_in and save the information in the object
+    Eigen::MatrixXd      z_in   = Eigen::MatrixXd::Zero( weights_->cols(), 1 );
     // Converter the tensor into an Eigen matrix
     std::shared_ptr< T > z_out  = std::shared_ptr< T >( new  T[weights_->rows()],
 							std::default_delete< T[] >() );
@@ -264,16 +277,16 @@ namespace Alps
     Eigen::MatrixXd      a_out  = Eigen::MatrixXd::Zero( weights_->rows(), 1 );
     // Load the tensor image into a Eigen vector
     std::size_t shift = 1;
-    z_in_(0,0) = 1.; // bias
+    z_in(0,0) = 1.; // bias
     for ( auto tensor : Image_tensors )
       {
 	std::size_t img_size = tensor.get_tensor_size()[0];
 	for ( std::size_t s = 0 ; s < img_size ; s++ )
-	  z_in_(s+shift,0) = tensor[TensorOrder1::ACTIVATION][s];
+	  z_in(s+shift,0) = tensor[TensorOrder1::ACTIVATION][s];
 	shift += img_size;
       }
     // process
-    a_out = *( weights_.get() ) * z_in_;
+    a_out = *( weights_.get() ) * z_in;
     // Apply the activation function
     long int activation_size = weights_->rows();
     for ( long int s = 0 ; s < activation_size ; s++ )
@@ -285,6 +298,63 @@ namespace Alps
     //
     //
     return std::make_tuple( z_out, dz_out );
+  };
+  //
+  // The tensors size is the size of the weighted error tensor from the previous layer
+  // The second input is the error tensor calculated at the present layer.
+  template< typename T, typename A, typename S > void
+  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S >::weighted_error( std::vector< Alps::LayerTensors< T, 2 > >& Prev_image_tensors,
+										 std::vector< Alps::LayerTensors< T, 2 > >& Image_tensors )
+  {
+    long int
+      prev_tensors_size = 0,
+      tensors_size      = 0;
+    try
+      {
+	//
+	// Check the dimensions are right
+	for ( auto tensor : Prev_image_tensors )
+	  prev_tensors_size += static_cast< long int >( tensor.get_tensor_size()[0] );
+	//
+	for ( auto tensor : Image_tensors )
+	  tensors_size += static_cast< long int >( tensor.get_tensor_size()[0] );
+	//
+	if ( weights_->rows() != tensors_size && weights_->cols() != prev_tensors_size + 1 )
+	  {
+	    std::string
+	      mess = std::string("There is miss match between the weight dimensions ")
+	      + std::to_string( weights_->rows() ) + std::string(",") + std::to_string( weights_->cols() ) 
+	      + std::string("] and the layer dimensions: [")
+	      + std::to_string( tensors_size )
+	      + std::string(",") + std::to_string( prev_tensors_size )
+	      + std::string("+1.]"); 
+	    throw MAC::MACException( __FILE__, __LINE__,
+				     mess.c_str(),
+				     ITK_LOCATION );
+	  }
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+	exit(-1);
+      }
+
+    
+    //
+    // reset the z_in and save the information in the object
+    Eigen::MatrixXd error_in = Eigen::MatrixXd::Zero( tensors_size, 1 );
+    Eigen::MatrixXd we_out   = Eigen::MatrixXd::Zero( prev_tensors_size + 1, 1 );
+    // Load the image error tensor into a Eigen vector
+    for ( long int s = 0 ; s < tensors_size ; s++ )
+      error_in(s,0) = Image_tensors[0][TensorOrder1::ERROR][s];
+    //
+    // process
+    we_out = error_in.transpose() * ( *(weights_.get()) );
+    // We skip the bias
+    // We add new weighted error for all the layers attached to
+    // the previous layer
+    for ( long int s = 0 ; s < prev_tensors_size ; s++ )
+      Prev_image_tensors[0][TensorOrder1::WERROR][s] += we_out(s+1,0);
   };
   /*! \class WeightsFullyConnected
    * \brief class representing the weights container for fully
@@ -347,9 +417,12 @@ namespace Alps
     //
     // Activate
     virtual std::tuple < std::shared_ptr< Type1 >,
-			 std::shared_ptr< Type1 > > activate( std::vector< Alps::LayerTensors< Type1, 2 > >& ) override{};
+			 std::shared_ptr< Type1 > > activate( std::vector< Alps::LayerTensors< Type1, 2 > >& )       override{};
+    // Weighted error
+    virtual void                                    weighted_error( std::vector< Alps::LayerTensors< Type1, 2 > >&,
+								    std::vector< Alps::LayerTensors< Type1, 2 > >& ) override{};
     // solver
-    virtual void                                    solve()                                            override{};
+    virtual void                                    solve()                                                          override{};
 
 
 
