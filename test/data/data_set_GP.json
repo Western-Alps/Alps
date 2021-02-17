@@ -44,10 +44,12 @@
 	"layers": 3,
 	"neurons_per_layer_comment": "For each layer, how many neurons do we want?",
 	"neurons_per_layer":[-1,10,2],
-	"gradient_descent":{
-	    "response_function_comment": "soft_maximum, tan_hyperbolic, ...",
-	    "response_function":"soft_maximum",
-	    "learning_rate":0.01
+	"gradient_optimization":{
+	    "SGD":{
+		"Comment":"mini-batch = -1 (full batch), 1 (online)",
+		"mini_batch": 10,
+		"learning_rate": 0.0001
+	    }
 	}
     },
     "GPU":{}
