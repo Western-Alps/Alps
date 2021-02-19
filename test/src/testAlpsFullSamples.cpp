@@ -25,7 +25,7 @@ TEST_F(FullSamplesTest, ByDefaultGetStatusIsTrue) {
   //
   // Test the Cross validation constructor 
   Alps::FullSamples< Alps::MountainDummy,
-		     /*MinBatch*/ -1, /*Dim*/ 2 > cv;
+		     /*Dim*/ 2 > cv;
   
   //
   //
@@ -39,7 +39,7 @@ TEST_F(FullSamplesTest, ByDefaultGetTrainStatusIsTrue) {
   //
   // Test the Cross validation 
   Alps::FullSamples< Alps::MountainDummy,
-		     /*MinBatch*/ -1, /*Dim*/ 2 > cv;
+		     /*Dim*/ 2 > cv;
   cv.train();
   
   //

@@ -359,39 +359,13 @@ namespace Alps
 
 	  }
 
-//
-//	///////////////////////
-//	// Gradient descent //
-//	//////////////////////
-//	//
-//
-//
-//	    
-//	  }
-//	else
-//	  for ( auto layer : next_layer_ )
-//	    {
-//	      std::string name = "__output_layer__";
-//	      if ( layer )
-//		{
-//		  name = layer->get_layer_name();
-//		  //
-//		  std::cout
-//		    << "Back connected from: " << name
-//		    << " with " << layer->get_layer_size()[0] << " nodes" << std::endl;
-//		}
-//	      else
-//		throw MAC::MACException( __FILE__, __LINE__,
-//				   "We should be connected to another layer.",
-//				   ITK_LOCATION );
-//	    }
-	
+
 	////////////////////////
-	// Create the weights //
+	// Update the weights //
 	////////////////////////
 	//
-	// We get the number of previous layers attached to this layer. In this first loop,
-	// we collect the number of nodes if the weights were not initialized
+	
+	
 //	//
 //	// Prepare the backward variables
 //	// Previous layer as alreay been saveed from the forward function

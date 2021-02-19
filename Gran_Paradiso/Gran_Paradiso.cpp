@@ -101,7 +101,6 @@ main( const int argc, const char **argv )
 
 	      //Alps::CVKFolds< Alps::Gran_Paradiso_builder, /*K_flods*/ 3, /*Dim*/ 2 > cross_validation;
 	      Alps::FullSamples< Alps::Gran_Paradiso_builder,
-				 /*Mini-batch*/ -1,
 				 /*Dim*/ 2 > cross_validation;
 	      cross_validation.train();
 	      

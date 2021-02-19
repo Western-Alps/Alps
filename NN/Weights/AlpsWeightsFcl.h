@@ -50,11 +50,11 @@ namespace Alps
     // Accessors
     //
     // Activation tensor from the previous layer
-    virtual void set_previous_activation()                                                                    override{};
+    virtual void set_previous_activation()                                                            override{};
     // Current derivative of the activation
-    virtual void set_current_dactivation()                                                                    override{};
+    virtual void set_current_dactivation()                                                            override{};
     // Weights from the next layer
-    virtual void set_next_weights()                                                                           override{};
+    virtual void set_next_weights()                                                                   override{};
     // Get size of the tensor
     virtual const std::vector< std::size_t >   get_tensor_size() const                                override
     { return std::vector< std::size_t >(); };						      
