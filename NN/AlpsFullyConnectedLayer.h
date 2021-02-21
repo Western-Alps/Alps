@@ -112,7 +112,7 @@ namespace Alps
     // Observers
     // Observers containers
     std::map< /* Layer_name */ std::string,
-	      std::shared_ptr< Weights > >              weights_;
+	       std::shared_ptr< Weights > >              weights_;
   };
   //
   //
@@ -364,22 +364,13 @@ namespace Alps
 	// Update the weights //
 	////////////////////////
 	//
-	
-	
-//	//
-//	// Prepare the backward variables
-//	// Previous layer as alreay been saveed from the forward function
-//	// current layer
-//	weights_->set_current_dactivation();
-//	// next layer
-//	weights_->set_next_weights();
-//
-//	//
-//	// Process the image error for the current layer
-//
-//	//
-//	// Update the weights
-//	weights_->update();
+	for ( auto layer_weights : weights_ )
+	  {
+	    std::string name = layer_weights.first;
+	    weights_[name]->set_activations( image_tensors,
+					     subject->get_layer( name ) );
+	    // !!!! weights_[name]->update();
+	  }
       }
     catch( itk::ExceptionObject & err )
       {

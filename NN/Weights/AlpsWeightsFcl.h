@@ -12,8 +12,11 @@
 //
 #include "MACException.h"
 #include "AlpsWeights.h"
-#include "AlpsClimber.h"
-#include "AlpsMountain.h"
+#include "AlpsLayer.h"
+#include "AlpsLayer.h"
+#include "AlpsSGD.h"
+//#include "AlpsClimber.h"
+//#include "AlpsMountain.h"
 //
 //
 //
@@ -34,12 +37,11 @@ namespace Alps
 	    Alps::Arch Architecture,
 	    typename Activation,
 	    typename Solver >
-  class WeightsFcl : public Alps::Weights< Tensor1_Type, Tensor2_Type >,
-		     public Alps::Climber
+  class WeightsFcl : public Alps::Weights< Tensor1_Type, Tensor2_Type > //, public Alps::Climber
   {
   public:
     /** Constructor. */
-    explicit WeightsFcl( std::shared_ptr< Alps::Mountain >,
+    explicit WeightsFcl( std::shared_ptr< Alps::Layer >,
 			 const std::vector< std::size_t >,
 			 const std::vector< std::size_t > ){};
     /** Destructor */
@@ -50,11 +52,8 @@ namespace Alps
     // Accessors
     //
     // Activation tensor from the previous layer
-    virtual void set_previous_activation()                                                            override{};
-    // Current derivative of the activation
-    virtual void set_current_dactivation()                                                            override{};
-    // Weights from the next layer
-    virtual void set_next_weights()                                                                   override{};
+    virtual void set_activations( const std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >&,
+				  const std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) override{};
     // Get size of the tensor
     virtual const std::vector< std::size_t >   get_tensor_size() const                                override
     { return std::vector< std::size_t >(); };						      
@@ -65,14 +64,14 @@ namespace Alps
     virtual void                               set_tensor_size( std::vector< std::size_t > )          override{};
     // Set the tensor			     						      
     virtual void                               set_tensor( std::shared_ptr< Tensor2_Type > )          override{};
-    //					     						      
-    //					     						      
-    // Get the observed mountain	     						      
-    virtual std::shared_ptr< Alps::Mountain >  get_mountain()                                         override
-    { return layer_;};
-    // Get energy
-    virtual const double                       get_energy() const                                     override
-    { return 0.;};
+//    //					     						      
+//    //					     						      
+//    // Get the observed mountain	     						      
+//    virtual std::shared_ptr< Alps::Layer >     get_mountain()                                         override
+//    { return layer_;};
+//    // Get energy
+//    virtual const double                       get_energy() const                                     override
+//    { return 0.;};
 
     												      
     //												      
@@ -92,21 +91,22 @@ namespace Alps
 									   std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) override{};
     // solver
     virtual void                                           solve()                                                                 override{};
-    //
-    //
-    // Update the weights
-    virtual void                               update()                                               override{};
+//    //
+//    //
+//    // Update the weights
+//    virtual void                               update()                                               override{};
 
 
 
   private:
-    // Matrix of weigths
+    //! Matrix of weigths
     std::shared_ptr< Tensor2_Type >   weights_{nullptr};
-    // weights activation
+    //! Weights activation
     Activation                        activation_;
-    //
+    //! 
+    
     // The mountain observed: fully connected layer
-    std::shared_ptr< Alps::Mountain > layer_{nullptr};
+    std::shared_ptr< Alps::Layer >    layer_{nullptr};
   };
   /*! \class WeightsFullyConnected
    * \brief class representing the weights container for fully
@@ -116,12 +116,11 @@ namespace Alps
   template< typename Type,
 	    typename Activation,
 	    typename Solver >
-  class WeightsFcl< Type, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Solver > : public Alps::Weights< Type, Eigen::MatrixXd >,
-										      public Alps::Climber
+  class WeightsFcl< Type, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Solver > : public Alps::Weights< Type, Eigen::MatrixXd > //, public Alps::Climber
   {
   public:
     /** Constructor. */
-    explicit WeightsFcl( std::shared_ptr< Alps::Mountain >,
+    explicit WeightsFcl( std::shared_ptr< Alps::Layer >,
 			 const std::vector< std::size_t >,
 			 const std::vector< std::size_t > );
     /** Destructor */
@@ -132,11 +131,8 @@ namespace Alps
     // Accessors
     //
     // Activation tensor from the previous layer
-    virtual void set_previous_activation() override{};
-    // Current derivative of the activation
-    virtual void set_current_dactivation() override{};
-    // Weights from the next layer
-    virtual void set_next_weights() override{};
+    virtual void set_activations( const std::vector< Alps::LayerTensors< Type, 2 > >&,
+				  const std::vector< Alps::LayerTensors< Type, 2 > >& )               override;
     // Get size of the tensor
     virtual const std::vector< std::size_t >      get_tensor_size() const                             override
     { return std::vector< std::size_t >(); };							      
@@ -147,14 +143,14 @@ namespace Alps
     virtual void                                  set_tensor_size( std::vector< std::size_t > )       override{};
     // Set the tensor										      
     virtual void                                  set_tensor( std::shared_ptr< Eigen::MatrixXd > )    override{};
-    //												      
-    //												      
-    // Get the observed mountain								      
-    virtual std::shared_ptr< Alps::Mountain >     get_mountain()                                      override
-    {return layer_;};										      
-    // Get energy
-    virtual const double                          get_energy() const                                  override
-    { return 0.;};
+//    //												      
+//    //												      
+//    // Get the observed mountain								      
+//    virtual std::shared_ptr< Alps::Layer >        get_mountain()                                      override
+//    {return layer_;};										      
+//    // Get energy
+//    virtual const double                          get_energy() const                                  override
+//    { return 0.;};
 
     
     //												      
@@ -177,10 +173,10 @@ namespace Alps
 
 
 
-    //
-    //
-    // Update the weights
-    virtual void                                   update()                                            override{};
+//    //
+//    //
+//    // Update the weights
+//    virtual void                                   update()                                            override{};
 
 
 
@@ -191,13 +187,16 @@ namespace Alps
     Activation                         activation_;
     //
     // The mountain observed: fully connected layer
-    std::shared_ptr< Alps::Mountain >  layer_;
+    std::shared_ptr< Alps::Layer >     layer_;
+    //
+    // Type of gradient descent
+    std::shared_ptr< Alps::Gradient_base > gradient_;
   };
   //
   //
   //
   template< typename T, typename A, typename S >
-  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S >::WeightsFcl( std::shared_ptr< Alps::Mountain > Layer,
+  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S >::WeightsFcl( std::shared_ptr< Alps::Layer >    Layer,
 									     const std::vector< std::size_t >  Layer_size,
 									     const std::vector< std::size_t >  Prev_layer_size  ):
     layer_{Layer}
@@ -226,10 +225,106 @@ namespace Alps
 	std::cout
 	  << "Weights ["<<weights_->rows()<<"x"<<weights_->cols()<<"]" 
 	  << std::endl;
+
+	//
+	// Select the optimizer strategy
+	S gradient;
+	switch( gradient.get_optimizer() ) {
+	case Alps::Grad::SGD:
+	  {
+//	    gradient_ = std::make_shared< Alps::StochasticGradientDescent< Eigen::MatrixXd,
+//									   Eigen::MatrixXd,
+//									   Alps::Arch::CPU > >();
+	    break;
+	  };
+	case Alps::Grad::MOMENTUM:
+	case Alps::Grad::ADAGRAD:
+	case Alps::Grad::Adam:
+	case Alps::Grad::UNKNOWN:
+	default:
+	  {
+	    std::string
+	      mess = std::string("The optimizer has not been implemented yet.");
+	    throw MAC::MACException( __FILE__, __LINE__,
+				     mess.c_str(),
+				     ITK_LOCATION );
+	  }
+	}
       }
     catch( itk::ExceptionObject & err )
       {
 	std::cerr << err << std::endl;
+      }
+  };
+  //
+  //
+  //
+  template< typename T, typename A, typename S > void
+  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S >::set_activations( const std::vector< Alps::LayerTensors< T, 2 > >& Image_tensors,
+										  const std::vector< Alps::LayerTensors< T, 2 > >& Prev_image_tensors )
+  {
+    try
+      {
+	//
+	// The weights belong to the layer
+	std::string layer_name = layer_->get_layer_name();
+	
+	//
+	// Check the dimensions are right
+	long int
+	  tensors_size      = 0,
+	  prev_tensors_size = 0;
+	for ( auto tensor : Image_tensors )
+	  tensors_size += static_cast< long int >( tensor.get_tensor_size()[0] );
+	for ( auto tensor : Prev_image_tensors )
+	  prev_tensors_size += static_cast< long int >( tensor.get_tensor_size()[0] );
+	//
+	if ( weights_->rows() != tensors_size && weights_->cols() != prev_tensors_size + 1 /*bias*/ )
+	  {
+	    std::string
+	      mess = std::string("There is miss match between the weight matrix [(")
+	      + std::to_string( weights_->rows() ) + std::string(",") + std::to_string( weights_->cols() )
+	      + std::string(") and the size of the tensors (") + std::to_string( tensors_size )
+	      + std::string(",") + std::to_string( prev_tensors_size ) + std::string("+1).");
+	    throw MAC::MACException( __FILE__, __LINE__,
+				     mess.c_str(),
+				     ITK_LOCATION );
+	  }
+
+	
+// -->	//
+// -->	// reset the z_in and save the information in the object
+// -->	Eigen::MatrixXd      z_prev   = Eigen::MatrixXd::Zero( weights_->cols(), 1 );
+// -->	// Converter the tensor into an Eigen matrix
+// -->	std::shared_ptr< T > z_out  = std::shared_ptr< T >( new  T[weights_->rows()],
+// -->							    std::default_delete< T[] >() );
+// -->	std::shared_ptr< T > dz_out = std::shared_ptr< T >( new  T[weights_->rows()],
+// -->							    std::default_delete< T[] >() );
+// -->	Eigen::MatrixXd      a_out  = Eigen::MatrixXd::Zero( weights_->rows(), 1 );
+// -->	// Load the tensor image into a Eigen vector
+// -->	std::size_t shift = 1;
+// -->	z_in(0,0) = 1.; // bias
+// -->	for ( auto tensor : Image_tensors )
+// -->	  {
+// -->	    std::size_t img_size = tensor.get_tensor_size()[0];
+// -->	    for ( std::size_t s = 0 ; s < img_size ; s++ )
+// -->	      z_in(s+shift,0) = tensor[TensorOrder1::ACTIVATION][s];
+// -->	    shift += img_size;
+// -->	  }
+// -->	// process
+// -->	a_out = *( weights_.get() ) * z_in;
+// -->	// Apply the activation function
+// -->	long int activation_size = weights_->rows();
+// -->	for ( long int s = 0 ; s < activation_size ; s++ )
+// -->	  {
+// -->	    z_out.get()[s]  = activation_.f( a_out(s,0) );
+// -->	    dz_out.get()[s] = activation_.df( a_out(s,0) );
+// -->	  }
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+	exit(-1);
       }
   };
   //
@@ -358,21 +453,20 @@ namespace Alps
   };
   /*! \class WeightsFullyConnected
    * \brief class representing the weights container for fully
-   * connected layers (FCL) using GPU.
+   * connected layers (FCL) using CUDA.
    *
    */
   template< typename Type1,
 	    typename Type2,
 	    typename Activation,
 	    typename Solver >
-  class WeightsFcl< Type1, Type2, Alps::Arch::GPU, Activation, Solver > : public Alps::Weights< Type1, Type2 >,
-									  public Alps::Climber
+  class WeightsFcl< Type1, Type2, Alps::Arch::CUDA, Activation, Solver > : public Alps::Weights< Type1, Type2 >//, public Alps::Climber
   {
   public:
     /** Constructor. */
-    explicit WeightsFcl( std::shared_ptr< Alps::Mountain >,
+    explicit WeightsFcl( std::shared_ptr< Alps::Layer >,
 			 const std::vector< std::size_t >,
-			 const std::vector< std::size_t > ){std::cout << "GPU treatment" << std::endl;};
+			 const std::vector< std::size_t > ){std::cout << "CUDA treatment" << std::endl;};
     /** Destructor */
     virtual ~WeightsFcl(){};
 
@@ -381,11 +475,8 @@ namespace Alps
     // Accessors
     //
     // Activation tensor from the previous layer
-    virtual void set_previous_activation()                                                                     override{};
-    // Current derivative of the activation
-    virtual void set_current_dactivation()                                                                     override{};
-    // Weights from the next layer
-    virtual void set_next_weights()                                                                            override{};
+    virtual void set_previous_activation( const std::vector< Alps::LayerTensors< Type1, 2 > >&,
+					  const std::vector< Alps::LayerTensors< Type1, 2 > >&) override{};
     // Get size of the tensor
     virtual const std::vector< std::size_t >      get_tensor_size() const                              override
     { return std::vector< std::size_t >(); };							      
@@ -396,14 +487,14 @@ namespace Alps
     virtual void                                  set_tensor_size( std::vector< std::size_t > )        override{};
     // Set the tensor										      
     virtual void                                  set_tensor( std::shared_ptr< Type2 > )               override{};
-    //												      
-    //												      
-    // Get the observed mountain								      
-    virtual std::shared_ptr< Alps::Mountain >     get_mountain()                                       override
-    {return layer_;};										      
-    // Get energy
-    virtual const double                          get_energy() const                                   override
-    { return 0.;};
+//    //												      
+//    //												      
+//    // Get the observed mountain								      
+//    virtual std::shared_ptr< Alps::Layer >        get_mountain()                                       override
+//    {return layer_;};										      
+//    // Get energy
+//    virtual const double                          get_energy() const                                   override
+//    { return 0.;};
 												      
     												      
     //												      
@@ -426,10 +517,10 @@ namespace Alps
 
 
 
-    //
-    //
-    // Update the weights
-    virtual void                            update()                                                   override{};
+//    //
+//    //
+//    // Update the weights
+//    virtual void                            update()                                                   override{};
 
 
 
@@ -440,7 +531,7 @@ namespace Alps
     Activation                         activation_;
     //
     // The mountain observed: fully connected layer
-    std::shared_ptr< Alps::Mountain >  layer_;
+    std::shared_ptr< Alps::Layer >     layer_;
   };
 }
 #endif

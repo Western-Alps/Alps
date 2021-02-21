@@ -28,8 +28,8 @@ Alps::Gran_Paradiso_builder::Gran_Paradiso_builder()
   // Neural network anatomy //
   ////////////////////////////
   using Activation     = Alps::Activation_tanh< double >;
-  using Solver         = Alps::SGD< Eigen::MatrixXd, Eigen::MatrixXd, Alps::Arch::CPU >;
-  using Weights        = Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Solver >;
+  using Solver         = Alps::SGD;
+  using Weights        = Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Alps::SGD >;
   using LossFunction   = Alps::LeastSquarreEstimate< double >;
   using FullyConnected = Alps::FullyConnectedLayer< Activation, Weights, LossFunction, /*Dim*/ 2 >;
 

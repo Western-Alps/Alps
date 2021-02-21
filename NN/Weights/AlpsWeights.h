@@ -27,8 +27,10 @@ namespace Alps
     {
      UNKNOWN   = -1,
      // 
-     CPU = 1,
-     GPU = 2 };
+     CPU       = 1,
+     CUDA      = 2,  // NVIDIA GPU implementation
+     CL        = 3   // heterogeneous computing
+    }; 
   /*! \class Weights
    * \brief class representing the weights container used by all the 
    * neural networks layers. 
@@ -46,11 +48,8 @@ namespace Alps
     // Accessors
     //
     // Activation tensor from the previous layer
-    virtual void set_previous_activation()                                                                                         = 0;
-    // Current derivative of the activation
-    virtual void set_current_dactivation()                                                                                         = 0;
-    // Weights from the next layer
-    virtual void set_next_weights()                                                                                                = 0;
+    virtual void set_activations( const std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >&,
+				  const std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) = 0;
     
     //
     // Functions
