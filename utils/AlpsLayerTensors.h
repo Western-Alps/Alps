@@ -89,6 +89,10 @@ namespace Alps
     // reference as array element can be put on left side 
     Type*                                       operator[]( Alps::TensorOrder1 Idx ); 
     //
+    // Implementation of () operator.  This function must return a 
+    // reference as array element of the Hadalart product between two tensors
+    std::shared_ptr< Type >                     operator()( Alps::TensorOrder1, Alps::TensorOrder1 ); 
+    //
     void                                        replace( const std::vector<std::size_t>,
 							  std::tuple< std::shared_ptr< double >,
 							              std::shared_ptr< double >,
@@ -182,7 +186,44 @@ namespace Alps
   }
   //
   //
-  // Operator []
+  // Operator ()
+  template< typename T,int D > std::shared_ptr< T >
+  Alps::LayerTensors< T, D >::operator()( Alps::TensorOrder1 Idx1,
+					  Alps::TensorOrder1 Idx2 ) 
+  {
+    try
+      {
+	if ( static_cast< int >( Idx1 ) > 3 ||
+	     static_cast< int >( Idx1 ) < 0 ||
+	     static_cast< int >( Idx2 ) > 3 ||
+	     static_cast< int >( Idx2 ) < 0 )
+	  throw MAC::MACException( __FILE__, __LINE__,
+				   "Indexing not implemented yet.",
+				   ITK_LOCATION );
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+      }
+    //
+    //
+    std::size_t img_size = tensors_[ static_cast< int >( Idx1 ) ].get_tensor_size()[0];
+    // prepare the return pointer
+    std::shared_ptr< T > hadamart = std::shared_ptr< T >( new  T[img_size],
+							  std::default_delete< T[] >() );
+    //
+    for ( std::size_t s = 0 ; s < img_size ; s++ )
+      hadamart.get()[s] =
+	tensors_[ static_cast< int >( Idx1 ) ].get_tensor().get()[s] +
+	tensors_[ static_cast< int >( Idx2 ) ].get_tensor().get()[s];
+      
+    //
+    //
+    return hadamart;
+  }
+  //
+  //
+  // 
   template< typename T,int D > void
   Alps::LayerTensors< T, D >::replace( const std::vector<std::size_t>          Tensor_size,
 				       std::tuple< std::shared_ptr< double >,

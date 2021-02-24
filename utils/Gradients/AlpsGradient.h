@@ -154,16 +154,23 @@ namespace Alps
     /** Destructor */
     virtual ~Gradient(){};
 
+    
+    //
+    // Accessors
+    //
+    // Set the layer sizes
+    virtual void            set_parameters( const std::size_t, const std::size_t ) = 0;
+      
+ 
     //
     // Functions
     //
     // Get the type of optimizer
-    virtual const Alps::Grad get_optimizer() const
-    { return Alps::Grad::UNKNOWN;};
+    virtual const Alps::Grad get_optimizer() const                                 = 0;
     // Add tensor elements
-    virtual void         add_tensors( const Tensor1_Type, const Tensor1_Type ) = 0;
+    virtual void             add_tensors( const Tensor1_Type, const Tensor1_Type ) = 0;
     // Backward propagation
-    virtual Tensor2_Type solve()                                               = 0;
+    virtual Tensor2_Type     solve()                                               = 0;
   };
 }
 #endif

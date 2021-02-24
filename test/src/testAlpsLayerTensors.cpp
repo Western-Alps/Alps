@@ -32,7 +32,7 @@ TEST_F(LayerTensorsTest, ByDefaultLayerTensorsZero) {
   //
   EXPECT_EQ( 0, 0) ;
 }
-// Accessors
+// operator[]
 TEST_F(LayerTensorsTest, ByDefaultLayerTensorsOperator) {
   //
   //
@@ -40,6 +40,46 @@ TEST_F(LayerTensorsTest, ByDefaultLayerTensorsOperator) {
   //
   //
 	 EXPECT_EQ( Subj[Alps::TensorOrder1::ACTIVATION][206], 253 );
+}
+// operator() -- hadamart
+TEST_F(LayerTensorsTest, ByDefaultLayerTensorsHadamart) {
+  //
+  //
+  std::vector< std::size_t > size(1);
+  size[0] = 5;
+  //
+  std::shared_ptr< double > activation  = std::shared_ptr< double >( new  double[5],
+								     std::default_delete< double[] >() );
+  std::shared_ptr< double > derivative  = std::shared_ptr< double >( new  double[5],
+								     std::default_delete< double[] >() );
+  std::shared_ptr< double > error       = std::shared_ptr< double >( new  double[5],
+								     std::default_delete< double[] >() );
+  std::shared_ptr< double > werror      = nullptr;
+  //
+  for ( int i = 0 ; i < 5 ; i++ )
+    {
+      activation.get()[i] = static_cast<double>( i );
+      derivative.get()[i] = static_cast<double>( i * 10 );
+      error.get()[i]      = static_cast<double>( i * 100 );
+    }
+  //
+  std::tuple< std::shared_ptr< double >,
+	      std::shared_ptr< double >,
+	      std::shared_ptr< double >,
+	      std::shared_ptr< double > > current = std::make_tuple( activation, derivative, error, werror );
+    
+  Alps::LayerTensors< double, 2 > Subj( size, current );
+  //
+  // Test the hadamart product
+  std::shared_ptr< double > hadamart = Subj( Alps::TensorOrder1::ACTIVATION,
+					     Alps::TensorOrder1::DERIVATIVE );
+//  //
+//  for ( int i = 0 ; i < 5 ; i++ )
+//    std::cout << "hadamart("<<i<<") = " << hadamart.get()[i] << std::endl;
+  
+  //
+  //
+  EXPECT_EQ( hadamart.get()[4], 44 );
 }
 //// Accessors
 //TEST_F(LayerTensorsTest, ByDefaultImageSet) {

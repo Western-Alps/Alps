@@ -52,8 +52,8 @@ namespace Alps
     // Accessors
     //
     // Activation tensor from the previous layer
-    virtual void set_activations( const std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >&,
-				  const std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) override{};
+    virtual void set_activations( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >&,
+				  std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) override{};
     // Get size of the tensor
     virtual const std::vector< std::size_t >   get_tensor_size() const                                override
     { return std::vector< std::size_t >(); };						      
@@ -131,8 +131,8 @@ namespace Alps
     // Accessors
     //
     // Activation tensor from the previous layer
-    virtual void set_activations( const std::vector< Alps::LayerTensors< Type, 2 > >&,
-				  const std::vector< Alps::LayerTensors< Type, 2 > >& )               override;
+    virtual void set_activations( std::vector< Alps::LayerTensors< Type, 2 > >&,
+				  std::vector< Alps::LayerTensors< Type, 2 > >& )               override;
     // Get size of the tensor
     virtual const std::vector< std::size_t >      get_tensor_size() const                             override
     { return std::vector< std::size_t >(); };							      
@@ -182,12 +182,12 @@ namespace Alps
 
   private:
     // Matrix of weigths
-    std::shared_ptr< Eigen::MatrixXd > weights_;
+    std::shared_ptr< Eigen::MatrixXd >     weights_;
     // weights activation
-    Activation                         activation_;
+    Activation                             activation_;
     //
     // The mountain observed: fully connected layer
-    std::shared_ptr< Alps::Layer >     layer_;
+    std::shared_ptr< Alps::Layer >         layer_;
     //
     // Type of gradient descent
     std::shared_ptr< Alps::Gradient_base > gradient_;
@@ -232,9 +232,10 @@ namespace Alps
 	switch( gradient.get_optimizer() ) {
 	case Alps::Grad::SGD:
 	  {
-//	    gradient_ = std::make_shared< Alps::StochasticGradientDescent< Eigen::MatrixXd,
-//									   Eigen::MatrixXd,
-//									   Alps::Arch::CPU > >();
+	    gradient_ = std::make_shared< Alps::StochasticGradientDescent< double,
+									   Eigen::MatrixXd,
+									   Eigen::MatrixXd,
+									   Alps::Arch::CPU > >();
 	    break;
 	  };
 	case Alps::Grad::MOMENTUM:
@@ -250,6 +251,8 @@ namespace Alps
 				     ITK_LOCATION );
 	  }
 	}
+	//
+	
       }
     catch( itk::ExceptionObject & err )
       {
@@ -260,8 +263,8 @@ namespace Alps
   //
   //
   template< typename T, typename A, typename S > void
-  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S >::set_activations( const std::vector< Alps::LayerTensors< T, 2 > >& Image_tensors,
-										  const std::vector< Alps::LayerTensors< T, 2 > >& Prev_image_tensors )
+  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S >::set_activations( std::vector< Alps::LayerTensors< T, 2 > >& Image_tensors,
+										  std::vector< Alps::LayerTensors< T, 2 > >& Prev_image_tensors )
   {
     try
       {
@@ -279,7 +282,7 @@ namespace Alps
 	for ( auto tensor : Prev_image_tensors )
 	  prev_tensors_size += static_cast< long int >( tensor.get_tensor_size()[0] );
 	//
-	if ( weights_->rows() != tensors_size && weights_->cols() != prev_tensors_size + 1 /*bias*/ )
+	if ( weights_->rows() != tensors_size || weights_->cols() != prev_tensors_size + 1  /*bias*/ )
 	  {
 	    std::string
 	      mess = std::string("There is miss match between the weight matrix [(")
@@ -292,34 +295,50 @@ namespace Alps
 	  }
 
 	
-// -->	//
-// -->	// reset the z_in and save the information in the object
-// -->	Eigen::MatrixXd      z_prev   = Eigen::MatrixXd::Zero( weights_->cols(), 1 );
-// -->	// Converter the tensor into an Eigen matrix
-// -->	std::shared_ptr< T > z_out  = std::shared_ptr< T >( new  T[weights_->rows()],
-// -->							    std::default_delete< T[] >() );
-// -->	std::shared_ptr< T > dz_out = std::shared_ptr< T >( new  T[weights_->rows()],
-// -->							    std::default_delete< T[] >() );
-// -->	Eigen::MatrixXd      a_out  = Eigen::MatrixXd::Zero( weights_->rows(), 1 );
-// -->	// Load the tensor image into a Eigen vector
-// -->	std::size_t shift = 1;
-// -->	z_in(0,0) = 1.; // bias
-// -->	for ( auto tensor : Image_tensors )
-// -->	  {
-// -->	    std::size_t img_size = tensor.get_tensor_size()[0];
-// -->	    for ( std::size_t s = 0 ; s < img_size ; s++ )
-// -->	      z_in(s+shift,0) = tensor[TensorOrder1::ACTIVATION][s];
-// -->	    shift += img_size;
-// -->	  }
-// -->	// process
-// -->	a_out = *( weights_.get() ) * z_in;
-// -->	// Apply the activation function
-// -->	long int activation_size = weights_->rows();
-// -->	for ( long int s = 0 ; s < activation_size ; s++ )
-// -->	  {
-// -->	    z_out.get()[s]  = activation_.f( a_out(s,0) );
-// -->	    dz_out.get()[s] = activation_.df( a_out(s,0) );
-// -->	  }
+	//
+	// Create the activation and error to update the weights
+	Eigen::MatrixXd z     = Eigen::MatrixXd::Zero( prev_tensors_size + 1, 1 );
+	Eigen::MatrixXd delta = Eigen::MatrixXd::Zero( tensors_size, 1 );
+	//
+	// Load the tensor previouse image into a Eigen vector
+	std::size_t shift = 1;
+	z(0,0) = 1.; // bias
+	for ( auto tensor : Prev_image_tensors )
+	  {
+	    std::size_t img_size = tensor.get_tensor_size()[0];
+	       for ( std::size_t s = 0 ; s < img_size ; s++ )
+		 z(s+shift,0) = tensor[TensorOrder1::ACTIVATION][s];
+	       shift += img_size;
+	  }
+	// treatment is sligtly different whether we are on the last layer or not
+	if ( layer_name == "__output_layer__" )
+	  {
+	   // Load the error tensor of the current image into a Eigen vector
+	   for ( auto tensor : Image_tensors )
+	     {
+	      std::size_t img_size = tensor.get_tensor_size()[0];
+	      for ( std::size_t s = 0 ; s < img_size ; s++ )
+		delta(s,0) = tensor[TensorOrder1::ERROR][s];
+	      shift += img_size;
+	     }
+	  }
+	else
+	  {
+	    // Hadamart production between the weighted error and the
+	    // derivative of the activation
+	    std::shared_ptr< T > hadamart = (Image_tensors[0])( TensorOrder1::WERROR, TensorOrder1::DERIVATIVE );
+	    // Load the error tensor of the current image into a Eigen vector
+	    for ( auto tensor : Image_tensors )
+	      {
+		std::size_t img_size = tensor.get_tensor_size()[0];
+		for ( std::size_t s = 0 ; s < img_size ; s++ )
+		  delta(s,0) = hadamart.get()[s];
+		shift += img_size;
+	      }
+	  }
+	// process
+	std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
+						   Eigen::MatrixXd > >(gradient_)->add_tensors( delta, z );
       }
     catch( itk::ExceptionObject & err )
       {
@@ -475,8 +494,8 @@ namespace Alps
     // Accessors
     //
     // Activation tensor from the previous layer
-    virtual void set_previous_activation( const std::vector< Alps::LayerTensors< Type1, 2 > >&,
-					  const std::vector< Alps::LayerTensors< Type1, 2 > >&) override{};
+    virtual void set_activation( std::vector< Alps::LayerTensors< Type1, 2 > >&,
+				 std::vector< Alps::LayerTensors< Type1, 2 > >&) override{};
     // Get size of the tensor
     virtual const std::vector< std::size_t >      get_tensor_size() const                              override
     { return std::vector< std::size_t >(); };							      

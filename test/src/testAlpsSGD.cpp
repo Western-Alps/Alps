@@ -6,8 +6,8 @@
 #include <Eigen/Eigen>
 // ITK
 #include "ITKHeaders.h"
-#include "AlpsCostFunction.h"
-#include "AlpsActivations.h"
+#include "AlpsGradient.h"
+#include "AlpsSGD.h"
 
 //using ::testing::Return;
 
@@ -24,48 +24,52 @@ void SGCTest::SetUp() {};
 
 void SGCTest::TearDown() {};
 // CostFunction function
-TEST_F(SGCTest, ByDefaultCostFunctionLSE_L) {
-  // Loss
-  Alps::LeastSquarreEstimate< double > LSE;
+TEST_F(SGCTest, ByDefaultSGD0) {
   //
   //
-  int N = 3;
-  std::shared_ptr< double > shv1( new double[N], std::default_delete< double [] >() );
-  std::shared_ptr< double > shv2( new double[N], std::default_delete< double [] >() );
-  //  
-  shv1.get()[0] = 1.; shv1.get()[1] = 2.; shv1.get()[2] = 3.; 
-  shv2.get()[0] = 4.; shv2.get()[1] = 5.; shv2.get()[2] = 6.; 
+  Alps::StochasticGradientDescent< double,
+				   Eigen::MatrixXd,
+				   Eigen::MatrixXd,
+				   Alps::Arch::CPU >  Sgd;
   //
   //
-  EXPECT_EQ( LSE.L(shv1.get(), shv2.get(), N), N * 9. );
+  EXPECT_EQ( 0., 0. );
 }
 // Derivative of the activation function
-TEST_F(SGCTest, ByDefaultCostFunctionTanh_df) {
-  // Loss
-  Alps::LeastSquarreEstimate< double > LSE;
+TEST_F(SGCTest, ByDefaultSGDChild) {
   //
   //
-  int N = 3;
-  std::shared_ptr< double > shv1( new double[N], std::default_delete< double [] >() );
-  std::shared_ptr< double > shv2( new double[N], std::default_delete< double [] >() );
-  std::shared_ptr< double > shv3( new double[N], std::default_delete< double [] >() );
-  //  
-  shv1.get()[0] = 1.; shv1.get()[1] = 2.; shv1.get()[2] = 3.; 
-  shv2.get()[0] = 4.; shv2.get()[1] = 5.; shv2.get()[2] = 6.; 
-  shv3.get()[0] = 1.; shv3.get()[1] = 2.; shv3.get()[2] = 3.;
+  std::shared_ptr< Alps::Gradient_base > gradient_ = std::make_shared< Alps::StochasticGradientDescent< double,
+													Eigen::MatrixXd,
+													Eigen::MatrixXd,
+													Alps::Arch::CPU > >();
   //
-  double val =0.;
-  for ( int i = 0 ; i < N ; i++ )
-    {
-//      std::cout << "dL[" << i << "] = "
-//		<< LSE.dL(shv1.get(), shv2.get(), shv3.get(), N).get()[i]
-//		<< std::endl;
-      val += LSE.dL(shv1.get(), shv2.get(), shv3.get(), N).get()[i];
-    }
+  std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
+					     Eigen::MatrixXd > >(gradient_)->set_parameters( 4, 3 );
+
+  //
+  //
+  Eigen::MatrixXd delta = Eigen::MatrixXd::Zero(4,1);
+  Eigen::MatrixXd z     = Eigen::MatrixXd::Zero(3,1);
+  //
+  delta(0,0) = 1. ; delta(1,0) = 2. ; delta(2,0) = 3. ; delta(3,0) = 4. ; 
+  z(0,0) = 10.; z(1,0) = 20.; z(2,0) = 30.; 
+  //
+  Eigen::MatrixXd test = z * delta.transpose();
+  std::cout << "The test: \n" << test << std::endl;
   
   //
   //
-  EXPECT_EQ( val, - static_cast< double >(N * (1+2+3)) );
+  std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
+					     Eigen::MatrixXd > >(gradient_)->add_tensors( delta, z );
+  //
+  Eigen::MatrixXd test2 = std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
+								     Eigen::MatrixXd > >(gradient_)->solve();
+  std::cout << "The test2: \n" << test2 << std::endl;
+ 
+  //
+  //
+  EXPECT_EQ( 0., 0. );
 }
 
 //TEST_F(ImageTest, ByDefaultBazFalseIsFalse) {

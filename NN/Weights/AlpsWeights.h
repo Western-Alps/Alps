@@ -48,8 +48,8 @@ namespace Alps
     // Accessors
     //
     // Activation tensor from the previous layer
-    virtual void set_activations( const std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >&,
-				  const std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) = 0;
+    virtual void set_activations( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >&,
+				  std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) = 0;
     
     //
     // Functions
