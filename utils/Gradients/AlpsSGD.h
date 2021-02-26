@@ -118,10 +118,6 @@ namespace Alps
   {
     delta_               = Eigen::MatrixXd::Zero( Current_size, 1 );
     previous_activation_ = Eigen::MatrixXd::Zero( Prev_size, 1 );
-    std::cout
-      << "\ndelta_ ~~\n" << delta_
-      << "\nprevious_activation_ ~~\n" << previous_activation_
-      << std::endl;
   }
   //
   //
@@ -140,12 +136,6 @@ namespace Alps
 	//
 	delta_               += Delta;
 	previous_activation_ += Z;
-	std::cout
-	  << "delta_ \n" << Delta
-	  << "\nprevious_activation_ \n" << Z
-	  << "\ndelta_ \n" << delta_
-	  << "\nprevious_activation_ \n" << previous_activation_
-	  << std::endl;
       }
     catch( itk::ExceptionObject & err )
       {
@@ -159,10 +149,6 @@ namespace Alps
   template< typename Type > Eigen::MatrixXd
   Alps::StochasticGradientDescent< Type, Eigen::MatrixXd, Eigen::MatrixXd, Alps::Arch::CPU >::solve()
   {
-	std::cout
-	  << "delta_ \n" << delta_
-	  << "\nprevious_activation_ \n" << previous_activation_
-	  << std::endl;
     return delta_ * previous_activation_.transpose();
   }
   /** \class StochasticGradientDescent

@@ -53,9 +53,9 @@ TEST_F(SGCTest, ByDefaultSGDChild) {
   Eigen::MatrixXd z     = Eigen::MatrixXd::Zero(3,1);
   //
   delta(0,0) = 1. ; delta(1,0) = 2. ; delta(2,0) = 3. ; delta(3,0) = 4. ; 
-  z(0,0) = 10.; z(1,0) = 20.; z(2,0) = 30.; 
+  z(0,0)     = 10.; z(1,0)     = 20.; z(2,0)     = 30.; 
   //
-  Eigen::MatrixXd test = z * delta.transpose();
+  Eigen::MatrixXd test = delta * z.transpose();
   std::cout << "The test: \n" << test << std::endl;
   
   //
@@ -69,7 +69,7 @@ TEST_F(SGCTest, ByDefaultSGDChild) {
  
   //
   //
-  EXPECT_EQ( 0., 0. );
+  EXPECT_EQ( test(2,2), test2(2,2) );
 }
 
 //TEST_F(ImageTest, ByDefaultBazFalseIsFalse) {
