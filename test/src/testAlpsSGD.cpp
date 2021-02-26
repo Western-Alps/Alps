@@ -6,6 +6,7 @@
 #include <Eigen/Eigen>
 // ITK
 #include "ITKHeaders.h"
+#include "AlpsLoadDataSet.h"
 #include "AlpsGradient.h"
 #include "AlpsSGD.h"
 
@@ -26,6 +27,9 @@ void SGCTest::TearDown() {};
 // CostFunction function
 TEST_F(SGCTest, ByDefaultSGD0) {
   //
+  // Load the dataset for the gradient paramters
+  Alps::LoadDataSet::instance("data_set_GP.json");
+  //
   //
   Alps::StochasticGradientDescent< double,
 				   Eigen::MatrixXd,
@@ -38,6 +42,9 @@ TEST_F(SGCTest, ByDefaultSGD0) {
 // Derivative of the activation function
 TEST_F(SGCTest, ByDefaultSGDChild) {
   //
+  // Load the dataset for the gradient paramters
+  Alps::LoadDataSet::instance("data_set_GP.json");
+  //
   //
   std::shared_ptr< Alps::Gradient_base > gradient_ = std::make_shared< Alps::StochasticGradientDescent< double,
 													Eigen::MatrixXd,
@@ -49,16 +56,23 @@ TEST_F(SGCTest, ByDefaultSGDChild) {
 
   //
   //
-  Eigen::MatrixXd delta = Eigen::MatrixXd::Zero(4,1);
-  Eigen::MatrixXd z     = Eigen::MatrixXd::Zero(3,1);
+  Eigen::MatrixXd delta  = Eigen::MatrixXd::Zero(4,1);
+  Eigen::MatrixXd z      = Eigen::MatrixXd::Zero(3,1);
   //
   delta(0,0) = 1. ; delta(1,0) = 2. ; delta(2,0) = 3. ; delta(3,0) = 4. ; 
   z(0,0)     = 10.; z(1,0)     = 20.; z(2,0)     = 30.; 
   //
-  Eigen::MatrixXd test = delta * z.transpose();
+  Eigen::MatrixXd test = (delta+delta+delta) * (z+z+z).transpose();
+  test *= 0.1;
   std::cout << "The test: \n" << test << std::endl;
   
   //
+  //
+  std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
+					     Eigen::MatrixXd > >(gradient_)->add_tensors( delta, z );
+  //
+  std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
+					     Eigen::MatrixXd > >(gradient_)->add_tensors( delta, z );
   //
   std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
 					     Eigen::MatrixXd > >(gradient_)->add_tensors( delta, z );
@@ -69,7 +83,7 @@ TEST_F(SGCTest, ByDefaultSGDChild) {
  
   //
   //
-  EXPECT_EQ( test(2,2), test2(2,2) );
+  EXPECT_EQ( test(2,2), -test2(2,2) );
 }
 
 //TEST_F(ImageTest, ByDefaultBazFalseIsFalse) {

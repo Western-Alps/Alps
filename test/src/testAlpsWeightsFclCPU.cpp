@@ -23,6 +23,9 @@ void WeightsFclCPUTest::TearDown() {};
 //
 // Constructor
 TEST_F(WeightsFclCPUTest, ByDefaultWeigths) {
+  //
+  // Load the dataset for the gradient paramters
+  Alps::LoadDataSet::instance("data_set_GP.json");
   // Constructor of a subject
   using Activation = Alps::Activation_tanh< double >;
   using Solver     = Alps::SGD;

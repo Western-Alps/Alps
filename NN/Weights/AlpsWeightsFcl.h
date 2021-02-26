@@ -37,7 +37,7 @@ namespace Alps
 	    Alps::Arch Architecture,
 	    typename Activation,
 	    typename Solver >
-  class WeightsFcl : public Alps::Weights< Tensor1_Type, Tensor2_Type > //, public Alps::Climber
+  class WeightsFcl : public Alps::Weights< Tensor1_Type, Tensor2_Type >
   {
   public:
     /** Constructor. */
@@ -64,14 +64,6 @@ namespace Alps
     virtual void                               set_tensor_size( std::vector< std::size_t > )          override{};
     // Set the tensor			     						      
     virtual void                               set_tensor( std::shared_ptr< Tensor2_Type > )          override{};
-//    //					     						      
-//    //					     						      
-//    // Get the observed mountain	     						      
-//    virtual std::shared_ptr< Alps::Layer >     get_mountain()                                         override
-//    { return layer_;};
-//    // Get energy
-//    virtual const double                       get_energy() const                                     override
-//    { return 0.;};
 
     												      
     //												      
@@ -89,12 +81,8 @@ namespace Alps
     // Weighted error
     virtual void                                           weighted_error( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >&,
 									   std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) override{};
-    // solver
-    virtual void                                           solve()                                                                 override{};
-//    //
-//    //
-//    // Update the weights
-//    virtual void                               update()                                               override{};
+    // Update the weights
+    virtual void                               update()                                               override{};
 
 
 
@@ -116,7 +104,7 @@ namespace Alps
   template< typename Type,
 	    typename Activation,
 	    typename Solver >
-  class WeightsFcl< Type, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Solver > : public Alps::Weights< Type, Eigen::MatrixXd > //, public Alps::Climber
+  class WeightsFcl< Type, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Solver > : public Alps::Weights< Type, Eigen::MatrixXd >
   {
   public:
     /** Constructor. */
@@ -143,14 +131,6 @@ namespace Alps
     virtual void                                  set_tensor_size( std::vector< std::size_t > )       override{};
     // Set the tensor										      
     virtual void                                  set_tensor( std::shared_ptr< Eigen::MatrixXd > )    override{};
-//    //												      
-//    //												      
-//    // Get the observed mountain								      
-//    virtual std::shared_ptr< Alps::Layer >        get_mountain()                                      override
-//    {return layer_;};										      
-//    // Get energy
-//    virtual const double                          get_energy() const                                  override
-//    { return 0.;};
 
     
     //												      
@@ -168,15 +148,8 @@ namespace Alps
     // Weighted error
     virtual void                                   weighted_error( std::vector< Alps::LayerTensors< Type, 2 > >&,
 								   std::vector< Alps::LayerTensors< Type, 2 > >& ) override;
-    // solver
-    virtual void                                   solve()                                                         override{};
-
-
-
-//    //
-//    //
-//    // Update the weights
-//    virtual void                                   update()                                            override{};
+    // Update the weights
+    virtual void                                   update()                                            override;
 
 
 
@@ -236,6 +209,7 @@ namespace Alps
 									   Eigen::MatrixXd,
 									   Eigen::MatrixXd,
 									   Alps::Arch::CPU > >();
+	    
 	    break;
 	  };
 	case Alps::Grad::MOMENTUM:
@@ -252,7 +226,11 @@ namespace Alps
 	  }
 	}
 	//
-	
+	//
+	std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
+						   Eigen::MatrixXd > >(gradient_)->set_parameters( current_nodes,
+												   previous_nodes + 1 );
+
       }
     catch( itk::ExceptionObject & err )
       {
@@ -470,6 +448,15 @@ namespace Alps
     for ( long int s = 0 ; s < prev_tensors_size ; s++ )
       Prev_image_tensors[0][TensorOrder1::WERROR][s] += we_out(s+1,0);
   };
+  //
+  //
+  //
+  template< typename T, typename A, typename S > void
+  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S >::update()
+  {
+    *(weights_.get()) += std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
+								    Eigen::MatrixXd > >(gradient_)->solve();
+  };
   /*! \class WeightsFullyConnected
    * \brief class representing the weights container for fully
    * connected layers (FCL) using CUDA.
@@ -479,7 +466,7 @@ namespace Alps
 	    typename Type2,
 	    typename Activation,
 	    typename Solver >
-  class WeightsFcl< Type1, Type2, Alps::Arch::CUDA, Activation, Solver > : public Alps::Weights< Type1, Type2 >//, public Alps::Climber
+  class WeightsFcl< Type1, Type2, Alps::Arch::CUDA, Activation, Solver > : public Alps::Weights< Type1, Type2 >
   {
   public:
     /** Constructor. */
@@ -506,14 +493,6 @@ namespace Alps
     virtual void                                  set_tensor_size( std::vector< std::size_t > )        override{};
     // Set the tensor										      
     virtual void                                  set_tensor( std::shared_ptr< Type2 > )               override{};
-//    //												      
-//    //												      
-//    // Get the observed mountain								      
-//    virtual std::shared_ptr< Alps::Layer >        get_mountain()                                       override
-//    {return layer_;};										      
-//    // Get energy
-//    virtual const double                          get_energy() const                                   override
-//    { return 0.;};
 												      
     												      
     //												      
@@ -531,15 +510,8 @@ namespace Alps
     // Weighted error
     virtual void                                    weighted_error( std::vector< Alps::LayerTensors< Type1, 2 > >&,
 								    std::vector< Alps::LayerTensors< Type1, 2 > >& ) override{};
-    // solver
-    virtual void                                    solve()                                                          override{};
-
-
-
-//    //
-//    //
-//    // Update the weights
-//    virtual void                            update()                                                   override{};
+    // Update the weights
+    virtual void                            update()                                                   override{};
 
 
 

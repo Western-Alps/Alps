@@ -60,8 +60,8 @@ namespace Alps
     // Weighted error
     virtual void                                           weighted_error( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >&,
 									   std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) = 0;
-    // solver
-    virtual void                                           solve()                                                                 = 0;
+    // Update the weights
+    virtual void                                           update()                                                                = 0;
   };
 }
 #endif

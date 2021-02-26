@@ -8,6 +8,7 @@
 //
 //
 //
+#include "AlpsLoadDataSet.h"
 #include "MACException.h"
 #include "AlpsGradient.h"
 //
@@ -98,8 +99,18 @@ namespace Alps
 
     private:
       //
-      Eigen::MatrixXd delta_;
+      // Gradient information
+      // mini batch size
+      std::size_t     mini_batch_{0};
+      // batch represent the current state before update of the weights
+      std::size_t     batch_{0};
+      // learning rate
+      double          learning_rate_{0.00001};
       //
+      // Update of the weights
+      // delta_ = [W epsilon] * ...
+      Eigen::MatrixXd delta_;
+      // activation from the previous layer
       Eigen::MatrixXd previous_activation_;
     };
   //
@@ -108,6 +119,8 @@ namespace Alps
   template< typename Type >
   Alps::StochasticGradientDescent< Type, Eigen::MatrixXd, Eigen::MatrixXd, Alps::Arch::CPU >::StochasticGradientDescent()
   {
+    mini_batch_    = static_cast< std::size_t >(Alps::LoadDataSet::instance()->get_data()["network"]["gradient"]["SGD"]["mini_batch"]);
+    learning_rate_ = static_cast< double >(Alps::LoadDataSet::instance()->get_data()["network"]["gradient"]["SGD"]["learning_rate"]);
   }
   //
   //
@@ -129,13 +142,22 @@ namespace Alps
     try
       {
 	if ( delta_.rows() != Delta.rows() || previous_activation_.rows() != Z.rows() )
-	  throw MAC::MACException( __FILE__, __LINE__,
-				   "Missmatched dimensions.",
-				   ITK_LOCATION );
+	  {
+	    std::string mess = "Dimension mismatch. Parameters are set to: \n ["
+	      + std::to_string( delta_.rows() ) + "x"
+	      + std::to_string( previous_activation_.rows() ) + "]. \n The tensor added have" +
+	      + " the dimension: \n [" + std::to_string( Delta.rows() ) + "x"
+	      + std::to_string( Z.rows() ) + "].";
+	    throw MAC::MACException( __FILE__, __LINE__,
+				     mess.c_str(),
+				     ITK_LOCATION );
+	  }
 	//
 	//
 	delta_               += Delta;
 	previous_activation_ += Z;
+	// An additional image, we increase the batch size
+	batch_++;
       }
     catch( itk::ExceptionObject & err )
       {
@@ -149,7 +171,13 @@ namespace Alps
   template< typename Type > Eigen::MatrixXd
   Alps::StochasticGradientDescent< Type, Eigen::MatrixXd, Eigen::MatrixXd, Alps::Arch::CPU >::solve()
   {
-    return delta_ * previous_activation_.transpose();
+    if ( batch_ > mini_batch_ - 1 )
+      {
+	batch_ = 1;
+	return - learning_rate_ * delta_ * previous_activation_.transpose();
+      }
+    else
+      return Eigen::MatrixXd::Zero( delta_.rows(), previous_activation_.rows() );
   }
   /** \class StochasticGradientDescent
    *

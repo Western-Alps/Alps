@@ -369,7 +369,7 @@ namespace Alps
 	    std::string name = layer_weights.first;
 	    weights_[name]->set_activations( image_tensors,
 					     subject->get_layer( name ) );
-	    // !!!! weights_[name]->update();
+	    weights_[name]->update();
 	  }
       }
     catch( itk::ExceptionObject & err )
