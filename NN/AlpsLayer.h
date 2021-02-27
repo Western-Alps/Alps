@@ -49,11 +49,13 @@ namespace Alps
       // Functions
       //
       // Add previous layer
-      virtual void add_layer( std::shared_ptr< Alps::Layer > )  = 0;
+      virtual void add_layer( std::shared_ptr< Alps::Layer > )       = 0;
       // Forward propagation
-      virtual void forward( std::shared_ptr< Alps::Climber > )  = 0;
+      virtual void forward( std::shared_ptr< Alps::Climber > )       = 0;
       // Backward propagation
-      virtual void backward( std::shared_ptr< Alps::Climber > ) = 0;
+      virtual void backward( std::shared_ptr< Alps::Climber > )      = 0;
+      // Update the weights at the end of the epoque
+      virtual void weight_update( std::shared_ptr< Alps::Climber > ) = 0;
     };
 }
 #endif

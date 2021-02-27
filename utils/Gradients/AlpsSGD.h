@@ -54,7 +54,7 @@ namespace Alps
     // Add tensor elements
     virtual void         add_tensors( const Tensor1_Type, const Tensor1_Type ) override {};
     // Backward propagation
-    virtual Tensor2_Type solve()                                               override
+    virtual Tensor2_Type solve( const bool = false )                           override
       { return Tensor2_Type();};
   };
   /** \class StochasticGradientDescent
@@ -95,7 +95,7 @@ namespace Alps
       // Add tensor elements
       virtual void            add_tensors( const Eigen::MatrixXd, const Eigen::MatrixXd ) override;
       // Backward propagation
-      virtual Eigen::MatrixXd solve()                                                     override;
+      virtual Eigen::MatrixXd solve( const bool = false)                                  override;
 
     private:
       //
@@ -169,7 +169,7 @@ namespace Alps
   //
   //
   template< typename Type > Eigen::MatrixXd
-  Alps::StochasticGradientDescent< Type, Eigen::MatrixXd, Eigen::MatrixXd, Alps::Arch::CPU >::solve()
+  Alps::StochasticGradientDescent< Type, Eigen::MatrixXd, Eigen::MatrixXd, Alps::Arch::CPU >::solve( const bool Forced )
   {
     if ( batch_ > mini_batch_ - 1 )
       {
@@ -217,7 +217,7 @@ namespace Alps
       // Add tensor elements
       virtual void         add_tensors( const Tensor1_Type, const Tensor1_Type ) override {};
       // Backward propagation
-      virtual Tensor2_Type solve()                                               override
+      virtual Tensor2_Type solve( const bool = false )                                     override
       { return Tensor2_Type();};
     };
 }

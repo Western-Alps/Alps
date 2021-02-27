@@ -75,6 +75,8 @@ namespace Alps
     virtual       void                     forward( std::shared_ptr< Alps::Climber > )           override;
     // Backward propagation
     virtual       void                     backward( std::shared_ptr< Alps::Climber > )          override;
+    // Update the weights at the end of the epoque
+    virtual       void                     weight_update( std::shared_ptr< Alps::Climber > )     override;
     //
     //
     // Attach observers that need to be updated
@@ -295,7 +297,7 @@ namespace Alps
 	    //
 	    // Cost function. 
 	    C cost;
-	    // It returns the error at the image level
+	    // Returns the error at the image level
 	    std::get< Act::ERROR >( current_activation ) = cost.dL( (std::get< Act::ACTIVATION >( current_activation )).get(),
 								     target.get_tensor().get(),
 								     (std::get< Act::DERIVATIVE >( current_activation )).get(),
@@ -369,6 +371,36 @@ namespace Alps
 	    std::string name = layer_weights.first;
 	    weights_[name]->set_activations( image_tensors,
 					     subject->get_layer( name ) );
+	    weights_[name]->update();
+	  }
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+	exit(-1);
+      }
+  };
+  //
+  //
+  //
+  template< typename AF, typename W, typename C, int D   > void
+  FullyConnectedLayer< AF, W, C, D >::weight_update( std::shared_ptr< Alps::Climber > Sub )
+  {
+    try
+      {
+	//
+	// Down to subject
+	std::shared_ptr< Alps::Subject< D > > subject = std::dynamic_pointer_cast< Alps::Subject< D > >(Sub);
+	std::cout
+	  << "forcing the weight update: " << layer_name_ << std::endl;
+
+	////////////////////////
+	// Update the weights //
+	////////////////////////
+	//
+	for ( auto layer_weights : weights_ )
+	  {
+	    std::string name = layer_weights.first;
 	    weights_[name]->update();
 	  }
       }

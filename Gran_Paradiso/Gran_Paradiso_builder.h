@@ -65,7 +65,10 @@ namespace Alps
       //										        
       // get the neural network energy							        
       virtual const double                   get_energy() const                                 override
-        { return energy_;};
+      { return energy_.back();};
+      // get the neural network energy							        
+      virtual void                           set_energy( const double E )                       override
+      { energy_.push_back( E );};
 
 
       //
@@ -77,6 +80,8 @@ namespace Alps
       virtual void                           forward( std::shared_ptr< Alps::Climber > )        override;
       // Backward propagation
       virtual void                           backward( std::shared_ptr< Alps::Climber > )       override;
+      // Update the weights at the end of the epoque
+      virtual void                           weight_update( std::shared_ptr< Alps::Climber > )  override;
       //
       //
       // Add network layers
@@ -94,15 +99,17 @@ namespace Alps
     private:
       //
       //
-      std::weak_ptr< Alps::Climber >   attached_climber_;
+      std::weak_ptr< Alps::Climber >       attached_climber_;
 
       //
       // layer unique ID
-      std::size_t                      layer_id_{0};
+      std::size_t                          layer_id_{0};
+      // energy of a subject per epoque
+      std::vector< double>                 energy_subject_;
       // energy of the epoque
-      double                           energy_{1.};
+      std::vector< double >                energy_;
       //
-      Alps::NeuralNetworkComposite     mr_nn_;
+      Alps::NeuralNetworkComposite         mr_nn_;
     };
 }
 #endif

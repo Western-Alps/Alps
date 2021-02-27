@@ -170,7 +170,7 @@ namespace Alps
     // Add tensor elements
     virtual void             add_tensors( const Tensor1_Type, const Tensor1_Type ) = 0;
     // Backward propagation
-    virtual Tensor2_Type     solve()                                               = 0;
+    virtual Tensor2_Type     solve( const bool = false)                            = 0;
   };
 }
 #endif

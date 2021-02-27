@@ -42,6 +42,8 @@ namespace Alps
       //
       // get neural network energy
       virtual const double get_energy() const                    = 0;
+      // set neural network energy
+      virtual void         set_energy( const double )            = 0;
 
 
       //

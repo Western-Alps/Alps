@@ -45,6 +45,26 @@ Alps::NeuralNetworkComposite::backward( std::shared_ptr< Alps::Climber > Sub )
 //
 //
 void
+Alps::NeuralNetworkComposite::weight_update( std::shared_ptr< Alps::Climber > Sub )
+{
+  try
+    {
+	// 1. Reset energy cost function
+	// 2. propagate
+	auto rit = nn_composite_.rbegin();
+	for ( ; rit != nn_composite_.rend() ; rit++ )
+	  (*rit)->weight_update( Sub );
+    }
+  catch( itk::ExceptionObject & err )
+    {
+      std::cerr << err << std::endl;
+      exit(EXIT_FAILURE);
+    }
+}
+//
+//
+//
+void
 Alps::NeuralNetworkComposite::add( std::shared_ptr< Alps::Layer > NN )
 {
   try

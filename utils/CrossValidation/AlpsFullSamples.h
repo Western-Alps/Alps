@@ -97,33 +97,59 @@ namespace Alps
 	  std::list< int > fold_subjects =  training_set_[0];
 	  while ( std::dynamic_pointer_cast<M>(subjects_[0].get_mountain())->get_energy() > 1.e-06 )
 	    {
-	      // update the epoques
-	      ++subjects_[0];
-	      
+	      std::cout
+		<< "Epoque cost function: "
+		<< std::dynamic_pointer_cast<M>(subjects_[0].get_mountain())->get_energy()
+		<< std::endl;
+		
 	      //
 	      // Forward process
+	      // The end of the forward process for each image generate a cost (error for each image)
+	      // The notify does the work for that.
 	      for ( int sub : fold_subjects )
 		{
 		  std::cout
 		    << " Subject " << sub
-		    << " -- In subject " << ( subjects_[0].get_subjects() )[ sub ]->get_subject_number()
+		    << " -- fwd: In subject " << ( subjects_[0].get_subjects() )[ sub ]->get_subject_number()
 		    << std::endl;
 		  // Get the observed Mountain from subjects
+		  // Then foward across the neural network. The last layer estimate the cost function
 		  std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->forward( (subjects_[0].get_subjects())[sub] );
 		}
+
 	      
 	      //
-	      // Estimate the cost function
+	      // Backward process
 	      for ( int sub : fold_subjects )
 		{
 		  std::cout
 		    << " Subject " << sub
-		    << " -- In subject " << ( subjects_[0].get_subjects() )[ sub ]->get_subject_number()
+		    << " -- bwd: In subject " << ( subjects_[0].get_subjects() )[ sub ]->get_subject_number()
 		    << std::endl;
 		  // Get the observed Mountain from subjects
 		  // Backward process
 		  std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->backward( (subjects_[0].get_subjects())[sub] );
 		}
+
+	      //
+	      // The updates of the weights can be done at the end of a batch of images.
+	      // In case the size of the batch and the epoque does not coincide, we force the update.
+	      for ( int sub : fold_subjects )
+		{
+		  std::cout
+		    << " Subject " << sub
+		    << " -- Weight update In subject " << ( subjects_[0].get_subjects() )[ sub ]->get_subject_number()
+		    << std::endl;
+		  // Get the observed Mountain from subjects
+		  // Backward process
+		  std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->weight_update( (subjects_[0].get_subjects())[sub] );
+		}
+
+
+	      //
+	      // update the epoques
+	      // By updating the epoque the calculation of the cost function 
+	      ++subjects_[0];
 	    }
 	}
       catch( itk::ExceptionObject & err )

@@ -16,6 +16,10 @@
 Alps::Gran_Paradiso_builder::Gran_Paradiso_builder()
 {
   //
+  // 
+  energy_.push_back( 1.e+6 );
+  
+  //
   // Create a unique id for the layer
   std::random_device                   rd;
   std::mt19937                         generator( rd() );
@@ -67,8 +71,7 @@ void
 Alps::Gran_Paradiso_builder::forward( std::shared_ptr< Alps::Climber > Sub )
 {
   mr_nn_.forward( Sub );
-  energy_ += Sub->get_energy();
-  std::cout << "Gran Paradiso: " << energy_ << std::endl;
+  energy_subject_.push_back( Sub->get_energy() );
 };
 //
 //
@@ -82,7 +85,26 @@ Alps::Gran_Paradiso_builder::backward( std::shared_ptr< Alps::Climber > Sub )
 //
 //
 void
+Alps::Gran_Paradiso_builder::weight_update( std::shared_ptr< Alps::Climber > Sub )
+{
+  mr_nn_.weight_update( Sub );
+};
+//
+//
+//
+void
 Alps::Gran_Paradiso_builder::notify()
 {
-  energy_ = 0.;
+  //
+  // add energy for all subject in the epoque
+  std::cout << "num subjects: " << energy_subject_.size() << std::endl;
+  double cost = 0.;
+  for ( auto e : energy_subject_ )
+    cost += e;
+  // reset the energy for the next epoque
+  energy_subject_.clear();
+  // record the energy for the epoque
+  energy_.push_back( cost );
+  //
+  std::cout << "epoque: " << energy_.size() << std::endl;
 };

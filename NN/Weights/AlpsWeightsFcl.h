@@ -83,6 +83,8 @@ namespace Alps
 									   std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) override{};
     // Update the weights
     virtual void                               update()                                               override{};
+    // Force the weight update
+    virtual void                               forced_update()                                               override{};
 
 
 
@@ -150,6 +152,8 @@ namespace Alps
 								   std::vector< Alps::LayerTensors< Type, 2 > >& ) override;
     // Update the weights
     virtual void                                   update()                                            override;
+    // Forced the weight update
+    virtual void                                   forced_update()                                            override;
 
 
 
@@ -457,6 +461,15 @@ namespace Alps
     *(weights_.get()) += std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
 								    Eigen::MatrixXd > >(gradient_)->solve();
   };
+  //
+  //
+  //
+  template< typename T, typename A, typename S > void
+  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S >::forced_update()
+  {
+    *(weights_.get()) += std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
+								    Eigen::MatrixXd > >(gradient_)->solve( true );
+  };
   /*! \class WeightsFullyConnected
    * \brief class representing the weights container for fully
    * connected layers (FCL) using CUDA.
@@ -512,6 +525,8 @@ namespace Alps
 								    std::vector< Alps::LayerTensors< Type1, 2 > >& ) override{};
     // Update the weights
     virtual void                            update()                                                   override{};
+    // Force the update of the weights
+    virtual void                            forced_update()                                                   override{};
 
 
 

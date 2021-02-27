@@ -62,6 +62,8 @@ namespace Alps
 									   std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) = 0;
     // Update the weights
     virtual void                                           update()                                                                = 0;
+    // Force the update of the weights
+    virtual void                                           forced_update()                                                         = 0;
   };
 }
 #endif
