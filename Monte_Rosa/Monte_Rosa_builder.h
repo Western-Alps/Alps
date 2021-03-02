@@ -17,13 +17,14 @@
 //
 //
 #include "MACException.h"
-#include "Subject.h"
-#include "NeuralNetwork.h"
-#include "NeuralNetworkComposite.h"
+#include "AlpsSubject.h"
+#include "AlpsMountain.h"
+#include "AlpsNeuralNetwork.h"
+#include "AlpsNeuralNetworkComposite.h"
 //
 //
 //
-namespace MAC
+namespace Alps
 {
 
   /** \class Monte_Rosa_builder
@@ -32,46 +33,81 @@ namespace MAC
    * 
    * 
    */
-  class Monte_Rosa_builder : public NeuralNetwork
+  class Monte_Rosa_builder : public Alps::NeuralNetwork,
+			     public Alps::Mountain
     {
     public:
       /** Constructor. */
-      Monte_Rosa_builder();
-      //
-      //explicit Subject( const int, const int );
-
+      explicit Monte_Rosa_builder();
       /** Destructor */
       virtual ~Monte_Rosa_builder(){};
 
+      
       //
-      // Initialization
-      virtual void initialization();
       //
-      // get the layer name
-      virtual std::string get_layer_name(){ return std::string("Monte Rosa neural network.");};
+      // Accessors
       //
-      // get the layer name
-      virtual Layer get_layer_type(){ return Monte_Rosa_layer;};
+      // get the layer identification
+      virtual const std::size_t             get_layer_id() const                                override
+      { return layer_id_;}								        
+      // get the layer name								        
+      virtual const std::string             get_layer_name() const                              override
+        { return std::string("Monte Rosa network.");};				        
+      // Get number of weigths								        
+      virtual const int                      get_number_weights() const                         override
+        { return 1;};									        
+      // get the layer size								        
+      virtual const std::vector<std::size_t> get_layer_size() const                             override
+      { return std::vector<std::size_t>();};						        
+      // attach the next layer								        
+      virtual void                           set_next_layer( std::shared_ptr< Alps::Layer > )   override{};
+      //										        
+      //										        
+      // get the neural network energy							        
+      virtual const double                   get_energy() const                                 override
+      { return energy_.back();};
+      // get the neural network energy							        
+      virtual void                           set_energy( const double E )                       override
+      { energy_.push_back( E );};
+
+
       //
-      // get the layer name
-      virtual double get_energy(){ return 1. /*ToDo*/;};
+      // Functions
       //
+      // Add previous layer
+      virtual void                           add_layer( std::shared_ptr< Alps::Layer > )        override{};
       // Forward propagation
-      virtual void forward( Subject&, const Weights& W = Weights() );
+      virtual void                           forward( std::shared_ptr< Alps::Climber > )        override;
+      // Backward propagation
+      virtual void                           backward( std::shared_ptr< Alps::Climber > )       override;
+      // Update the weights at the end of the epoque
+      virtual void                           weight_update( std::shared_ptr< Alps::Climber > )  override;
       //
       //
-      virtual void backward();
-      //
-      // Backward error propagation
-      virtual void backward_error_propagation(){};
+      // Add network layers
+      virtual void                           add( std::shared_ptr< Alps::Layer > )              override{};
       //
       //
-      virtual void add( std::shared_ptr< NeuralNetwork > ){};
-      //
-      //
-      virtual int get_number_weights() const { return 1;};
+      // Overriding from Mountains
+      virtual void                           attach( std::shared_ptr< Alps::Climber > C )       override
+      { attached_climber_ = C;};
+      // Notify the observers for updates
+      virtual void                           notify()                                           override;
+
+      
 
     private:
+      //
+      //
+      std::weak_ptr< Alps::Climber >       attached_climber_;
+
+      //
+      // layer unique ID
+      std::size_t                          layer_id_{0};
+      // energy of a subject per epoque
+      std::vector< double>                 energy_subject_;
+      // energy of the epoque
+      std::vector< double >                energy_;
       //
       //
       NeuralNetworkComposite mr_nn_;

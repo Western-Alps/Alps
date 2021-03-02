@@ -103,16 +103,6 @@ main( const int argc, const char **argv )
 	      Alps::FullSamples< Alps::Gran_Paradiso_builder,
 				 /*Dim*/ 2 > cross_validation;
 	      cross_validation.train();
-	      
-	      
-	      //
-	      // Main object
-	      // Alps::Gran_Paradiso_builder network;
-	      // Forward
-	      //network.forward( MAC::Singleton::instance()->get_subjects()[0] );
-	      //network.forward( MAC::Singleton::instance()->get_subjects()[1] );
-	      // Backward
-	      //network.backward();
 
 	      /////////
 	      // End //

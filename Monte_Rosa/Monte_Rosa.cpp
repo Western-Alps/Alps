@@ -15,6 +15,8 @@ using json = nlohmann::json;
 //
 #include "MACException.h"
 #include "MACLoadDataSet.h"
+#include "AlpsCVKFolds.h"
+#include "AlpsFullSamples.h"
 #include "Monte_Rosa_builder.h"
 //
 //
@@ -97,14 +99,10 @@ main( const int argc, const char **argv )
 	      // Start //
 	      ///////////
 
-	      //
-	      // Main object
-	      MAC::Monte_Rosa_builder network;
-	      // Forward
-	      network.forward( MAC::Singleton::instance()->get_subjects()[0] );
-	      network.forward( MAC::Singleton::instance()->get_subjects()[1] );
-	      // Backward
-	      network.backward();
+	      //Alps::CVKFolds< Alps::Monte_Rosa_builder, /*K_flods*/ 3, /*Dim*/ 2 > cross_validation;
+	      Alps::FullSamples< Alps::Monte_Rosa_builder,
+				 /*Dim*/ 2 > cross_validation;
+	      cross_validation.train();
 
 	      /////////
 	      // End //

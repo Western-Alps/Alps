@@ -21,7 +21,8 @@ using json = nlohmann::json;
 //
 #include "MACException.h"
 #include "MACLoadDataSet.h"
-//#include "CrossValidation_k_folds.h"
+#include "AlpsCVKFolds.h"
+#include "AlpsFullSamples.h"
 #include "Mont_Maudit_builder.h"
 //
 //using Validation = MAC::CrossValidation_k_folds< MAC::Mont_Maudit_builder >;
@@ -106,20 +107,10 @@ main( const int argc, const char **argv )
 	      // Start //
 	      ///////////
 
-	      // -> Validation cross_val;
-	      
-	      //
-	      // Main object
-	      MAC::Mont_Maudit_builder network;
-	      //// Forward
-	      network.forward( MAC::Singleton::instance()->get_subjects()[0] );
-	      network.forward( MAC::Singleton::instance()->get_subjects()[1] );
-	      //network.forward( MAC::Singleton::instance()->get_subjects()[2] );
-	      //network.forward( MAC::Singleton::instance()->get_subjects()[3] );
-	      ////
-	      std::cout << "Epoque energy: " << network.get_energy() << std::endl;
-	      //// Backward
-	      network.backward();
+	      //Alps::CVKFolds< Alps::Mont_Maudit_builder, /*K_flods*/ 3, /*Dim*/ 2 > cross_validation;
+	      Alps::FullSamples< Alps::Mont_Maudit_builder,
+				 /*Dim*/ 2 > cross_validation;
+	      cross_validation.train();
 
 	      /////////
 	      // End //
