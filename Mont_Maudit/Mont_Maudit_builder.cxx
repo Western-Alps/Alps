@@ -3,8 +3,8 @@
 #include <Eigen/Eigen>
 //
 #include "MACException.h"
-#include "NeuralNetwork.h"
-#include "NeuralNetworkComposite.h"
+//#include "NeuralNetwork.h"
+//#include "NeuralNetworkComposite.h"
 #include "Mont_Maudit_builder.h"
 #include "AlpsWeightsFcl.h"
 #include "AlpsSGD.h"
@@ -34,7 +34,6 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   using Activation     = Alps::Activation_tanh< double >;
   using Weights        = Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Alps::SGD >;
   using LossFunction   = Alps::LeastSquarreEstimate< double >;
-  using FullyConnected = Alps::FullyConnectedLayer< Activation, Weights, LossFunction, /*Dim*/ 2 >;
 //  //
 //  // Neural network anatomy
 //  //

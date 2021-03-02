@@ -3,13 +3,14 @@
 #include <Eigen/Eigen>
 //
 #include "MACException.h"
-#include "NeuralNetwork.h"
-#include "NeuralNetworkComposite.h"
+//#include "NeuralNetwork.h"
+//#include "NeuralNetworkComposite.h"
 #include "Gran_Paradiso_builder.h"
 #include "AlpsWeightsFcl.h"
 #include "AlpsSGD.h"
 #include "AlpsActivations.h"
 #include "AlpsCostFunction.h"
+#include "AlpsFullyConnectedLayer.h"
 //
 //
 //

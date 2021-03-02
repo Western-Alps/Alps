@@ -3,8 +3,8 @@
 #include <Eigen/Eigen>
 //
 #include "MACException.h"
-#include "NeuralNetwork.h"
-#include "NeuralNetworkComposite.h"
+//#include "NeuralNetwork.h"
+//#include "NeuralNetworkComposite.h"
 #include "Monte_Rosa_builder.h"
 #include "AlpsWeightsFcl.h"
 #include "AlpsSGD.h"
@@ -15,6 +15,25 @@
 //
 Alps::Monte_Rosa_builder::Monte_Rosa_builder()
 {
+  //
+  // 
+  energy_.push_back( 1.e+6 );
+  
+  //
+  // Create a unique id for the layer
+  std::random_device                   rd;
+  std::mt19937                         generator( rd() );
+  std::uniform_int_distribution< int > distribution( 0, 1UL << 16 );
+  //
+  layer_id_ = distribution( generator );
+  
+
+  ////////////////////////////
+  // Neural network anatomy //
+  ////////////////////////////
+  using Activation     = Alps::Activation_tanh< double >;
+  using Weights        = Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Alps::SGD >;
+  using LossFunction   = Alps::LeastSquarreEstimate< double >;
 //  //
 //  // Neural network anatomy
 //  //
