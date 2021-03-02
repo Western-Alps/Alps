@@ -13,10 +13,7 @@
 #include "MACException.h"
 #include "AlpsWeights.h"
 #include "AlpsLayer.h"
-#include "AlpsLayer.h"
 #include "AlpsSGD.h"
-//#include "AlpsClimber.h"
-//#include "AlpsMountain.h"
 //
 //
 //
@@ -84,7 +81,7 @@ namespace Alps
     // Update the weights
     virtual void                               update()                                               override{};
     // Force the weight update
-    virtual void                               forced_update()                                               override{};
+    virtual void                               forced_update()                                        override{};
 
 
 

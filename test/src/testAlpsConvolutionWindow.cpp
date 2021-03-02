@@ -1,6 +1,8 @@
 #include "testAlpsConvolutionWindow.h"
 #include "AlpsTensor.h"
 #include "AlpsWindow.h"
+#include "AlpsSGD.h"
+#include "AlpsActivations.h"
 
 //using ::testing::Return;
 
@@ -18,10 +20,16 @@ void ConvolutionWindowTest::SetUp() {};
 void ConvolutionWindowTest::TearDown() {};
 
 TEST_F(ConvolutionWindowTest, ByDefaultGetStatusIsTrue) {
-//ToDo  using Tensor = Alps::Tensor< int, 1 >;
-//ToDo  Alps::Window< Tensor > window_1( /* half window size */ {2},
-//ToDo				   /* padding */          {1},
-//ToDo				   /* striding */         {1});
+  using Activation = Alps::Activation_tanh< double >;
+  using Solver     = Alps::SGD;
+  Alps::Window< double,
+		Eigen::MatrixXd,
+		Alps::Arch::CPU,
+		Activation,
+		Solver,3 > window_1( nullptr,
+				     /* half window size */ {2},
+				     /* padding */          {1},
+				     /* striding */         {1});
   EXPECT_EQ(true,true);
 }
 
