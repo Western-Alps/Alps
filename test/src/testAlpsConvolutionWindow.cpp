@@ -20,9 +20,9 @@ void ConvolutionWindowTest::SetUp() {};
 void ConvolutionWindowTest::TearDown() {};
 
 TEST_F(ConvolutionWindowTest, ByDefaultGetStatusIsTrue) {
-  Alps::Window< double > window_1( /* half window size */ {2},
-				   /* padding */          {1},
-				   /* striding */         {1});
+  Alps::Window< double, 1 > window_1( /* half window size */ {1},
+				      /* padding */          {1},
+				      /* striding */         {1});
   EXPECT_EQ(true,true);
 }
 
