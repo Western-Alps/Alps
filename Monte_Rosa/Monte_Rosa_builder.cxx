@@ -6,10 +6,13 @@
 //#include "NeuralNetwork.h"
 //#include "NeuralNetworkComposite.h"
 #include "Monte_Rosa_builder.h"
+#include "AlpsWeightsConvolution.h"
 #include "AlpsWeightsFcl.h"
 #include "AlpsSGD.h"
 #include "AlpsActivations.h"
 #include "AlpsCostFunction.h"
+#include "AlpsFullyConnectedLayer.h"
+#include "AlpsConvolutionLayer.h"
 //
 //
 //
@@ -33,7 +36,10 @@ Alps::Monte_Rosa_builder::Monte_Rosa_builder()
   ////////////////////////////
   using Activation     = Alps::Activation_tanh< double >;
   using Weights        = Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Alps::SGD >;
+  using WeightsConv    = Alps::WeightsConvolution< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Alps::SGD, 2 >;
   using LossFunction   = Alps::LeastSquarreEstimate< double >;
+  using FullyConnected = Alps::FullyConnectedLayer< Activation, Weights, LossFunction, /*Dim*/ 2 >;
+  using Convolutional  = Alps::ConvolutionLayer< Activation, WeightsConv, LossFunction, /*Dim*/ 2 >;
 //  //
 //  // Neural network anatomy
 //  //

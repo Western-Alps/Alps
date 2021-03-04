@@ -6,10 +6,11 @@
 //#include "NeuralNetwork.h"
 //#include "NeuralNetworkComposite.h"
 #include "Mont_Maudit_builder.h"
-#include "AlpsWeightsFcl.h"
+#include "AlpsWeightsConvolution.h"
 #include "AlpsSGD.h"
 #include "AlpsActivations.h"
 #include "AlpsCostFunction.h"
+#include "AlpsConvolutionLayer.h"
 //
 //
 //
@@ -32,8 +33,9 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   // Neural network anatomy //
   ////////////////////////////
   using Activation     = Alps::Activation_tanh< double >;
-  using Weights        = Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Alps::SGD >;
+  using Weights        = Alps::WeightsConvolution< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Alps::SGD, 2 >;
   using LossFunction   = Alps::LeastSquarreEstimate< double >;
+  using Convolutional  = Alps::ConvolutionLayer< Activation, Weights, LossFunction, /*Dim*/ 2 >;
 //  //
 //  // Neural network anatomy
 //  //
