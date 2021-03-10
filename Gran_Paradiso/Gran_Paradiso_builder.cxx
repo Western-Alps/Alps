@@ -42,22 +42,23 @@ Alps::Gran_Paradiso_builder::Gran_Paradiso_builder()
   // The *bias* is not included
   std::shared_ptr< Alps::Layer > nn_1 =
     std::make_shared< FullyConnected >( "layer_1",
-					std::vector<std::size_t>( 1, 50 ) );// 1 layer of 10 elements 
+					std::vector<std::size_t>( 1, 50 ) ); // 1 layer of 50 elements 
   nn_1->add_layer( nullptr );   // connection one-to-n with the previous layer. (nullptr) means input layer
   //
   std::shared_ptr< Alps::Layer > nn_2 =
     std::make_shared< FullyConnected >( "layer_2",
-					std::vector<std::size_t>( 1, 30 ) ); // 1 layer of 5 elements
+					std::vector<std::size_t>( 1, 30 ) ); // 1 layer of 30 elements
   nn_1->set_next_layer( nn_2 ); // connection one-to-one with the next layer
   nn_2->add_layer( nn_1 );      // connection one-to-n with the previous layer
   //
   std::shared_ptr< Alps::Layer > nn_3 =
     std::make_shared< FullyConnected >( "__output_layer__", // __output_layer__ signal it is the last one
-					std::vector<std::size_t>( 1, 10 ) );// 1 layer of 3 elements
+					std::vector<std::size_t>( 1, 10 ) ); // 1 layer of 10 elements
   nn_2->set_next_layer( nn_3 ); // connection one-to-one with the next layer
   nn_3->add_layer( nullptr );   // connection one-to-n with the previous layer. (nullptr) means input layer
   nn_3->add_layer( nn_2 );      // connection one-to-n with the previous layer
 
+  
   /////////////
   // Anatomy //
   /////////////

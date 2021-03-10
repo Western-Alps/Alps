@@ -74,6 +74,9 @@ namespace Alps
     virtual void                                set_tensor_size( std::vector< std::size_t > ) override{};
     // Set the tensor
     virtual void                                set_tensor( std::shared_ptr< Type > )         override{};
+    //
+    // Access the images directly
+    const Alps::Image< Type, Dim >&             get_image( Alps::TensorOrder1 ) const;
 
     
     //
@@ -161,6 +164,28 @@ namespace Alps
       {
 	std::cerr << err << std::endl;
       }
+  }
+  //
+  //
+  //
+  template< typename T,int D > const Alps::Image< T, D >&
+  Alps::LayerTensors< T, D >::get_image( Alps::TensorOrder1 Idx ) const 
+  {
+    try
+      {
+	if ( static_cast< int >( Idx ) > 3 ||
+	     static_cast< int >( Idx ) < 0 )
+	  throw MAC::MACException( __FILE__, __LINE__,
+				   "Indexing not implemented yet.",
+				   ITK_LOCATION );
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+      }
+    //
+    //
+    return tensors_[ static_cast< int >( Idx ) ]; 
   }
   //
   //

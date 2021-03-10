@@ -58,6 +58,17 @@ namespace Alps
     // Set the tensor
     virtual void                             set_tensor( std::shared_ptr< Type > Z )        override
     { tensor_ = Z;};
+    //
+    //
+    // Get region from the original image
+    virtual const typename ImageType< Dim >::RegionType get_image_region() const
+    { return region_;};
+    // Get start from the original image
+    virtual const typename ImageType< Dim >::IndexType  get_image_start() const
+    { return start_;};
+    // Get size of the original image
+    virtual const typename ImageType< Dim >::SizeType   get_image_size() const
+    { return size_;};
 
 
     //

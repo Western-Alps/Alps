@@ -41,6 +41,20 @@ TEST_F(LayerTensorsTest, ByDefaultLayerTensorsOperator) {
   //
 	 EXPECT_EQ( Subj[Alps::TensorOrder1::ACTIVATION][206], 253 );
 }
+// operator[]
+TEST_F(LayerTensorsTest, ByDefaultLayerTensorsImage) {
+  //
+  //
+  Alps::LayerTensors< double, 2 > Subj("../images/MNITS/000000-num5.png");
+  //
+  std::cout << "Region: \n" << Subj.get_image( Alps::TensorOrder1::ACTIVATION ).get_image_region() << std::endl;
+  std::cout << "Start: \n" << Subj.get_image( Alps::TensorOrder1::ACTIVATION ).get_image_start() << std::endl;
+  std::cout << "Size: \n" << Subj.get_image( Alps::TensorOrder1::ACTIVATION ).get_image_size() << std::endl;
+  
+  //
+  //
+	 EXPECT_EQ( Subj[Alps::TensorOrder1::ACTIVATION][206], 253 );
+}
 // operator() -- hadamart
 TEST_F(LayerTensorsTest, ByDefaultLayerTensorsHadamart) {
   //

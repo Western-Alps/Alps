@@ -22,7 +22,7 @@ void SubjectTest::TearDown() {};
 // Constructor
 TEST_F(SubjectTest, ByDefaultSubjectZero) {
   // Constructor of a subject
-  Alps::Subject< 2 > Subj = Alps::Subject< 2 >( 0, 1);
+  Alps::Subject< 2 > Subj = Alps::Subject< 2 >( 0, 1 );
   //
   //
   EXPECT_EQ( Subj.get_subject_number(), 0) ;
@@ -30,7 +30,7 @@ TEST_F(SubjectTest, ByDefaultSubjectZero) {
 // Add modalities
 TEST_F(SubjectTest, ByDefaultSubjectAddModalitiesTrue) {
   // Constructor of a subject
-  Alps::Subject< 2 > Subj = Alps::Subject< 2 >( 0, 2);
+  Alps::Subject< 2 > Subj = Alps::Subject< 2 >( 0, 2 );
   // load modalities
   Subj.add_modalities("../images/MNITS/000000-num5.png");
   Subj.add_modalities("../images/MNITS/000000-num5.png");

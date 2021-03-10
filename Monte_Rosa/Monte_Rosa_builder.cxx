@@ -6,6 +6,7 @@
 //#include "NeuralNetwork.h"
 //#include "NeuralNetworkComposite.h"
 #include "Monte_Rosa_builder.h"
+#include "AlpsWindow.h"
 #include "AlpsWeightsConvolution.h"
 #include "AlpsWeightsFcl.h"
 #include "AlpsSGD.h"
@@ -37,72 +38,70 @@ Alps::Monte_Rosa_builder::Monte_Rosa_builder()
   using Activation     = Alps::Activation_tanh< double >;
   using Weights        = Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Alps::SGD >;
   using WeightsConv    = Alps::WeightsConvolution< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Alps::SGD, 2 >;
+  using Kernel         = Alps::Window< double, 2 >;
   using LossFunction   = Alps::LeastSquarreEstimate< double >;
   using FullyConnected = Alps::FullyConnectedLayer< Activation, Weights, LossFunction, /*Dim*/ 2 >;
   using Convolutional  = Alps::ConvolutionLayer< Activation, WeightsConv, LossFunction, /*Dim*/ 2 >;
+
+  //
+  // Convolutional layers
+  //
+  // layer 1
+  // Window definition for the kernels
+  Kernel window_1( 10,    // number of kernels
+		   {2,3}, // size of the 1/2 window
+		   {2,3}, // padding
+		   {1,1}  /* striding */ );
 //  //
-//  // Neural network anatomy
+//  std::shared_ptr< Alps::Layer > nn_1 =
+//    std::make_shared< Convolutional >( "layer_1",
+//				       window_1 );
+//  nn_1->add_layer( nullptr );   // connection with the previous layer. (nullptr) means input layer
 //  //
-//  using Convolution    = Alps::Convolutional_layer< Activation_tanh >;
-//  using FullyConnected = Alps::FullyConnected_layer< Activation_tanh >;
-//   
+//  // layer 2
+//  // Window definition for the kernels
+//  Kernel window_2( 10, {0,0}, {0,0}, {1,1} );
 //  //
-//  // Convolutional layers
+//  std::shared_ptr< Alps::Layer > nn_2 =
+//    std::make_shared< Convolutional >( "layer_2",
+//				       window_2 );
+//  nn_2->add_layer( nullptr ); // connection with the previous layer. (nullptr) means input layer
+//  nn_1->add_layer( nn_2 );   // We should be able to do that since nn_2 has the same dimensions as the input
 //  //
-//  int downsize_factor = 2;
-//  
+//  // layer 3
+//  // Window definition for the kernels
+//  Kernel window_3( 5, {5,5}, {0,0}, {2,2} );
 //  //
-//  // Layer 0
-//  // {s,x,y,z}
-//  // s: num of feature maps we want to create
-//  // (x,y,z) sive of the receiving window
-//  int window_0[4] = {5 /*s*/, 3 /*x*/,3 /*y*/,3 /*z*/};
-//  //
-//  std::shared_ptr< NeuralNetwork > nn_0 =
-//    std::make_shared< Convolution >( "layer_0", 0,
-//				     downsize_factor,
-//				     window_0 );
+//  std::shared_ptr< Alps::Layer > nn_3 =
+//    std::make_shared< Convolutional >( "layer_3",
+//				       window_3 );
+//  nn_3->add_layer( nn_1 );   // inputs and nn_2 are inputs of nn_1, then nn_1 is input of nn_3
 //
-//  //
-//  // Layer 1
-//  int window_1[4] = {10,5,5,5};
-//  std::shared_ptr< NeuralNetwork > nn_1 =
-//    std::make_shared< Convolution >( "layer_1", 1,
-//				     downsize_factor,
-//				     window_1 );
-//  
-//  //
-//  // Layer 2
-//  int window_2[4] = {20,3,3,3};
-//  std::shared_ptr< NeuralNetwork > nn_2 =
-//    std::make_shared< Convolution >( "layer_2", 2,
-//				     downsize_factor,
-//				     window_2 );
 //
 //  //
 //  // Fully connected layers
-//  // the +1 is for the bias weights
-//  const int num_fc_layers = 6;
-//  // "-1" for the input layer, when we don't know yet how many inputs we will have
-//  // The bias is not included
-//  int fc_layers[num_fc_layers] = { -1, 1000, 500, 100, 50, 3 };
 //  //
-//  std::shared_ptr< NeuralNetwork > nn_3 =
-//    std::make_shared< FullyConnected >( "layer_3", 3,
-//					num_fc_layers,
-//					fc_layers );
-//  
+//  // The *bias* is not included
+//  std::shared_ptr< Alps::Layer > nn_4 =
+//    std::make_shared< FullyConnected >( "layer_4",
+//					std::vector<std::size_t>( 1, 50 ) );// 1 layer of 10 elements 
+//  nn_4->add_layer( nn_3 );   // connection one-to-n with the previous layer. (nullptr) means input layer
+//  //
+//  std::shared_ptr< Alps::Layer > nn_5 =
+//    std::make_shared< FullyConnected >( "__output_layer__", // __output_layer__ signal it is the last one
+//					std::vector<std::size_t>( 1, 10 ) );// 1 layer of 3 elements
+//  nn_5->add_layer( nn_3 );   // connection one-to-n with the previous layer. (nullptr) means input layer
+//  nn_5->add_layer( nn_4 );   // connection one-to-n with the previous layer
 //
-//  //
-//  // Anatomy
-//  //
 //  
-//  mr_nn_.add( nn_0 );
+//  /////////////
+//  // Anatomy //
+//  /////////////
 //  mr_nn_.add( nn_1 );
 //  mr_nn_.add( nn_2 );
 //  mr_nn_.add( nn_3 );
-//
-//  //Alps::Singleton::instance()->get_subjects()[0].write_clone();
+//  mr_nn_.add( nn_4 );
+//  mr_nn_.add( nn_5 );
 };
 //
 //

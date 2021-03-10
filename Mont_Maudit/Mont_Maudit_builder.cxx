@@ -6,6 +6,7 @@
 //#include "NeuralNetwork.h"
 //#include "NeuralNetworkComposite.h"
 #include "Mont_Maudit_builder.h"
+#include "AlpsWindow.h"
 #include "AlpsWeightsConvolution.h"
 #include "AlpsSGD.h"
 #include "AlpsActivations.h"
@@ -33,92 +34,83 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   // Neural network anatomy //
   ////////////////////////////
   using Activation     = Alps::Activation_tanh< double >;
+  using Kernel         = Alps::Window< double, 2 >;
   using Weights        = Alps::WeightsConvolution< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Alps::SGD, 2 >;
+  
   using LossFunction   = Alps::LeastSquarreEstimate< double >;
   using Convolutional  = Alps::ConvolutionLayer< Activation, Weights, LossFunction, /*Dim*/ 2 >;
+
+  //
+  // Convolutional layers
+  //
+  // layer 1
+  // Window definition for the kernels
+  Kernel window_1( 10,    // number of kernels
+		   {2,3}, // size of the 1/2 window
+		   {2,3}, // padding
+		   {1,1}  /* striding */ );
 //  //
-//  // Neural network anatomy
+//  std::shared_ptr< Alps::Layer > nn_1 =
+//    std::make_shared< Convolutional >( "layer_1",
+//				       window_1 );
+//  nn_1->add_layer( nullptr );   // connection with the previous layer. (nullptr) means input layer
 //  //
-//  //using ConvolutionAE = Alps::ConvolutionalAutoEncoder_layer< Activation_sigmoid >;
-//  //using Conv_layer   = Alps::Convolution< SGD, Activation_sigmoid, std::shared_ptr< Alps::Convolutional_window   > >;
-//  //using Deconv_layer = Alps::Convolution< SGD, Activation_sigmoid, std::shared_ptr< Alps::Deconvolutional_window > >;
-//  using Conv_layer   = Alps::Convolution< Convolutional_CUDA, Activation_sigmoid, std::shared_ptr< Alps::Convolutional_window   > >;
-//  using Deconv_layer = Alps::Convolution< Convolutional_CUDA, Activation_sigmoid, std::shared_ptr< Alps::Deconvolutional_window > >;
-//
+//  // layer 2
+//  // Window definition for the kernels
+//  Kernel window_2( 10, {0,0}, {0,0}, {1,1} );
 //  //
-//  // Encoding Convolutional layers
+//  std::shared_ptr< Alps::Layer > nn_2 =
+//    std::make_shared< Convolutional >( "layer_2",
+//				       window_2 );
+//  nn_2->add_layer( nullptr ); // connection with the previous layer. (nullptr) means input layer
+//  nn_1->add_layer( nn_2 );   // We should be able to do that since nn_2 has the same dimensions as the input
 //  //
-//
+//  // layer 3
+//  // Window definition for the kernels
+//  Kernel window_3( 5, {5,5}, {0,0}, {2,2} );
 //  //
-//  // Test new convolutional window
-//  //
-//  // Gridy Convolution
-//  //
-//  // Layer 0
-//  // Half window: 2*W1/2 + 1
-//  int half_window_0[3]  = {1 /*x*/, 1 /*y*/, 1 /*z*/};
-//  int stride_0[3]       = {2 /*x*/ ,2 /*y*/, 2 /*z*/};
-//  int padding_0[3]      = {0 /*x*/ ,0 /*y*/, 0 /*z*/};
-//  int number_features_0 = 16;
-//  //
-//  std::shared_ptr< Alps::Convolutional_window > Conv_weights_0 = 
-//    std::make_shared< Alps::Convolutional_window >( "Conv_weights_0.dat", /* weights for the layer */
-//						   half_window_0, stride_0, padding_0,
-//						   number_features_0 );
-//  //
-//  std::shared_ptr< NeuralNetwork > convlayer_0 =
-//    std::make_shared< Conv_layer >( "conv_layer_0", 0,
-//				    Conv_weights_0 );
-////  //
-////  // Layer 1
-////  int half_window_1[3]  = {3 /*x*/,3 /*y*/,3 /*z*/};
-////  int stride_1[3]       = {2 /*x*/,2 /*y*/,2 /*z*/};
-////  int padding_1[3]      = {0 /*x*/,0 /*y*/,0 /*z*/};
-////  int number_features_1 = 10;
-////  //
-////  std::shared_ptr< Alps::Convolutional_window > Conv_weights_1 = 
-////    std::make_shared< Alps::Convolutional_window >( "Conv_weights_1.dat", /* weights for the layer */
-////						   Conv_weights_0, /* it follows window 0 */
-////						   half_window_1, stride_1, padding_1,
-////						   number_features_1 );
-////  //
-////  std::shared_ptr< NeuralNetwork > convlayer_1 =
-////    std::make_shared< Conv_layer >( "conv_layer_1", 1,
-////				    Conv_weights_1 );
+//  std::shared_ptr< Alps::Layer > nn_3 =
+//    std::make_shared< Convolutional >( "layer_3",
+//				       window_3 );
+//  nn_3->add_layer( nn_1 );   // inputs and nn_2 are inputs of nn_1, then nn_1 is input of nn_3
 //
 //
 //
 //  //
-//  // Gridy deconvolution
+//  // Deconvolutional layers
 //  //
-////  // Layer 1
-////  std::shared_ptr< Alps::Deconvolutional_window > Deconv_weights_1 = 
-////    std::make_shared< Alps::Deconvolutional_window >( "Conv_weights_1.dat", Conv_weights_1 );
-////  //
-////  std::shared_ptr< NeuralNetwork > deconvlayer_1 =
-////    std::make_shared< Deconv_layer >( "deconv_layer_1", 1, Deconv_weights_1 );
+//  // layer 4
 //  //
-//  // Layer 0
-//  // Deconvolution takes the Convolution window "Conv_weights_0"
-//  std::shared_ptr< Alps::Deconvolutional_window > Deconv_weights_0 = 
-//    std::make_shared< Alps::Deconvolutional_window >( "Conv_weights_0.dat", Conv_weights_0 );
+//  std::shared_ptr< Alps::Layer > nn_4 =
+//    std::make_shared< Deconvolutional >( "layer_4",
+//					 nn_2 );
+//  nn_4->add_layer( nn_3 );
 //  //
-//  std::shared_ptr< NeuralNetwork > deconvlayer_0 =
-//    std::make_shared< Deconv_layer >( "deconv_layer_0", 0, Deconv_weights_0,
-//				      true /* Cost function calculation */);
+//  // layer 5
+//  //
+//  std::shared_ptr< Alps::Layer > nn_5 =
+//    std::make_shared< Deconvolutional >( "layer_5",
+//					 nn_1 );
+//  nn_5->add_layer( nn_4 );
+//  //
+//  // layer 6
+//  //
+//  std::shared_ptr< Alps::Layer > nn_6 =
+//    std::make_shared< Deconvolutional >( "__output_layer__",
+//					 nullptr );
+//  nn_6->add_layer( nn_4 );   // inputs and nn_2 are inputs of nn_1, then nn_1 is input of nn_3
+//  nn_6->add_layer( nn_5 );   // inputs and nn_2 are inputs of nn_1, then nn_1 is input of nn_3
 //
 //  
-//  //
-//  // Anatomy
-//  //
-//  
-//  mr_nn_.add( convlayer_0 );
-////  mr_nn_.add( convlayer_1 );
-////  mr_nn_.add( deconvlayer_1 );
-//  mr_nn_.add( deconvlayer_0 );
-//
-//
-//  //Alps::Singleton::instance()->get_subjects()[0].write_clone();
+//  /////////////
+//  // Anatomy //
+//  /////////////
+//  mr_nn_.add( nn_1 );
+//  mr_nn_.add( nn_2 );
+//  mr_nn_.add( nn_3 );
+//  mr_nn_.add( nn_4 );
+//  mr_nn_.add( nn_5 );
+//  mr_nn_.add( nn_6 );
 };
 //
 //

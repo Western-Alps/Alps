@@ -24,8 +24,7 @@ TEST_F(ITKFunctionTest, SimpleImage) {
   //
   ImageType<2>::RegionType region;
   ImageType<2>::IndexType  start;
-  start[0] = 0;
-  start[1] = 0;
+  start.Fill(0);
   //
   ImageType<2>::SizeType size;
   size[0] = 200;
@@ -47,6 +46,47 @@ TEST_F(ITKFunctionTest, SimpleImage) {
   //
   Writer<2>::Pointer writer = Writer<2>::New();
   writer->SetFileName( "test.nii.gz" );
+  writer->SetInput(image);
+
+  try
+  {
+    writer->Update();
+  }
+  catch (itk::ExceptionObject & error)
+  {
+    std::cerr << "error" << std::endl;
+  }
+
+  EXPECT_EQ( 0, 0 );
+}
+TEST_F(ITKFunctionTest, SimpleImageConv) {
+  //
+  //
+  ImageType<2>::RegionType region;
+  ImageType<2>::IndexType  start;
+  start.Fill(0);
+  //
+  ImageType<2>::SizeType size;
+  size[0] = 4;
+  size[1] = 4;
+  //
+  region.SetSize( size );
+  region.SetIndex( start );
+  //
+  //
+  ImageType<2>::Pointer image = ImageType<2>::New();
+  image->SetRegions( region );
+  image->Allocate();
+  //
+  image->SetPixel( {0,0}, 4 );  image->SetPixel( {0,1}, 5 );  image->SetPixel( {0,2}, 8 );  image->SetPixel( {0,3}, 7 );
+  image->SetPixel( {1,0}, 1 );  image->SetPixel( {1,1}, 8 );  image->SetPixel( {1,2}, 8 );  image->SetPixel( {1,3}, 8 );
+  image->SetPixel( {2,0}, 3 );  image->SetPixel( {2,1}, 6 );  image->SetPixel( {2,2}, 6 );  image->SetPixel( {2,3}, 4 );
+  image->SetPixel( {3,0}, 6 );  image->SetPixel( {3,1}, 5 );  image->SetPixel( {3,2}, 7 );  image->SetPixel( {3,3}, 8 );
+
+  //
+  //
+  Writer<2>::Pointer writer = Writer<2>::New();
+  writer->SetFileName( "SimpleConvolution.nii.gz" );
   writer->SetInput(image);
 
   try
@@ -90,6 +130,7 @@ TEST_F(ITKFunctionTest, SimpleImage3D) {
   while( !imageIterator.IsAtEnd() )
     {
       ImageType< 3 >::IndexType idx = imageIterator.GetIndex();
+      //      std::cout << idx << std::endl;
       image->SetPixel( idx, ++val );
       ++imageIterator;
     }

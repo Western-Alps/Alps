@@ -59,6 +59,10 @@ TEST_F(ImageTest, ByDefaultImageGetZ) {
   //
   // Constructor of a subject
   Alps::Image< double, 2 > Subj = Alps::Image< double, 2 >( img_ptr );
+
+  std::cout << "Region: \n" << Subj.get_image_region() << std::endl;
+  std::cout << "Start: \n" << Subj.get_image_start() << std::endl;
+  std::cout << "Size: \n" << Subj.get_image_size() << std::endl;
   //
   // Get the Z array
   //  int s = Subj.get_array_size();

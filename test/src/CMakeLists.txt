@@ -126,17 +126,17 @@ target_link_libraries(testAlpsConvolutionWindow  ${gtest_LIB_DEPENDS}
 
 #
 # Tests
-add_test( NAME testITKFunctions          COMMAND testITKFunctions      WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-#
-add_test( NAME testAlpsActivation        COMMAND testAlpsActivation    WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsCostFunction      COMMAND testAlpsCostFunction  WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsSGD               COMMAND testAlpsSGD           WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsCVKFolds          COMMAND testAlpsCVKFolds      WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsFullSamples       COMMAND testAlpsFullSamples   WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsLoadDataSet       COMMAND testAlpsLoadDataSet   WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsSubject           COMMAND testAlpsSubject       WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsSubjects          COMMAND testAlpsSubjects      WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsImage             COMMAND testAlpsImage         WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsLayerTensors      COMMAND testAlpsLayerTensors  WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsWeightsFclCPU     COMMAND testAlpsWeightsFclCPU WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsConvolutionWindow COMMAND testAlpsConvolutionWindow )
+add_test( NAME testITKFunctions          COMMAND testITKFunctions           WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+#								            
+add_test( NAME testAlpsActivation        COMMAND testAlpsActivation         WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsCostFunction      COMMAND testAlpsCostFunction       WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsSGD               COMMAND testAlpsSGD                WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsCVKFolds          COMMAND testAlpsCVKFolds           WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsFullSamples       COMMAND testAlpsFullSamples        WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsLoadDataSet       COMMAND testAlpsLoadDataSet        WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsSubject           COMMAND testAlpsSubject            WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsSubjects          COMMAND testAlpsSubjects           WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsImage             COMMAND testAlpsImage              WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsLayerTensors      COMMAND testAlpsLayerTensors       WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsWeightsFclCPU     COMMAND testAlpsWeightsFclCPU      WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsConvolutionWindow COMMAND testAlpsConvolutionWindow  WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
