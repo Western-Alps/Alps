@@ -78,10 +78,19 @@ TEST_F(ITKFunctionTest, SimpleImageConv) {
   image->SetRegions( region );
   image->Allocate();
   //
-  image->SetPixel( {0,0}, 4 );  image->SetPixel( {0,1}, 5 );  image->SetPixel( {0,2}, 8 );  image->SetPixel( {0,3}, 7 );
-  image->SetPixel( {1,0}, 1 );  image->SetPixel( {1,1}, 8 );  image->SetPixel( {1,2}, 8 );  image->SetPixel( {1,3}, 8 );
-  image->SetPixel( {2,0}, 3 );  image->SetPixel( {2,1}, 6 );  image->SetPixel( {2,2}, 6 );  image->SetPixel( {2,3}, 4 );
-  image->SetPixel( {3,0}, 6 );  image->SetPixel( {3,1}, 5 );  image->SetPixel( {3,2}, 7 );  image->SetPixel( {3,3}, 8 );
+  image->SetPixel( {0,0}, 4 );  image->SetPixel( {0,1}, 1 );  image->SetPixel( {0,2}, 3 );  image->SetPixel( {0,3}, 6 );
+  image->SetPixel( {1,0}, 5 );  image->SetPixel( {1,1}, 8 );  image->SetPixel( {1,2}, 6 );  image->SetPixel( {1,3}, 5 );
+  image->SetPixel( {2,0}, 8 );  image->SetPixel( {2,1}, 8 );  image->SetPixel( {2,2}, 6 );  image->SetPixel( {2,3}, 7 );
+  image->SetPixel( {3,0}, 7 );  image->SetPixel( {3,1}, 8 );  image->SetPixel( {3,2}, 4 );  image->SetPixel( {3,3}, 8 );
+//  //
+//  // Reorient
+//  itk::OrientImageFilter< ImageType<2>, ImageType<2> >::Pointer orienter =
+//    itk::OrientImageFilter< ImageType<2>, ImageType<2> >::New();
+//  orienter->UseImageDirectionOn();
+//  orienter->SetDesiredCoordinateOrientation( itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_LIP );
+//  orienter->SetInput( image );
+//  orienter->Update();
+//  image = orienter->GetOutput();
 
   //
   //

@@ -39,11 +39,29 @@ namespace Alps
 
       //
       // Accessors
-      // load image information
-      void                        get_image_information( const typename ImageType< Dim >::RegionType );
-      // Get the output image dimension
-      const std::array< int, Dim> get_output_image_dimensions() const
+      //! get the number of kernel
+      const int get_number_kernel() const
+      { return k_;};
+      //! get  half convolution window size.
+      const std::vector< long int >                      get_convolution_window_size() const
+      { return w_;};
+      //! get the padding.
+      const std::vector< long int >                      get_convolution_padding() const
+      { return p_;};
+      //! get the striding.
+      const std::vector< long int >                      get_convolution_striding() const
+      { return s_;};
+      //! get the number of voxel output per dimension
+      const std::array< int, Dim>                        get_output_image_dimensions() const
       { return n_out_; };
+      // Sparse matrix holding the index od=f the weights
+      const Eigen::SparseMatrix< Type, Eigen::RowMajor > get_weights_matrix() const
+      { return weights_matrix_;};
+      //! Array with the values of the weights
+      const std::vector< std::shared_ptr< Type* > >      get_convolution_weight_values() const
+      { return weight_values_;};
+      // load image information
+      void                                               get_image_information( const typename ImageType< Dim >::RegionType );
       
 
     private:
@@ -90,12 +108,12 @@ namespace Alps
       // Sparse matrix holding the index od=f the weights
       Eigen::SparseMatrix< Type, Eigen::RowMajor > weights_matrix_;
       //! Array with the values of the weights
-      std::vectot< shared_ptr< Type* > >           weight_values_;
+      std::vector< std::shared_ptr< Type* > >      weight_values_;
   };
   //
   //
   template< class T, int D >
-  Window< T, D >::Window( const int                    Num_kernel,
+  Window< T, D >::Window( const int                     Num_kernel,
 			  const std::vector< long int > Window,
 			  const std::vector< long int > Padding,
 			  const std::vector< long int > Striding ):
@@ -232,7 +250,7 @@ namespace Alps
 		    //
 		    row++;
 		  }
-	      std::cout << weights_matrix_ << std::endl;
+	      //
 	      break;
 	    }
 	  case 3:
