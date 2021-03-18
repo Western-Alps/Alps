@@ -55,7 +55,7 @@ namespace Alps
       const std::array< int, Dim>                        get_output_image_dimensions() const
       { return n_out_; };
       // Sparse matrix holding the index od=f the weights
-      const Eigen::SparseMatrix< Type, Eigen::RowMajor > get_weights_matrix() const
+      const Eigen::SparseMatrix< int, Eigen::RowMajor >  get_weights_matrix() const
       { return weights_matrix_;};
       //! Array with the values of the weights
       const std::vector< std::shared_ptr< Type* > >      get_convolution_weight_values() const
@@ -106,7 +106,7 @@ namespace Alps
       //! Member representing the number of voxel output per dimension
       std::array< int, Dim >                       n_out_;
       // Sparse matrix holding the index od=f the weights
-      Eigen::SparseMatrix< Type, Eigen::RowMajor > weights_matrix_;
+      Eigen::SparseMatrix< int, Eigen::RowMajor >  weights_matrix_;
       //! Array with the values of the weights
       std::vector< std::shared_ptr< Type* > >      weight_values_;
   };

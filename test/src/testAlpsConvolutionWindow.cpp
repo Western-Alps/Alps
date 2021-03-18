@@ -59,7 +59,7 @@ TEST_F(ConvolutionWindowTest, ByDefaultConvolutionDeconvolution) {
   //
   window_1.get_image_information( Subj.get_image( Alps::TensorOrder1::ACTIVATION ).get_image_region() );
   //
-  Eigen::SparseMatrix< double, Eigen::RowMajor > matrix = window_1.get_weights_matrix();
+  Eigen::SparseMatrix< int, Eigen::RowMajor > matrix = window_1.get_weights_matrix();
   std::cout << matrix << std::endl;
   std::cout << matrix.innerSize() << std::endl;
   // The image load
@@ -86,7 +86,7 @@ TEST_F(ConvolutionWindowTest, ByDefaultConvolutionDeconvolution) {
   weight_val.get()[9] = 1.;
   //
   for (int k = 0 ; k < matrix.outerSize() ; ++k )
-    for ( typename Eigen::SparseMatrix< double, Eigen::RowMajor >::InnerIterator it( matrix, k); it; ++it)
+    for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix, k); it; ++it)
       {
 	image_out( k, 0 ) += weight_val.get()[ static_cast< int >(it.value()) ] * image_in( it.index() );
 	std::cout
@@ -99,12 +99,12 @@ TEST_F(ConvolutionWindowTest, ByDefaultConvolutionDeconvolution) {
 
   //
   // Deconvolution or transpose convolution
-  Eigen::SparseMatrix< double, Eigen::RowMajor > transposed = matrix.transpose();
+  Eigen::SparseMatrix< int, Eigen::RowMajor > transposed = matrix.transpose();
   std::cout << transposed << std::endl;
   std::cout << transposed.outerSize() << std::endl;
   //
   for (int k = 0 ; k < transposed.outerSize() ; ++k )
-    for ( typename Eigen::SparseMatrix< double, Eigen::RowMajor >::InnerIterator it( transposed, k ); it; ++it)
+    for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( transposed, k ); it; ++it)
       {
 	deconvolution( k, 0 ) += weight_val.get()[ static_cast< int >(it.value()) ] * image_in( it.index() );
 	std::cout
@@ -126,7 +126,7 @@ TEST_F(ConvolutionWindowTest, ByDefaultConvolutionDeconvolution) {
   //
   deconvolution = Eigen::MatrixXd::Zero( 16, 1 );
   for (int k = 0 ; k < transposed.outerSize() ; ++k )
-    for ( typename Eigen::SparseMatrix< double, Eigen::RowMajor >::InnerIterator it( transposed, k ); it; ++it)
+    for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( transposed, k ); it; ++it)
       {
 	deconvolution( k, 0 ) += weight_val.get()[ static_cast< int >(it.value()) ] * image_rnd( it.index() );
 	std::cout

@@ -1,5 +1,5 @@
-#ifndef ALPSCONVOLUTIONLAYER_H
-#define ALPSCONVOLUTIONLAYER_H
+#ifndef ALPSTRANSPOSEDCONVOLUTIONLAYER_H
+#define ALPSTRANSPOSEDCONVOLUTIONLAYER_H
 //
 //
 //
@@ -13,16 +13,17 @@
 #include "AlpsBaseFunction.h"
 #include "AlpsSubject.h"
 #include "AlpsLayerTensors.h"
+#include "AlpsConvolutionLayer.h"
 
 //
 //
 //
 namespace Alps
 {
-  /** \class ConvolutionLayer
+  /** \class TransposedConvolutionLayer
    *
    * \brief 
-   * ConvolutionLayer class represents the basic layer element that can be used 
+   * TransposedConvolutionLayer class represents the basic layer element that can be used 
    * into a densly connected neural network.
    * 
    */
@@ -31,19 +32,21 @@ namespace Alps
 	    typename Kernel,
 	    typename CostFunction,
 	    int Dim  >
-  class ConvolutionLayer : public Alps::Layer,
-			   public Alps::Mountain
+  class TransposedConvolutionLayer : public Alps::Layer,
+				     public Alps::Mountain
   {
     //
     //
-    using Self = ConvolutionLayer< ActivationFunction, Weights, Kernel, CostFunction, Dim >;
+    using Self = TransposedConvolutionLayer< ActivationFunction, Weights, Kernel, CostFunction, Dim >;
+    using Conv = ConvolutionLayer< ActivationFunction, Weights, Kernel, CostFunction, Dim >;
     //
     // 
   public:
     /** Constructor. */
-    explicit ConvolutionLayer( const std::string, std::shared_ptr< Kernel > );
+    TransposedConvolutionLayer( const std::string, std::shared_ptr< Kernel > );
+    TransposedConvolutionLayer( const std::string, std::shared_ptr< Conv >, bool SomeVal = true ){};
     /** Destructor */
-    virtual ~ConvolutionLayer(){};
+    virtual ~TransposedConvolutionLayer(){};
 
     
     //
@@ -89,10 +92,10 @@ namespace Alps
     // layer unique ID
     std::size_t                                         layer_id_{0};
     // Layer's name
-    std::string                                         layer_name_{"__Convolution_layer__"};
+    std::string                                         layer_name_{"__Transposed_convolution_layer__"};
       
     //
-    // Convolution window
+    // TransposedConvolution window
     std::shared_ptr< Kernel >                           convolution_window_;
     // enumeration for the naming convention
     enum Act
@@ -120,8 +123,8 @@ namespace Alps
   //
   //
   template< typename AF, typename W, typename K, typename C, int D >
-  ConvolutionLayer< AF, W, K, C, D >::ConvolutionLayer( const std::string    Layer_name,
-							std::shared_ptr< K > Convolution_window ):
+  TransposedConvolutionLayer< AF, W, K, C, D >::TransposedConvolutionLayer( const std::string    Layer_name,
+									    std::shared_ptr< K > Convolution_window ):
     layer_name_{Layer_name}, convolution_window_{Convolution_window}
   {
     try
@@ -144,7 +147,7 @@ namespace Alps
   //
   //
   template< typename AF, typename W, typename K, typename C, int D > void
-  ConvolutionLayer< AF, W, K, C, D >::add_layer( std::shared_ptr< Alps::Layer > Layer )
+  TransposedConvolutionLayer< AF, W, K, C, D >::add_layer( std::shared_ptr< Alps::Layer > Layer )
   {
     try
       {
@@ -163,7 +166,7 @@ namespace Alps
   //
   //
   template< typename AF, typename W, typename K, typename C, int D > void
-  ConvolutionLayer< AF, W, K, C, D >::forward( std::shared_ptr< Alps::Climber > Sub )
+  TransposedConvolutionLayer< AF, W, K, C, D >::forward( std::shared_ptr< Alps::Climber > Sub )
   {
     try
       {
@@ -317,7 +320,7 @@ namespace Alps
   //
   //
   template< typename AF, typename W, typename K, typename C, int D > void
-  ConvolutionLayer< AF, W, K, C, D >::backward( std::shared_ptr< Alps::Climber > Sub )
+  TransposedConvolutionLayer< AF, W, K, C, D >::backward( std::shared_ptr< Alps::Climber > Sub )
   {
     try
       {
@@ -376,7 +379,7 @@ namespace Alps
   //
   //
   template< typename AF, typename W, typename K, typename C, int D > void
-  ConvolutionLayer< AF, W, K, C, D >::weight_update( std::shared_ptr< Alps::Climber > Sub )
+  TransposedConvolutionLayer< AF, W, K, C, D >::weight_update( std::shared_ptr< Alps::Climber > Sub )
   {
     try
       {
