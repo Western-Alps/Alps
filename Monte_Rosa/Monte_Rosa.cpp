@@ -14,9 +14,9 @@ using json = nlohmann::json;
 // 
 //
 #include "MACException.h"
-#include "MACLoadDataSet.h"
 #include "AlpsCVKFolds.h"
 #include "AlpsFullSamples.h"
+#include "AlpsLoadDataSet.h"
 #include "Monte_Rosa_builder.h"
 //
 //
@@ -78,9 +78,9 @@ main( const int argc, const char **argv )
 	    {
 	      //
 	      // Load the data set
-	      MAC::Singleton::instance( filename );
+	      Alps::LoadDataSet::instance( filename );
 	      // print the data set
-	      MAC::Singleton::instance()->print_data_set();
+	      Alps::LoadDataSet::instance()->print_data_set();
 
 	      ////////////////////////////
 	      ///////              ///////

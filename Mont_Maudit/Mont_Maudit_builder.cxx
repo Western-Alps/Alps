@@ -46,7 +46,7 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   //
   // layer 1
   // Window definition for the kernels
-  std::vector< long int > h_window_1 = {2,3}; // size of the 1/2 window
+  std::vector< long int > h_window_1 = {1,2}; // size of the 1/2 window
   std::vector< long int > padding_1  = {2,3}; // padding
   std::vector< long int > striding_1 = {1,1}; // striding
   //
@@ -60,50 +60,59 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   //
   // layer 2
   // Window definition for the kernels. This window is centered on one voxel.
-  std::vector< long int > h_window_2 = {0,0}; // size of the 1/2 window
-  std::vector< long int > padding_2  = {0,0}; // padding
+  // If the padding and stridding is the same as the window 1, the output image
+  // will have exactly the same dimension.
+  std::vector< long int > h_window_2 = {0,0}; // size of the 1/2 window, when the value is 0, the kernel is the size of a pixel
+  std::vector< long int > padding_2  = {2,3}; // padding
   std::vector< long int > striding_2 = {1,1}; // striding
   //
-  std::shared_ptr< Kernel > window_2 = std::make_shared< Kernel >( 10, // number of kernels
+  std::shared_ptr< Kernel > window_2 = std::make_shared< Kernel >( 20, // number of kernels
 								   h_window_2, padding_2, striding_2 );
   //
   std::shared_ptr< Alps::Layer > nn_2 =
     std::make_shared< Convolutional >( "layer_2",
 				       window_2 );
   nn_2->add_layer( nullptr ); // connection with the previous layer. (nullptr) means input layer
-  nn_1->add_layer( nn_2 );   // We should be able to do that since nn_2 has the same dimensions as the input
   //
   // layer 3
-  // Window definition for the kernels
-  std::vector< long int > h_window_3 = {5,5}; // size of the 1/2 window
+  // Window definition for the kernels. This window is centered on one voxel.
+  std::vector< long int > h_window_3 = {4,4}; // size of the 1/2 window
   std::vector< long int > padding_3  = {0,0}; // padding
-  std::vector< long int > striding_3 = {2,2}; // striding
+  std::vector< long int > striding_3 = {1,1}; // striding
   //
-  std::shared_ptr< Kernel > window_3 = std::make_shared< Kernel >( 5, // number of kernels
+  std::shared_ptr< Kernel > window_3 = std::make_shared< Kernel >( 10, // number of kernels
 								   h_window_3, padding_3, striding_3 );
   //
   std::shared_ptr< Alps::Layer > nn_3 =
     std::make_shared< Convolutional >( "layer_3",
 				       window_3 );
-  nn_3->add_layer( nn_1 );   // inputs and nn_2 are inputs of nn_1, then nn_1 is input of nn_3
+  nn_3->add_layer( nn_1 ); 
+  nn_3->add_layer( nn_2 );
+  //
+  // layer 4
+  // Window definition for the kernels
+  std::vector< long int > h_window_4 = {4,4}; // size of the 1/2 window
+  std::vector< long int > padding_4  = {0,0}; // padding
+  std::vector< long int > striding_4 = {2,2}; // striding
+  //
+  std::shared_ptr< Kernel > window_4 = std::make_shared< Kernel >( 4, // number of kernels
+								   h_window_4, padding_4, striding_4 );
+  //
+  std::shared_ptr< Alps::Layer > nn_4 =
+    std::make_shared< Convolutional >( "layer_4",
+				       window_4 );
+  nn_4->add_layer( nn_3 );   // inputs and nn_2 are inputs of nn_1, then nn_1 is input of nn_4
 
 
 
   //
   // Deconvolutional layers
   //
-  // layer 4
-  //
-  std::shared_ptr< Alps::Layer > nn_4 =
-    std::make_shared< Deconvolutional >( "layer_4",
-					  std::dynamic_pointer_cast< Convolutional >(nn_2) );
-  nn_4->add_layer( nn_3 );
-  //
   // layer 5
   //
   std::shared_ptr< Alps::Layer > nn_5 =
     std::make_shared< Deconvolutional >( "layer_5",
-					 std::dynamic_pointer_cast< Convolutional >(nn_1) );
+					  std::dynamic_pointer_cast< Convolutional >(nn_2) );
   nn_5->add_layer( nn_4 );
   //
   // layer 6
@@ -111,16 +120,29 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   std::shared_ptr< Alps::Layer > nn_6 =
     std::make_shared< Deconvolutional >( "__output_layer__",
 					 nullptr, false );
-  nn_6->add_layer( nn_4 );   // inputs and nn_2 are inputs of nn_1, then nn_1 is input of nn_3
-  nn_6->add_layer( nn_5 );   // inputs and nn_2 are inputs of nn_1, then nn_1 is input of nn_3
+  nn_6->add_layer( nn_5 );   // inputs and nn_2 are inputs of nn_1, then nn_1 is input of nn_4
+  //
+  // layer 7
+  //
+  std::shared_ptr< Alps::Layer > nn_7 =
+    std::make_shared< Deconvolutional >( "__output_layer__",
+					 nullptr, false );
+  nn_7->add_layer( nn_5 );   // inputs and nn_2 are inputs of nn_1, then nn_1 is input of nn_4
+  //
+  //
+  // The output of nn_{6,7} should be combined togther as a linear combinaison in a non-linear
+  // function, e.g. sigmoid, with one bias:
+  // nn_8 = sigmoid( nn_6 + nn_7 + b). Then nn_8 should be directly compared to the target
+  // in the cost function.
 
+  
   
   /////////////
   // Anatomy //
   /////////////
   mr_nn_.add( nn_1 );
   mr_nn_.add( nn_2 );
-  mr_nn_.add( nn_3 );
+  mr_nn_.add( nn_4 );
 //  mr_nn_.add( nn_4 );
 //  mr_nn_.add( nn_5 );
 //  mr_nn_.add( nn_6 );

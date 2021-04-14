@@ -97,6 +97,7 @@ namespace Alps
 								              std::shared_ptr< double > > );
     // Add target in the classification study case
     void                                              add_target( const std::size_t, const std::size_t );
+    void                                              add_target( const std::string ){};
 
     //
     // Private function
@@ -280,26 +281,26 @@ namespace Alps
   //
   // 
   template< int D > void
-  Alps::Subject< D >::add_target( const std::size_t Target,
+  Alps::Subject< D >::add_target( const std::size_t Label,
 				  const std::size_t Universe)
   {
     try
       {
-	if ( Target < Universe + 1 )
+	if ( Label < Universe + 1 )
 	  {
 	    target_ = Alps::Image< double, D >( std::vector< std::size_t >(/*tensor order*/ 1, Universe ),
 						std::shared_ptr< double >(new double[Universe],
 									  std::default_delete< double[] >()) );
-	    // initialize the target to zero
+	    // initialize the label to zero
 	    for ( std::size_t i = 0 ; i < Universe ; i++ )
 	      (target_.get_tensor().get())[i] = 0.;
-	    // Set the target value
-	    (target_.get_tensor().get())[Target] = 1.;
+	    // Set the label value
+	    (target_.get_tensor().get())[Label] = 1.;
 	  }
 	else
 	  {
-	    std::string mess = "The target (";
-	    mess            += std::to_string(Target) + ") can't be bigger than the Unverse size (";
+	    std::string mess = "The label (";
+	    mess            += std::to_string(Label) + ") can't be bigger than the Unverse size (";
 	    mess            += std::to_string(Universe) + ").";
 	    throw MAC::MACException( __FILE__, __LINE__,
 				     mess.c_str(),

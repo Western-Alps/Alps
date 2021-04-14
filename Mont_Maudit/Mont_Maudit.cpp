@@ -11,21 +11,13 @@
 #include "nlohmann/json.hpp"
 using json = nlohmann::json;
 //
-// ITK
-//
-#include <itkImageFileReader.h>
-#include <itkSpatialOrientationAdapter.h>
-#include "itkChangeInformationImageFilter.h"
-//
 // 
 //
 #include "MACException.h"
-#include "MACLoadDataSet.h"
 #include "AlpsCVKFolds.h"
 #include "AlpsFullSamples.h"
+#include "AlpsLoadDataSet.h"
 #include "Mont_Maudit_builder.h"
-//
-//using Validation = MAC::CrossValidation_k_folds< MAC::Mont_Maudit_builder >;
 //
 //
 //
@@ -86,9 +78,9 @@ main( const int argc, const char **argv )
 	    {
 	      //
 	      // Load the data set
-	      MAC::Singleton::instance( filename );
+	      Alps::LoadDataSet::instance( filename );
 	      // print the data set
-	      MAC::Singleton::instance()->print_data_set();
+	      Alps::LoadDataSet::instance()->print_data_set();
 
 	      ////////////////////////////
 	      ///////              ///////

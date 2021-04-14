@@ -97,7 +97,8 @@ namespace Alps
 	std::size_t
 	  num_modalities  = Alps::LoadDataSet::instance()->get_data()["inputs"]["images"].size(),
 	  num_img_per_mod = Alps::LoadDataSet::instance()->get_data()["inputs"]["images"][0].size(),
-	  target_universe = static_cast< std::size_t >(Alps::LoadDataSet::instance()->get_data()["inputs"]["labels_universe"]);
+	  num_trg_per_mod = Alps::LoadDataSet::instance()->get_data()["inputs"]["targets"][0].size(),
+	  label_universe  = static_cast< std::size_t >(Alps::LoadDataSet::instance()->get_data()["inputs"]["labels_universe"]);
 
 	
 	//
@@ -107,12 +108,26 @@ namespace Alps
 	    // create the subject
 	    subjects_.push_back( std::make_shared< Alps::Subject< D > >(subject_number++, num_modalities) );
 	    //
-	    // If the output is descrete load the labels
-	    if ( target_universe > 0 )
+	    // If the output is descrete loap over the labels
+	    if ( label_universe > 0 )
 	      {
-		std::string subject_label = "label_subject_" + std::to_string(img);
-		std::size_t target = static_cast< std::size_t >(Alps::LoadDataSet::instance()->get_data()["inputs"]["labels"][subject_label]);
-		( subjects_[subject_number-1].get() )->add_target( target, target_universe );
+		//std::string subject_label = "label_subject_" + std::to_string(img);
+		std::size_t label = static_cast< std::size_t >( Alps::LoadDataSet::instance()->get_data()["inputs"]["labels"][img] );
+		( subjects_[subject_number-1].get() )->add_target( label, label_universe );
+	      }
+	    // record the target images
+	    if ( num_trg_per_mod != 0)
+	      {
+		if( num_trg_per_mod == num_img_per_mod )
+		  for ( std::size_t mod = 0 ; mod < num_modalities ; mod++ )
+		    ( subjects_[subject_number-1].get() )->add_target( Alps::LoadDataSet::instance()->get_data()["inputs"]["targets"][mod][img] );
+		else
+		  {
+		    std::string mess = "The number of targets must be the same as the number of images.";
+		    throw MAC::MACException( __FILE__, __LINE__,
+					     mess.c_str(),
+					     ITK_LOCATION );
+		  }
 	      }
 	    // record the modality for each subject
 	    for ( std::size_t mod = 0 ; mod < num_modalities ; mod++ )
