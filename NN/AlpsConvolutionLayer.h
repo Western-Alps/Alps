@@ -167,56 +167,52 @@ namespace Alps
   {
     try
       {
-//	//
-//	// Down to subject
-//	std::shared_ptr< Alps::Subject< D > > subject = std::dynamic_pointer_cast< Alps::Subject< D > >(Sub);
-//
-//	
-//	////////////////////////
-//	// Create the weights //
-//	////////////////////////
-//	//
-//	// We get the number of previous layers attached to this layer. In this first loop,
-//	// we collect the number of nodes if the weights were not initialized
-//	// if the prev layer is nullptr, it represents the input data.
-//	std::cout << "Layer: " << layer_name_ << std::endl;
-//	if ( weights_.size() == 0 )
-//	  {
-//	    // If the weights were not initialized yet
-//	    for ( auto layer : prev_layer_ )
-//	      {
-//		std::string name = "__input_layer__";
-//		if ( layer.second )
-//		  {
-//		    name = layer.first;
-//		    //
-//		    std::cout
-//		      << "Connected to: " << name
-//		      << " with " << layer.second->get_layer_size()[0] << " nodes" << std::endl;
-//		    //
-//		    weights_[name] = std::make_shared< W >( std::shared_ptr< ConvolutionLayer< AF, W, C, D > >( this ),
-//							    fc_layer_size_,
-//							    layer.second->get_layer_size() );
-//		  }
-//		else
-//		  {
-//		    std::cout
-//		      << "Connected to: " << name
-//		      << " with " << subject->get_layer_size( name )[0] << " nodes" << std::endl;
-//		    //
-//		    weights_[name] = std::make_shared< W >( std::shared_ptr< ConvolutionLayer< AF, W, C, D > >( this ),
-//							    fc_layer_size_,
-//							    subject->get_layer_size( name ) );
-//		  }
-//	      }
-//	  }
-//	
+	//
+	// Down to subject
+	std::shared_ptr< Alps::Subject< D > > subject = std::dynamic_pointer_cast< Alps::Subject< D > >(Sub);
+
+	
+	////////////////////////
+	// Create the weights //
+	////////////////////////
+	//
+	// We get the number of previous layers attached to this layer. In this first loop,
+	// we collect the number of nodes if the weights were not initialized
+	// if the prev layer is nullptr, it represents the input data.
+	std::cout << "Layer: " << layer_name_ << std::endl;
+	if ( convolution_window_->get_weights_matrix().nonZeros() == 0 )
+	  {
+	    // If the weights were not initialized yet
+	    // Every layer attached to this layer should have exactly the same dimensions
+	    // from prev_layer_[0]
+	    // ToDo --> Make sure to remember the dimension and the check all the layers have the same dims
+	    for ( auto layer : prev_layer_ )
+	      {
+		std::string name = "__input_layer__";
+		if ( layer.second )
+		  {
+		    name = layer.first;
+		    //
+		    std::cout
+		      << "Connected to: " << name << std::endl;
+		  }
+		else
+		  {
+		    std::cout
+		      << "Connected to: " << name
+		      << " with " << subject->get_layer_size( name )[0] << " nodes" << std::endl;
+		  }
+	      }
+	  }
+	
 //	/////////////////
 //	// Activations //
 //	/////////////////
 //	//
-//	//
-//	std::size_t layer_size = fc_layer_size_[0];
+//	// The layer_size, here, represents the size of the output image
+//	std::size_t layer_size = 1;
+//	for ( int d = 0 ; d < D ; d++ )
+//	  layer_size *= convolution_window_->get_output_image_dimensions()[d];
 //	// activation function
 //	std::shared_ptr< double > z     = std::shared_ptr< double >( new  double[layer_size],
 //								     std::default_delete< double[] >() );
@@ -303,7 +299,7 @@ namespace Alps
 //	  }
 //	//
 //	// If the layer does not exist, for the image, it creates it.
-//	// Otherwise, it replace teh values from the last epoque and save the previouse epoque.
+//	// Otherwise, it replace the values from the last epoque and save the previouse epoque.
 //	subject->add_layer( layer_name_, fc_layer_size_,
 //			    current_activation );
       }

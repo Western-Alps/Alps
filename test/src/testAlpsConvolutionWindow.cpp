@@ -52,7 +52,7 @@ TEST_F(ConvolutionWindowTest, ByDefaultConvolutionDeconvolution) {
   // Load the image
   Alps::LayerTensors< double, 2 > Subj("SimpleConvolution.nii.gz");
   // Create the kenel
-  Alps::Window< double, 2 > window_1( /* number of kernels */{10}, 
+  Alps::Window< double, 2 > window_1( /* number of kernels */{3}, 
 				      /* half window size */ {1,1},
 				      /* padding */          {0,0},
 				      /* striding */         {1,1});

@@ -55,7 +55,7 @@ namespace Alps
       const std::array< int, Dim>                        get_output_image_dimensions() const
       { return n_out_; };
       // Sparse matrix holding the index od=f the weights
-      const Eigen::SparseMatrix< int, Eigen::RowMajor >  get_weights_matrix() const
+      const Eigen::SparseMatrix< int, Eigen::RowMajor >& get_weights_matrix() const
       { return weights_matrix_;};
       //! Array with the values of the weights
       const std::vector< std::shared_ptr< Type > >       get_convolution_weight_values() const
@@ -69,8 +69,8 @@ namespace Alps
       // private member function
       //! Compare element wise if container1 is bigger than container2
       bool v1_sup_v2_( std::vector< long int >::const_iterator First1,
-		        std::vector< long int >::const_iterator Last1,
-		        std::vector< long int >::const_iterator First2 )
+		       std::vector< long int >::const_iterator Last1,
+		       std::vector< long int >::const_iterator First2 )
       {
 	while ( First1 != Last1 ) {
 	  if ( *First1 < *First2 )
@@ -81,8 +81,8 @@ namespace Alps
       }
       //! Compare element wise if container1 is less than container2
       bool v1_inf_v2_( std::vector< long int >::const_iterator First1,
-		        std::vector< long int >::const_iterator Last1,
-		        std::vector< long int >::const_iterator First2 )
+		       std::vector< long int >::const_iterator Last1,
+		       std::vector< long int >::const_iterator First2 )
       {
 	while ( First1 != Last1 ) {
 	  if ( !(*First1 > *First2) )
@@ -184,12 +184,12 @@ namespace Alps
 	    for ( int w = 0 ; w < number_weights ; w++ )
 	      {
 		weight_values_[k].get()[w] = distribution( generator );
-		//
-		std::cout << "weight_values_[kernel: "
-			  <<k<< "].get()[weight: "
-			  <<w<<"] = "
-			  << weight_values_[k].get()[w]
-			  << std::endl;
+//		//
+//		std::cout << "weight_values_[kernel: "
+//			  <<k<< "].get()[weight: "
+//			  <<w<<"] = "
+//			  << weight_values_[k].get()[w]
+//			  << std::endl;
 	      }
 	  }
 	
@@ -470,7 +470,7 @@ namespace Alps
 					  pos_x4 = x4 + w4;
 					  pos_x5 = x5 + w5;
 					  if ( pos_x0 >= 0 && pos_x1 >= 0 && pos_x2 >= 0 &&
-					       pos_x3 >= 0 && pos_x4 >= 0 &&
+					       pos_x3 >= 0 && pos_x4 >= 0 && pos_x5 >= 0 &&
 					       pos_x0 < static_cast< long int >(size[0]) &&
 					       pos_x1 < static_cast< long int >(size[1]) &&
 					       pos_x2 < static_cast< long int >(size[2]) &&
