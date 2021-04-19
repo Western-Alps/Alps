@@ -36,9 +36,9 @@ Alps::Monte_Rosa_builder::Monte_Rosa_builder()
   // Neural network anatomy //
   ////////////////////////////
   using Activation     = Alps::Activation_tanh< double >;
-  using Weights        = Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Alps::SGD >;
-  using WeightsConv    = Alps::WeightsConvolution< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Alps::SGD, 2 >;
-  using Kernel         = Alps::Window< double, 2 >;
+  using Kernel         = Alps::Window< double, /*Dim*/ 2 >;
+  using Weights        = Alps::WeightsFcl< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Alps::SGD, /*Dim*/ 2 >;
+  using WeightsConv    = Alps::WeightsConvolution< double, Kernel, Alps::Arch::CPU, Activation, Alps::SGD, /*Dim*/ 2 >;
   using LossFunction   = Alps::LeastSquarreEstimate< double >;
   using FullyConnected = Alps::FullyConnectedLayer< Activation, Weights, LossFunction, /*Dim*/ 2 >;
   using Convolutional  = Alps::ConvolutionLayer< Activation, WeightsConv, Kernel, LossFunction, /*Dim*/ 2 >;

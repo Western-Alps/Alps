@@ -124,7 +124,7 @@ namespace Alps
   //
   //
   // Constructor
-  template< /*class F,*/ int D >
+  template< int D >
   Alps::Subject< D >::Subject( const int         SubNumber,
 			       const std::size_t NumModalities ):
     subject_number_{SubNumber}, number_modalities_{NumModalities}
@@ -364,7 +364,7 @@ namespace Alps
 		  << "idx = " << idx
 		  << " && size = " << size
 		  << std::endl;
-		std::string mess = "There is miss match between the size expected (" + std::to_string(idx);
+		std::string mess = "There is missmatch between the size expected (" + std::to_string(idx);
 		mess += ") and the size retrieved ("+ std::to_string(size) +")";
 		throw MAC::MACException( __FILE__, __LINE__,
 					 mess.c_str(),

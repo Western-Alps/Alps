@@ -113,7 +113,7 @@ namespace Alps
     //
     // Observers
     // Observers containers
-    std::map< /* Layer_name */ std::string,
+    std::map< /* kernel number */ int,
 	       std::shared_ptr< Weights > >              weights_;
   };
   //
@@ -133,6 +133,12 @@ namespace Alps
 	std::uniform_int_distribution< int > distribution( 0, 1UL << 16 );
 	//
 	layer_id_ = distribution( generator );
+
+	//
+	//
+	int kernels = convolution_window_->get_number_kernel();
+	for ( int k = 0 ; k < kernels ; k++ )
+	  weights_[k] = nullptr;
       }
     catch( itk::ExceptionObject & err )
       {
@@ -176,9 +182,10 @@ namespace Alps
 	// Create the weights //
 	////////////////////////
 	//
-	// We get the number of previous layers attached to this layer. In this first loop,
-	// we collect the number of nodes if the weights were not initialized
+	// We get the number of previous layers attached to this layer. 
 	// if the prev layer is nullptr, it represents the input data.
+	// Gather the features from other layers. Make sure the features
+	// have the same image dimensions.
 	std::cout << "Layer: " << layer_name_ << std::endl;
 	if ( convolution_window_->get_weights_matrix().nonZeros() == 0 )
 	  {
@@ -205,59 +212,73 @@ namespace Alps
 	      }
 	  }
 	
-//	/////////////////
-//	// Activations //
-//	/////////////////
-//	//
-//	// The layer_size, here, represents the size of the output image
-//	std::size_t layer_size = 1;
-//	for ( int d = 0 ; d < D ; d++ )
-//	  layer_size *= convolution_window_->get_output_image_dimensions()[d];
-//	// activation function
-//	std::shared_ptr< double > z     = std::shared_ptr< double >( new  double[layer_size],
-//								     std::default_delete< double[] >() );
-//	// Derivative of the activation function
-//	std::shared_ptr< double > dz    = std::shared_ptr< double >( new  double[layer_size],
-//								     std::default_delete< double[] >() );
-//	// Error back propagated in building the gradient
-//	std::shared_ptr< double > error = std::shared_ptr< double >( new  double[layer_size],
-//								     std::default_delete< double[] >() );
-//	// Weighted error back propagated in building the gradient
-//	std::shared_ptr< double > werr  = std::shared_ptr< double >( new  double[layer_size],
-//								     std::default_delete< double[] >() );
-//	// initialize to 0
-//	for ( std::size_t s = 0 ; s < layer_size ; s++ )
-//	  {
-//	    z.get()[s]     = 0.;
-//	    dz.get()[s]    = 0.;
-//	    error.get()[s] = 0.;
-//	    werr.get()[s]  = 0.;
-//	  }
-//	// We concaten the tensors from any layer connected to this layer
-//	for ( auto layer : prev_layer_ )
-//	  {
-//	    std::string name = "__input_layer__";
-//	    if ( layer.second )
-//	      // If the pointer exist, this is not the input layer
-//	      name = layer.first;
-//	    //
-//	    // activation tuple (<0> - activation; <1> - derivative)
-//	    auto tuple = weights_[name]->activate( subject->get_layer(name) );
-//	    //
+	/////////////////
+	// Activations //
+	/////////////////
+	//
+	// The layer_size, here, represents the size of the output image
+	std::size_t layer_size = 1;
+	for ( int d = 0 ; d < D ; d++ )
+	  layer_size *= convolution_window_->get_output_image_dimensions()[d];
+	//
+	// Loop over the K kernels
+	int kernels = convolution_window_->get_number_kernel();
+	for ( int k = 0 ; k < kernels ; k++ )
+	  {
+	    //
+	    // Check the weights were created
+	    if ( !weights_[k] )
+	      {
+		weights_[k] = std::make_shared< W >( std::shared_ptr< ConvolutionLayer< AF, W, K, C, D > >( this ),
+						     convolution_window_, k );
+		
+	      }
+//	    // activation function
+//	    std::shared_ptr< double > z     = std::shared_ptr< double >( new  double[layer_size],
+//									 std::default_delete< double[] >() );
+//	    // Derivative of the activation function
+//	    std::shared_ptr< double > dz    = std::shared_ptr< double >( new  double[layer_size],
+//									 std::default_delete< double[] >() );
+//	    // Error back propagated in building the gradient
+//	    std::shared_ptr< double > error = std::shared_ptr< double >( new  double[layer_size],
+//									 std::default_delete< double[] >() );
+//	    // Weighted error back propagated in building the gradient
+//	    std::shared_ptr< double > werr  = std::shared_ptr< double >( new  double[layer_size],
+//									 std::default_delete< double[] >() );
+//	    // initialize to 0
 //	    for ( std::size_t s = 0 ; s < layer_size ; s++ )
 //	      {
-//		z.get()[s]  += std::get< Act::ACTIVATION >(tuple).get()[s];
-//		dz.get()[s] += std::get< Act::DERIVATIVE >(tuple).get()[s];
+//		z.get()[s]     = 0.;
+//		dz.get()[s]    = 0.;
+//		error.get()[s] = 0.;
+//		werr.get()[s]  = 0.;
 //	      }
-//	  }
-//	//
-//	// Get the activation tuple (<0> - activation; <1> - derivative; <2> - error)
-//	std::tuple< std::shared_ptr< double >,
-//		    std::shared_ptr< double >,
-//		    std::shared_ptr< double >,
-//		    std::shared_ptr< double > > current_activation = std::make_tuple( z, dz, error, werr );
-//
-//	
+//	    // We concaten the tensors from any layer connected to this layer
+//	    for ( auto layer : prev_layer_ )
+//	      {
+//		std::string name = "__input_layer__";
+//		if ( layer.second )
+//		  // If the pointer exist, this is not the input layer
+//		  name = layer.first;
+//		//
+//		// activation tuple (<0> - activation; <1> - derivative)
+//		auto tuple = weights_[name]->activate( subject->get_layer(name) );
+//		//
+//		for ( std::size_t s = 0 ; s < layer_size ; s++ )
+//		  {
+//		    z.get()[s]  += std::get< Act::ACTIVATION >(tuple).get()[s];
+//		    dz.get()[s] += std::get< Act::DERIVATIVE >(tuple).get()[s];
+//		  }
+//	      }
+//	    //
+//	    // Get the activation tuple (<0> - activation; <1> - derivative; <2> - error)
+//	    std::tuple< std::shared_ptr< double >,
+//			std::shared_ptr< double >,
+//			std::shared_ptr< double >,
+//			std::shared_ptr< double > > current_activation = std::make_tuple( z, dz, error, werr );
+	  }
+	    
+	
 //	//////////////////////////////////////
 //	// Save the activation information //
 //	/////////////////////////////////////

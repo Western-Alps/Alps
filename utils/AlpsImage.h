@@ -117,7 +117,7 @@ namespace Alps
 	size_ = Image_reader->GetOutput()->GetLargestPossibleRegion().GetSize();
 	for ( int d = 0 ; d < D ; d++ )
 	  {
-	    start_[d]       = 0;
+	    start_[d]        = 0;
 	    tensor_size_[0] *= size_[d];
 	  }
 	//

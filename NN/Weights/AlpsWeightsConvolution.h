@@ -26,7 +26,7 @@ namespace Alps
 	    Alps::Arch Architecture,
 	    typename Activation,
 	    typename Solver,
-	    int Dimension >
+	    int Dim >
   class WeightsConvolution : public Alps::Weights< Tensor1_Type, Tensor2_Type >
   {
     //
@@ -45,8 +45,8 @@ namespace Alps
     // Accessors
     //
     // Activation tensor from the previous layer
-    virtual void set_activations( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >&,
-				  std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) override{};
+    virtual void set_activations( std::vector< Alps::LayerTensors< Tensor1_Type, Dim > >&,
+				  std::vector< Alps::LayerTensors< Tensor1_Type, Dim > >& ) override{};
     // Get size of the tensor
     virtual const std::vector< std::size_t >   get_tensor_size() const                                override
     { return std::vector< std::size_t >(); };						      
@@ -70,10 +70,10 @@ namespace Alps
     //
     // Activate
     virtual std::tuple < std::shared_ptr< Tensor1_Type >,
-			 std::shared_ptr< Tensor1_Type > > activate( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& )       override{};
+			 std::shared_ptr< Tensor1_Type > > activate( std::vector< Alps::LayerTensors< Tensor1_Type, Dim > >& )       override{};
     // Weighted error
-    virtual void                                           weighted_error( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >&,
-									   std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) override{};
+    virtual void                                           weighted_error( std::vector< Alps::LayerTensors< Tensor1_Type, Dim > >&,
+									   std::vector< Alps::LayerTensors< Tensor1_Type, Dim > >& ) override{};
     // Update the weights
     virtual void                               update()                                               override{};
     // Force the weight update
@@ -81,33 +81,6 @@ namespace Alps
 
 
 
-  private:
-    //
-    // private member function
-    //! Compare element wise if container1 is bigger than container2
-    bool v1_sup_v2_( std::vector< int >::const_iterator First1,
-		     std::vector< int >::const_iterator Last1,
-		     std::vector< int >::const_iterator First2 )
-    {
-      while ( First1 != Last1 ) {
-	if ( *First1 < *First2 )
-	  return false;
-	++First1; ++First2;
-      }
-      return true;
-    }
-    //! Compare element wise if container1 is less than container2
-    bool v1_inf_v2_( std::vector< int >::const_iterator First1,
-		     std::vector< int >::const_iterator Last1,
-		     std::vector< int >::const_iterator First2 )
-    {
-      while ( First1 != Last1 ) {
-	if ( !(*First1 > *First2) )
-	  return false;
-	++First1; ++First2;
-      }
-      return true;
-    }
 
   private:
     //! Matrix of weigths.
@@ -116,12 +89,6 @@ namespace Alps
     Activation                        activation_;
     //! The mountain observed: fully connected layer.
     std::shared_ptr< Alps::Layer >    layer_{nullptr};
-    //! Member representing half convolution window size.
-    std::vector< int > window_;
-    //! Member for the padding.
-    std::vector< int > padding_;
-    //! Member for the striding.
-    std::vector< int > striding_;
   };
   /** \class WeightsConvolution
    *
@@ -130,19 +97,18 @@ namespace Alps
    * 
    */
   template< typename Type,
+	    typename Kernel,
 	    typename Activation,
 	    typename Solver,
-	    int Dimension >
-  class WeightsConvolution< Type, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Solver, Dimension > : public Alps::Weights< Type, Eigen::MatrixXd >
+	    int Dim >
+  class WeightsConvolution< Type, Kernel, Alps::Arch::CPU, Activation, Solver, Dim > : public Alps::Weights< Type, Kernel >
   {
     //
     // 
   public:
     /** Constructor. */
     explicit WeightsConvolution( std::shared_ptr< Alps::Layer >,
-				 const std::vector< int >,
-				 const std::vector< int >,
-				 const std::vector< int > );
+				 std::shared_ptr< Kernel >, const int );
     
     /** Destructor */
     virtual ~WeightsConvolution(){};
@@ -152,18 +118,18 @@ namespace Alps
     // Accessors
     //
     // Activation tensor from the previous layer
-    virtual void set_activations( std::vector< Alps::LayerTensors< Type, 2 > >&,
-				  std::vector< Alps::LayerTensors< Type, 2 > >& )                      override{};
+    virtual void set_activations( std::vector< Alps::LayerTensors< Type, Dim > >&,
+				  std::vector< Alps::LayerTensors< Type, Dim > >& )                    override{};
     // Get size of the tensor
     virtual const std::vector< std::size_t >       get_tensor_size() const                             override
     { return std::vector< std::size_t >(); };							      
     // Get the tensor										      
-    virtual std::shared_ptr< Eigen::MatrixXd >     get_tensor() const                                  override
+    virtual std::shared_ptr< Kernel >              get_tensor() const                                  override
     {return weights_;};										      
     // Set size of the tensor									      
     virtual void                                   set_tensor_size( std::vector< std::size_t > )       override{};
     // Set the tensor										      
-    virtual void                                   set_tensor( std::shared_ptr< Eigen::MatrixXd > )    override{};
+    virtual void                                   set_tensor( std::shared_ptr< Kernel > )             override{};
 
     
     //												      
@@ -177,10 +143,10 @@ namespace Alps
     //
     // Activate
     virtual std::tuple < std::shared_ptr< Type >,
-			 std::shared_ptr< Type > > activate( std::vector< Alps::LayerTensors< Type, 2 > >& )       override{};
+			 std::shared_ptr< Type > > activate( std::vector< Alps::LayerTensors< Type, Dim > >& )       override{};
     // Weighted error
-    virtual void                                   weighted_error( std::vector< Alps::LayerTensors< Type, 2 > >&,
-								   std::vector< Alps::LayerTensors< Type, 2 > >& ) override{};
+    virtual void                                   weighted_error( std::vector< Alps::LayerTensors< Type, Dim > >&,
+								   std::vector< Alps::LayerTensors< Type, Dim > >& ) override{};
     // Update the weights
     virtual void                                   update()                                            override{};
     // Forced the weight update
@@ -189,37 +155,12 @@ namespace Alps
 
 
 
-  private:
-    //
-    // private member function
-    //! Compare element wise if container1 is bigger than container2
-    bool v1_sup_v2_( std::vector< int >::const_iterator First1,
-		     std::vector< int >::const_iterator Last1,
-		     std::vector< int >::const_iterator First2 )
-    {
-      while ( First1 != Last1 ) {
-	if ( *First1 < *First2 )
-	  return false;
-	++First1; ++First2;
-      }
-      return true;
-    }
-    //! Compare element wise if container1 is less than container2
-    bool v1_inf_v2_( std::vector< int >::const_iterator First1,
-		     std::vector< int >::const_iterator Last1,
-		     std::vector< int >::const_iterator First2 )
-    {
-      while ( First1 != Last1 ) {
-	if ( !(*First1 > *First2) )
-	  return false;
-	++First1; ++First2;
-      }
-      return true;
-    }
 
   private:
     // Matrix of weigths
-    std::shared_ptr< Eigen::MatrixXd >     weights_;
+    std::shared_ptr< Kernel >              weights_;
+    // Output feature
+    int                                    feature_{0};
     // weights activation
     Activation                             activation_;
     //
@@ -228,24 +169,49 @@ namespace Alps
     //
     // Type of gradient descent
     std::shared_ptr< Alps::Gradient_base > gradient_;
-    //! Member representing half convolution window size.
-    std::vector< int >                     window_;
-    //! Member for the padding.
-    std::vector< int >                     padding_;
-    //! Member for the striding.
-    std::vector< int >                     striding_;
   };
   //
   //
-  template< typename T, typename A, typename S, int D >
-  WeightsConvolution< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S, D >::WeightsConvolution( std::shared_ptr< Alps::Layer > Layer,
-											  const std::vector< int >       Window,
-											  const std::vector< int >       Padding,
-											  const std::vector< int >       Striding ):
-    layer_{Layer}, window_{Window}, padding_{Padding}, striding_{Striding}
+  template< typename T, typename K, typename A, typename S, int D >
+  WeightsConvolution< T, K, Alps::Arch::CPU, A, S, D >::WeightsConvolution( std::shared_ptr< Alps::Layer > Layer,
+									    std::shared_ptr< K >           Window,
+									    const int                      Feature):
+    weights_{Window}, feature_{Feature}, layer_{Layer}
   {
     try
       {
+	//
+	// Select the optimizer strategy
+	S gradient;
+	switch( gradient.get_optimizer() ) {
+	case Alps::Grad::SGD:
+	  {
+	    gradient_ = std::make_shared< Alps::StochasticGradientDescent< double,
+									   Eigen::MatrixXd,
+									   Eigen::MatrixXd,
+									   Alps::Arch::CPU > >();
+	    
+	    break;
+	  };
+	case Alps::Grad::MOMENTUM:
+	case Alps::Grad::ADAGRAD:
+	case Alps::Grad::Adam:
+	case Alps::Grad::UNKNOWN:
+	default:
+	  {
+	    std::string
+	      mess = std::string("The optimizer has not been implemented yet.");
+	    throw MAC::MACException( __FILE__, __LINE__,
+				     mess.c_str(),
+				     ITK_LOCATION );
+	  }
+	}
+//	//
+//	//
+//	std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
+//						   Eigen::MatrixXd > >(gradient_)->set_parameters( current_nodes,
+//												   previous_nodes + 1 );
+//	
       }
     catch( itk::ExceptionObject & err )
       {
@@ -263,8 +229,8 @@ namespace Alps
 	    typename Type2,
 	    typename Activation,
 	    typename Solver,
-	    int Dimension >
-  class WeightsConvolution< Type1, Type2, Alps::Arch::CUDA, Activation, Solver, Dimension > : public Alps::Weights< Type1, Type2 >
+	    int Dim >
+  class WeightsConvolution< Type1, Type2, Alps::Arch::CUDA, Activation, Solver, Dim > : public Alps::Weights< Type1, Type2 >
   {
     //
     // 
@@ -283,8 +249,8 @@ namespace Alps
     // Accessors
     //
     // Activation tensor from the previous layer
-    virtual void set_activation( std::vector< Alps::LayerTensors< Type1, 2 > >&,
-				 std::vector< Alps::LayerTensors< Type1, 2 > >&) override{};
+    virtual void set_activation( std::vector< Alps::LayerTensors< Type1, Dim > >&,
+				 std::vector< Alps::LayerTensors< Type1, Dim > >&) override{};
     // Get size of the tensor
     virtual const std::vector< std::size_t >      get_tensor_size() const                              override
     { return std::vector< std::size_t >(); };							      
@@ -308,10 +274,10 @@ namespace Alps
     //
     // Activate
     virtual std::tuple < std::shared_ptr< Type1 >,
-			 std::shared_ptr< Type1 > > activate( std::vector< Alps::LayerTensors< Type1, 2 > >& )       override{};
+			 std::shared_ptr< Type1 > > activate( std::vector< Alps::LayerTensors< Type1, Dim > >& )       override{};
     // Weighted error
-    virtual void                                    weighted_error( std::vector< Alps::LayerTensors< Type1, 2 > >&,
-								    std::vector< Alps::LayerTensors< Type1, 2 > >& ) override{};
+    virtual void                                    weighted_error( std::vector< Alps::LayerTensors< Type1, Dim > >&,
+								    std::vector< Alps::LayerTensors< Type1, Dim > >& ) override{};
     // Update the weights
     virtual void                            update()                                                   override{};
     // Force the update of the weights
@@ -322,34 +288,6 @@ namespace Alps
 
 
   private:
-    //
-    // private member function
-    //! Compare element wise if container1 is bigger than container2
-    bool v1_sup_v2_( std::vector< int >::const_iterator First1,
-		     std::vector< int >::const_iterator Last1,
-		     std::vector< int >::const_iterator First2 )
-    {
-      while ( First1 != Last1 ) {
-	if ( *First1 < *First2 )
-	  return false;
-	++First1; ++First2;
-      }
-      return true;
-    }
-    //! Compare element wise if container1 is less than container2
-    bool v1_inf_v2_( std::vector< int >::const_iterator First1,
-		     std::vector< int >::const_iterator Last1,
-		     std::vector< int >::const_iterator First2 )
-    {
-      while ( First1 != Last1 ) {
-	if ( !(*First1 > *First2) )
-	  return false;
-	++First1; ++First2;
-      }
-      return true;
-    }
-
-  private:
     // Matrix of weigths
     std::shared_ptr< Type2 >           weights_;
     // weights activation
@@ -357,12 +295,6 @@ namespace Alps
     //
     // The mountain observed: fully connected layer
     std::shared_ptr< Alps::Layer >     layer_;
-    //! Member representing half convolution window size.
-    std::vector< int > window_;
-    //! Member for the padding.
-    std::vector< int > padding_;
-    //! Member for the striding.
-    std::vector< int > striding_;
   };
 }
 #endif

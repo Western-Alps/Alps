@@ -33,7 +33,8 @@ namespace Alps
 	    typename Tensor2_Type,
 	    Alps::Arch Architecture,
 	    typename Activation,
-	    typename Solver >
+	    typename Solver,
+	    int      Dim >
   class WeightsFcl : public Alps::Weights< Tensor1_Type, Tensor2_Type >
   {
   public:
@@ -49,8 +50,8 @@ namespace Alps
     // Accessors
     //
     // Activation tensor from the previous layer
-    virtual void set_activations( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >&,
-				  std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) override{};
+    virtual void set_activations( std::vector< Alps::LayerTensors< Tensor1_Type, Dim > >&,
+				  std::vector< Alps::LayerTensors< Tensor1_Type, Dim > >& ) override{};
     // Get size of the tensor
     virtual const std::vector< std::size_t >   get_tensor_size() const                                override
     { return std::vector< std::size_t >(); };						      
@@ -74,10 +75,10 @@ namespace Alps
     //
     // Activate
     virtual std::tuple < std::shared_ptr< Tensor1_Type >,
-			 std::shared_ptr< Tensor1_Type > > activate( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& )       override{};
+			 std::shared_ptr< Tensor1_Type > > activate( std::vector< Alps::LayerTensors< Tensor1_Type, Dim > >& )       override{};
     // Weighted error
-    virtual void                                           weighted_error( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >&,
-									   std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) override{};
+    virtual void                                           weighted_error( std::vector< Alps::LayerTensors< Tensor1_Type, Dim > >&,
+									   std::vector< Alps::LayerTensors< Tensor1_Type, Dim > >& ) override{};
     // Update the weights
     virtual void                               update()                                               override{};
     // Force the weight update
@@ -102,8 +103,9 @@ namespace Alps
    */
   template< typename Type,
 	    typename Activation,
-	    typename Solver >
-  class WeightsFcl< Type, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Solver > : public Alps::Weights< Type, Eigen::MatrixXd >
+	    typename Solver,
+	    int      Dim >
+  class WeightsFcl< Type, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Solver, Dim > : public Alps::Weights< Type, Eigen::MatrixXd >
   {
   public:
     /** Constructor. */
@@ -118,8 +120,8 @@ namespace Alps
     // Accessors
     //
     // Activation tensor from the previous layer
-    virtual void set_activations( std::vector< Alps::LayerTensors< Type, 2 > >&,
-				  std::vector< Alps::LayerTensors< Type, 2 > >& )               override;
+    virtual void set_activations( std::vector< Alps::LayerTensors< Type, Dim > >&,
+				  std::vector< Alps::LayerTensors< Type, Dim > >& )                     override;
     // Get size of the tensor
     virtual const std::vector< std::size_t >      get_tensor_size() const                             override
     { return std::vector< std::size_t >(); };							      
@@ -143,14 +145,14 @@ namespace Alps
     //
     // Activate
     virtual std::tuple < std::shared_ptr< Type >,
-			 std::shared_ptr< Type > > activate( std::vector< Alps::LayerTensors< Type, 2 > >& )       override;
+			 std::shared_ptr< Type > > activate( std::vector< Alps::LayerTensors< Type, Dim > >& )       override;
     // Weighted error
-    virtual void                                   weighted_error( std::vector< Alps::LayerTensors< Type, 2 > >&,
-								   std::vector< Alps::LayerTensors< Type, 2 > >& ) override;
+    virtual void                                   weighted_error( std::vector< Alps::LayerTensors< Type, Dim > >&,
+								   std::vector< Alps::LayerTensors< Type, Dim > >& ) override;
     // Update the weights
-    virtual void                                   update()                                            override;
+    virtual void                                   update()                                                        override;
     // Forced the weight update
-    virtual void                                   forced_update()                                            override;
+    virtual void                                   forced_update()                                                 override;
 
 
 
@@ -169,10 +171,10 @@ namespace Alps
   //
   //
   //
-  template< typename T, typename A, typename S >
-  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S >::WeightsFcl( std::shared_ptr< Alps::Layer >    Layer,
-									     const std::vector< std::size_t >  Layer_size,
-									     const std::vector< std::size_t >  Prev_layer_size  ):
+  template< typename T, typename A, typename S, int D >
+  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S, D >::WeightsFcl( std::shared_ptr< Alps::Layer >    Layer,
+										const std::vector< std::size_t >  Layer_size,
+										const std::vector< std::size_t >  Prev_layer_size  ):
     layer_{Layer}
   {
     try
@@ -241,9 +243,9 @@ namespace Alps
   //
   //
   //
-  template< typename T, typename A, typename S > void
-  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S >::set_activations( std::vector< Alps::LayerTensors< T, 2 > >& Image_tensors,
-										  std::vector< Alps::LayerTensors< T, 2 > >& Prev_image_tensors )
+  template< typename T, typename A, typename S, int D > void
+  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S, D >::set_activations( std::vector< Alps::LayerTensors< T, D > >& Image_tensors,
+										     std::vector< Alps::LayerTensors< T, D > >& Prev_image_tensors )
   {
     try
       {
@@ -328,9 +330,9 @@ namespace Alps
   //
   //
   //
-  template< typename T, typename A, typename S > std::tuple< std::shared_ptr< T >,
-							     std::shared_ptr< T > >
-  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S >::activate( std::vector< Alps::LayerTensors< T, 2 > >& Image_tensors )
+  template< typename T, typename A, typename S, int D > std::tuple< std::shared_ptr< T >,
+								    std::shared_ptr< T > >
+  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S, D >::activate( std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
   {
     try
       {
@@ -395,9 +397,9 @@ namespace Alps
   //
   // The tensors size is the size of the weighted error tensor from the previous layer
   // The second input is the error tensor calculated at the present layer.
-  template< typename T, typename A, typename S > void
-  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S >::weighted_error( std::vector< Alps::LayerTensors< T, 2 > >& Prev_image_tensors,
-										 std::vector< Alps::LayerTensors< T, 2 > >& Image_tensors )
+  template< typename T, typename A, typename S, int D > void
+  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S, D >::weighted_error( std::vector< Alps::LayerTensors< T, D > >& Prev_image_tensors,
+										    std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
   {
     long int
       prev_tensors_size = 0,
@@ -452,8 +454,8 @@ namespace Alps
   //
   //
   //
-  template< typename T, typename A, typename S > void
-  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S >::update()
+  template< typename T, typename A, typename S, int D > void
+  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S, D >::update()
   {
     *(weights_.get()) += std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
 								    Eigen::MatrixXd > >(gradient_)->solve();
@@ -461,8 +463,8 @@ namespace Alps
   //
   //
   //
-  template< typename T, typename A, typename S > void
-  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S >::forced_update()
+  template< typename T, typename A, typename S, int D > void
+  Alps::WeightsFcl< T, Eigen::MatrixXd, Alps::Arch::CPU, A, S, D >::forced_update()
   {
     *(weights_.get()) += std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
 								    Eigen::MatrixXd > >(gradient_)->solve( true );
@@ -475,8 +477,9 @@ namespace Alps
   template< typename Type1,
 	    typename Type2,
 	    typename Activation,
-	    typename Solver >
-  class WeightsFcl< Type1, Type2, Alps::Arch::CUDA, Activation, Solver > : public Alps::Weights< Type1, Type2 >
+	    typename Solver,
+	    int      Dim >
+  class WeightsFcl< Type1, Type2, Alps::Arch::CUDA, Activation, Solver, Dim > : public Alps::Weights< Type1, Type2 >
   {
   public:
     /** Constructor. */
@@ -491,8 +494,8 @@ namespace Alps
     // Accessors
     //
     // Activation tensor from the previous layer
-    virtual void set_activation( std::vector< Alps::LayerTensors< Type1, 2 > >&,
-				 std::vector< Alps::LayerTensors< Type1, 2 > >&) override{};
+    virtual void set_activation( std::vector< Alps::LayerTensors< Type1, Dim > >&,
+				 std::vector< Alps::LayerTensors< Type1, Dim > >&) override{};
     // Get size of the tensor
     virtual const std::vector< std::size_t >      get_tensor_size() const                              override
     { return std::vector< std::size_t >(); };							      
@@ -516,10 +519,10 @@ namespace Alps
     //
     // Activate
     virtual std::tuple < std::shared_ptr< Type1 >,
-			 std::shared_ptr< Type1 > > activate( std::vector< Alps::LayerTensors< Type1, 2 > >& )       override{};
+			 std::shared_ptr< Type1 > > activate( std::vector< Alps::LayerTensors< Type1, Dim > >& )       override{};
     // Weighted error
-    virtual void                                    weighted_error( std::vector< Alps::LayerTensors< Type1, 2 > >&,
-								    std::vector< Alps::LayerTensors< Type1, 2 > >& ) override{};
+    virtual void                                    weighted_error( std::vector< Alps::LayerTensors< Type1, Dim > >&,
+								    std::vector< Alps::LayerTensors< Type1, Dim > >& ) override{};
     // Update the weights
     virtual void                            update()                                                   override{};
     // Force the update of the weights

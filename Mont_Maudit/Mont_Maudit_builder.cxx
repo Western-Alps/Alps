@@ -36,7 +36,7 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   ////////////////////////////
   using Activation       = Alps::Activation_tanh< double >;
   using Kernel           = Alps::Window< double, 2 >;
-  using Weights          = Alps::WeightsConvolution< double, Eigen::MatrixXd, Alps::Arch::CPU, Activation, Alps::SGD, 2 >;
+  using Weights          = Alps::WeightsConvolution< double, Kernel, Alps::Arch::CPU, Activation, Alps::SGD, 2 >;
   using LossFunction     = Alps::LeastSquarreEstimate< double >;
   using Convolutional    = Alps::ConvolutionLayer< Activation, Weights, Kernel, LossFunction, /*Dim*/ 2 >;
   using Deconvolutional  = Alps::TransposedConvolutionLayer< Activation, Weights, Kernel, LossFunction, /*Dim*/ 2 >;
@@ -47,7 +47,7 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   // layer 1
   // Window definition for the kernels
   std::vector< long int > h_window_1 = {1,2}; // size of the 1/2 window
-  std::vector< long int > padding_1  = {2,3}; // padding
+  std::vector< long int > padding_1  = {1,2}; // padding
   std::vector< long int > striding_1 = {1,1}; // striding
   //
   std::shared_ptr< Kernel > window_1 = std::make_shared< Kernel >( 10, // number of kernels
@@ -63,7 +63,7 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   // If the padding and stridding is the same as the window 1, the output image
   // will have exactly the same dimension.
   std::vector< long int > h_window_2 = {0,0}; // size of the 1/2 window, when the value is 0, the kernel is the size of a pixel
-  std::vector< long int > padding_2  = {2,3}; // padding
+  std::vector< long int > padding_2  = {0,0}; // padding
   std::vector< long int > striding_2 = {1,1}; // striding
   //
   std::shared_ptr< Kernel > window_2 = std::make_shared< Kernel >( 20, // number of kernels

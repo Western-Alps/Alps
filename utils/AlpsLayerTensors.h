@@ -41,6 +41,7 @@ namespace Alps
    * [0] Activation
    * [1] Derivative of the activation
    * [2] error from the layer
+   * [3] weighted error from the layer
    *
    * And memorized the tensors from  previous epoques.
    *
@@ -145,7 +146,7 @@ namespace Alps
   //
   // Constructor
   template< typename T,int D >
-  Alps::LayerTensors< T, D >::LayerTensors( const std::vector< std::size_t >         Tensor_size,
+  Alps::LayerTensors< T, D >::LayerTensors( const std::vector< std::size_t >        Tensor_size,
 					    std::tuple< std::shared_ptr< double >,
 					                std::shared_ptr< double >,
 					                std::shared_ptr< double >,
