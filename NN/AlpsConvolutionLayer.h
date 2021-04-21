@@ -184,32 +184,39 @@ namespace Alps
 	//
 	// We get the number of previous layers attached to this layer. 
 	// if the prev layer is nullptr, it represents the input data.
-	// Gather the features from other layers. Make sure the features
-	// have the same image dimensions.
+	// Gather the features from other layers.
 	std::cout << "Layer: " << layer_name_ << std::endl;
+	std::vector< Alps::LayerTensors< double, D > > attached_layers;
+	for ( auto layer : prev_layer_ )
+	  {
+	    std::string name = "__input_layer__";
+	    if ( layer.second )
+	      {
+		name = layer.first;
+		//
+		std::cout
+		  << "Connected to: " << name << std::endl;
+	      }
+	    else
+	      {
+		std::cout
+		  << "Connected to: " << name << std::endl;
+	      }
+	    //
+	    attached_layers.insert( attached_layers.end(),
+				    subject->get_layer(name).begin(), subject->get_layer(name).end() );
+	  }
+	//
+	// Make sure the features have the same image dimensions.
 	if ( convolution_window_->get_weights_matrix().nonZeros() == 0 )
 	  {
 	    // If the weights were not initialized yet
+	    // ( const typename ImageType< D >::RegionType Region )
+	    convolution_window_->get_image_information( attached_layers[0].get_image(TensorOrder1::ACTIVATION).get_image_region() );
 	    // Every layer attached to this layer should have exactly the same dimensions
 	    // from prev_layer_[0]
 	    // ToDo --> Make sure to remember the dimension and the check all the layers have the same dims
-	    for ( auto layer : prev_layer_ )
-	      {
-		std::string name = "__input_layer__";
-		if ( layer.second )
-		  {
-		    name = layer.first;
-		    //
-		    std::cout
-		      << "Connected to: " << name << std::endl;
-		  }
-		else
-		  {
-		    std::cout
-		      << "Connected to: " << name
-		      << " with " << subject->get_layer_size( name )[0] << " nodes" << std::endl;
-		  }
-	      }
+	    
 	  }
 	
 	/////////////////
@@ -233,6 +240,7 @@ namespace Alps
 						     convolution_window_, k );
 		
 	      }
+	    auto tuple = weights_[k]->activate( attached_layers );
 //	    // activation function
 //	    std::shared_ptr< double > z     = std::shared_ptr< double >( new  double[layer_size],
 //									 std::default_delete< double[] >() );
@@ -262,7 +270,7 @@ namespace Alps
 //		  name = layer.first;
 //		//
 //		// activation tuple (<0> - activation; <1> - derivative)
-//		auto tuple = weights_[name]->activate( subject->get_layer(name) );
+//		auto tuple = weQights_[name]->activate( subject->get_layer(name) );
 //		//
 //		for ( std::size_t s = 0 ; s < layer_size ; s++ )
 //		  {

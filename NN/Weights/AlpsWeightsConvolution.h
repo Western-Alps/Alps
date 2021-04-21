@@ -143,7 +143,7 @@ namespace Alps
     //
     // Activate
     virtual std::tuple < std::shared_ptr< Type >,
-			 std::shared_ptr< Type > > activate( std::vector< Alps::LayerTensors< Type, Dim > >& )       override{};
+			 std::shared_ptr< Type > > activate( std::vector< Alps::LayerTensors< Type, Dim > >& )       override;
     // Weighted error
     virtual void                                   weighted_error( std::vector< Alps::LayerTensors< Type, Dim > >&,
 								   std::vector< Alps::LayerTensors< Type, Dim > >& ) override{};
@@ -218,6 +218,53 @@ namespace Alps
 	std::cerr << err << std::endl;
 	exit(-1);
       }
+  };
+  //
+  //
+  template< typename T, typename K, typename A, typename S, int D > std::tuple< std::shared_ptr< T >,
+										std::shared_ptr< T > >
+  WeightsConvolution< T, K, Alps::Arch::CPU, A, S, D >::activate( std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
+  {
+    try
+      {
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+	exit(-1);
+      }
+	//
+	// retrieve the weight matrix
+	Eigen::SparseMatrix< int, Eigen::RowMajor > matrix_weights = weights_->get_weights_matrix();
+	std::shared_ptr< double >                   weight_val     = weights_->get_convolution_weight_values( feature_ );
+	//
+	int
+	  features_number = Image_tensors.size(),
+	  size_out        = matrix_weights.rows();
+	//
+	std::shared_ptr< T > a_out  = std::shared_ptr< T >( new  T[size_out](), //-> init to 0
+							    std::default_delete< T[] >() );
+	std::shared_ptr< T > z_out  = std::shared_ptr< T >( new  T[size_out](), //-> init to 0
+							    std::default_delete< T[] >() );
+	std::shared_ptr< T > dz_out = std::shared_ptr< T >( new  T[size_out](), //-> init to 0
+							    std::default_delete< T[] >() );
+	// compute the activation
+	for ( int f = 0 ; f < features_number ; f++ )
+	  for (int k = 0 ; k < matrix_weights.outerSize() ; ++k )
+	    for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix_weights, k); it; ++it)
+	      a_out.get()[k] += weight_val.get()[ static_cast< int >(it.value()) ]
+		* Image_tensors[f][Alps::TensorOrder1::ACTIVATION][it.index()];
+	//
+	// Compute the feature activation
+	for ( int s = 0 ; s < size_out ; s++ )
+	  {
+	    z_out.get()[s]  = activation_.f( a_out.get()[s] );
+	    dz_out.get()[s] = activation_.df( a_out.get()[s] );
+	  }
+
+    //
+    //
+    return std::make_tuple( z_out, dz_out );
   };
   /** \class WeightsConvolution
    *

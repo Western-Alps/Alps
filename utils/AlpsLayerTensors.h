@@ -94,7 +94,7 @@ namespace Alps
     Type*                                       operator[]( Alps::TensorOrder1 Idx ); 
     //
     // Implementation of () operator.  This function must return a 
-    // reference as array element of the Hadalart product between two tensors
+    // reference as array element of the Hadamart product between two tensors
     std::shared_ptr< Type >                     operator()( Alps::TensorOrder1, Alps::TensorOrder1 ); 
     //
     void                                        replace( const std::vector<std::size_t>,
