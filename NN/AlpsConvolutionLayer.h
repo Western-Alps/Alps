@@ -218,6 +218,7 @@ namespace Alps
 	    // ToDo --> Make sure to remember the dimension and the check all the layers have the same dims
 	    
 	  }
+
 	
 	/////////////////
 	// Activations //
@@ -240,19 +241,20 @@ namespace Alps
 						     convolution_window_, k );
 		
 	      }
-	    auto tuple = weights_[k]->activate( attached_layers );
+	    auto tuple   = weights_[k]->activate( attached_layers );
+	    int size_out = 0; // ToDo: from convolution_window_;
 //	    // activation function
-//	    std::shared_ptr< double > z     = std::shared_ptr< double >( new  double[layer_size],
+//	    std::shared_ptr< double > z     = std::shared_ptr< double >( new  double[layer_size](),
 //									 std::default_delete< double[] >() );
 //	    // Derivative of the activation function
-//	    std::shared_ptr< double > dz    = std::shared_ptr< double >( new  double[layer_size],
+//	    std::shared_ptr< double > dz    = std::shared_ptr< double >( new  double[layer_size](),
 //									 std::default_delete< double[] >() );
-//	    // Error back propagated in building the gradient
-//	    std::shared_ptr< double > error = std::shared_ptr< double >( new  double[layer_size],
-//									 std::default_delete< double[] >() );
-//	    // Weighted error back propagated in building the gradient
-//	    std::shared_ptr< double > werr  = std::shared_ptr< double >( new  double[layer_size],
-//									 std::default_delete< double[] >() );
+	    // Error back propagated in building the gradient
+	    std::shared_ptr< double > error = std::shared_ptr< double >( new  double[size_out](),
+									 std::default_delete< double[] >() );
+	    // Weighted error back propagated in building the gradient
+	    std::shared_ptr< double > werr  = std::shared_ptr< double >( new  double[size_out](),
+									 std::default_delete< double[] >() );
 //	    // initialize to 0
 //	    for ( std::size_t s = 0 ; s < layer_size ; s++ )
 //	      {
@@ -261,75 +263,24 @@ namespace Alps
 //		error.get()[s] = 0.;
 //		werr.get()[s]  = 0.;
 //	      }
-//	    // We concaten the tensors from any layer connected to this layer
-//	    for ( auto layer : prev_layer_ )
-//	      {
-//		std::string name = "__input_layer__";
-//		if ( layer.second )
-//		  // If the pointer exist, this is not the input layer
-//		  name = layer.first;
-//		//
-//		// activation tuple (<0> - activation; <1> - derivative)
-//		auto tuple = weQights_[name]->activate( subject->get_layer(name) );
-//		//
-//		for ( std::size_t s = 0 ; s < layer_size ; s++ )
-//		  {
-//		    z.get()[s]  += std::get< Act::ACTIVATION >(tuple).get()[s];
-//		    dz.get()[s] += std::get< Act::DERIVATIVE >(tuple).get()[s];
-//		  }
-//	      }
-//	    //
-//	    // Get the activation tuple (<0> - activation; <1> - derivative; <2> - error)
-//	    std::tuple< std::shared_ptr< double >,
-//			std::shared_ptr< double >,
-//			std::shared_ptr< double >,
-//			std::shared_ptr< double > > current_activation = std::make_tuple( z, dz, error, werr );
+	    //
+	    // Get the activation tuple (<0> - activation; <1> - derivative; <2> - error)
+	    std::tuple< std::shared_ptr< double >,
+			std::shared_ptr< double >,
+			std::shared_ptr< double >,
+			std::shared_ptr< double > > current_activation = std::make_tuple( std::get< Act::ACTIVATION >(tuple),
+											  std::get< Act::DERIVATIVE >(tuple),
+											  error, werr );
 	  }
 	    
 	
-//	//////////////////////////////////////
-//	// Save the activation information //
-//	/////////////////////////////////////
-//	//
-//	// If we are at the last level, we can estimate the error of the image target
-//	// with the fit
-//	if ( layer_name_ == "__output_layer__" )
-//	  {
-//	    //
-//	    // Get image target from subject
-//	    auto target = subject->get_target();
-//	    // Get the size of the target and compare to the fit
-//	    std::vector< std::size_t > size_target = target.get_tensor_size();
-//	    // Check we are comparing the same thing
-//	    if( size_target[0] != fc_layer_size_[0])
-//	      {
-//		std::string
-//		  mess = "The target (" + std::to_string( size_target[0] );
-//		mess  += ") and the fit (" + std::to_string( fc_layer_size_[0] );
-//		mess  += ") does not match.";
-//		throw MAC::MACException( __FILE__, __LINE__,
-//					 mess.c_str(),
-//					 ITK_LOCATION );
-//	      }
-//	    //
-//	    // Cost function. 
-//	    C cost;
-//	    // Returns the error at the image level
-//	    std::get< Act::ERROR >( current_activation ) = cost.dL( (std::get< Act::ACTIVATION >( current_activation )).get(),
-//								     target.get_tensor().get(),
-//								     (std::get< Act::DERIVATIVE >( current_activation )).get(),
-//								     fc_layer_size_[0] );
-//	    // Save the energy for this image
-//	    double energy = cost.L( (std::get< Act::ACTIVATION >( current_activation )).get(),
-//				    target.get_tensor().get(),
-//				    fc_layer_size_[0] );
-//	    // record the energy for the image
-//	    subject->set_energy( energy );
-//	  }
-//	//
-//	// If the layer does not exist, for the image, it creates it.
-//	// Otherwise, it replace the values from the last epoque and save the previouse epoque.
-//	subject->add_layer( layer_name_, fc_layer_size_,
+	//////////////////////////////////////
+	// Save the activation information //
+	/////////////////////////////////////
+	//
+	// If the layer does not exist, for the image, it creates it.
+	// Otherwise, it replace the values from the last epoque and save the previouse epoque.
+//	subject->add_layer( layer_name_, convolution_window_->get_output_image_dimensions(),
 //			    current_activation );
       }
     catch( itk::ExceptionObject & err )

@@ -227,6 +227,7 @@ namespace Alps
   {
     try
       {
+	// ToDo: add some checks
       }
     catch( itk::ExceptionObject & err )
       {

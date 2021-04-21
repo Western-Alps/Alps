@@ -226,25 +226,25 @@ namespace Alps
 	//
 	std::size_t layer_size = fc_layer_size_[0];
 	// activation function
-	std::shared_ptr< double > z     = std::shared_ptr< double >( new  double[layer_size],
+	std::shared_ptr< double > z     = std::shared_ptr< double >( new  double[layer_size](), //-> init to 0
 								     std::default_delete< double[] >() );
 	// Derivative of the activation function
-	std::shared_ptr< double > dz    = std::shared_ptr< double >( new  double[layer_size],
+	std::shared_ptr< double > dz    = std::shared_ptr< double >( new  double[layer_size](), //-> init to 0
 								     std::default_delete< double[] >() );
 	// Error back propagated in building the gradient
-	std::shared_ptr< double > error = std::shared_ptr< double >( new  double[layer_size],
+	std::shared_ptr< double > error = std::shared_ptr< double >( new  double[layer_size](), //-> init to 0
 								     std::default_delete< double[] >() );
 	// Weighted error back propagated in building the gradient
-	std::shared_ptr< double > werr  = std::shared_ptr< double >( new  double[layer_size],
+	std::shared_ptr< double > werr  = std::shared_ptr< double >( new  double[layer_size](), //-> init to 0
 								     std::default_delete< double[] >() );
-	// initialize to 0
-	for ( std::size_t s = 0 ; s < layer_size ; s++ )
-	  {
-	    z.get()[s]     = 0.;
-	    dz.get()[s]    = 0.;
-	    error.get()[s] = 0.;
-	    werr.get()[s]  = 0.;
-	  }
+//	// initialize to 0
+//	for ( std::size_t s = 0 ; s < layer_size ; s++ )
+//	  {
+//	    z.get()[s]     = 0.;
+//	    dz.get()[s]    = 0.;
+//	    error.get()[s] = 0.;
+//	    werr.get()[s]  = 0.;
+//	  }
 	// We concaten the tensors from any layer connected to this layer
 	for ( auto layer : prev_layer_ )
 	  {
