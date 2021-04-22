@@ -214,9 +214,14 @@ namespace Alps
 	    // ( const typename ImageType< D >::RegionType Region )
 	    convolution_window_->get_image_information( attached_layers[0].get_image(TensorOrder1::ACTIVATION).get_image_region() );
 	    // Every layer attached to this layer should have exactly the same dimensions
-	    // from prev_layer_[0]
-	    // ToDo --> Make sure to remember the dimension and the check all the layers have the same dims
-	    
+	    std::size_t tot_features = attached_layers.size();
+	    std::size_t tensor_size  = attached_layers[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
+	    //
+	    for ( std::size_t feature = 1 ; feature < tot_features ; feature++ )
+	      if ( tensor_size != attached_layers[feature].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0] )
+		throw MAC::MACException( __FILE__, __LINE__,
+					 "All attached layers must have the same dimensions feature output.",
+					 ITK_LOCATION );
 	  }
 
 	
@@ -225,9 +230,7 @@ namespace Alps
 	/////////////////
 	//
 	// The layer_size, here, represents the size of the output image
-	std::size_t layer_size = 1;
-	for ( int d = 0 ; d < D ; d++ )
-	  layer_size *= convolution_window_->get_output_image_dimensions()[d];
+	std::size_t layer_size = attached_layers[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
 	//
 	// Loop over the K kernels
 	int kernels = convolution_window_->get_number_kernel();
@@ -242,7 +245,6 @@ namespace Alps
 		
 	      }
 	    auto tuple   = weights_[k]->activate( attached_layers );
-	    int size_out = 0; // ToDo: from convolution_window_;
 //	    // activation function
 //	    std::shared_ptr< double > z     = std::shared_ptr< double >( new  double[layer_size](),
 //									 std::default_delete< double[] >() );
@@ -250,10 +252,10 @@ namespace Alps
 //	    std::shared_ptr< double > dz    = std::shared_ptr< double >( new  double[layer_size](),
 //									 std::default_delete< double[] >() );
 	    // Error back propagated in building the gradient
-	    std::shared_ptr< double > error = std::shared_ptr< double >( new  double[size_out](),
+	    std::shared_ptr< double > error = std::shared_ptr< double >( new  double[layer_size](),
 									 std::default_delete< double[] >() );
 	    // Weighted error back propagated in building the gradient
-	    std::shared_ptr< double > werr  = std::shared_ptr< double >( new  double[size_out](),
+	    std::shared_ptr< double > werr  = std::shared_ptr< double >( new  double[layer_size](),
 									 std::default_delete< double[] >() );
 //	    // initialize to 0
 //	    for ( std::size_t s = 0 ; s < layer_size ; s++ )
