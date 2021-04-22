@@ -88,9 +88,17 @@ namespace Alps
     // Check the modalities
     const bool                                        check_modalities() const 
     { return (number_modalities_ == modalities_.size() ? true : false);};
-    // Add a layer
+    // Add a dense layer
     void                                              add_layer( const std::string,
-								 const std::vector<std::size_t>,
+								 const std::vector< std::size_t >,
+								 std::tuple< std::shared_ptr< double >,
+								              std::shared_ptr< double >,
+								              std::shared_ptr< double >,
+								              std::shared_ptr< double > > );
+    // Add a convolutional layer
+    void                                              add_layer( const std::string,
+								 const int,
+								 const std::array< std::size_t, Dim >,
 								 std::tuple< std::shared_ptr< double >,
 								              std::shared_ptr< double >,
 								              std::shared_ptr< double >,
@@ -271,6 +279,55 @@ namespace Alps
 	else
 	  layer_modalities_[ Layer_name ][0].replace( Layer_size,
 						      Tensors_activation );
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+      }
+  }
+  //
+  //
+  // 
+  template< int D > void
+  Alps::Subject< D >::add_layer( const std::string                       Layer_name,
+				 const int                               Kernel,
+				 const std::array< std::size_t, D >      Layer_size,
+				 std::tuple< std::shared_ptr< double >,
+				             std::shared_ptr< double >,
+				             std::shared_ptr< double >,
+				             std::shared_ptr< double > > Tensors_activation )
+  {
+    try
+      {
+	//
+	// Check the layer exist
+	auto layer = layer_modalities_.find( Layer_name );
+	//
+	if ( layer == layer_modalities_.end() )
+	  {
+	    layer_modalities_[ Layer_name ] = std::vector< Alps::LayerTensors< double, D > >();
+	    layer_modalities_[ Layer_name ].push_back( Alps::LayerTensors< double, D >(Layer_size,
+										       Tensors_activation) );
+	  }
+	else
+	  {
+	    if ( layer_modalities_[ Layer_name ].size() < static_cast< std::size_t >(Kernel + 1) )
+	      {
+		layer_modalities_[ Layer_name ].push_back( Alps::LayerTensors< double, D >(Layer_size,
+											   Tensors_activation) );
+		//
+		if ( layer_modalities_[ Layer_name ].size() != static_cast< std::size_t >(Kernel + 1) )
+		  {
+		    std::string mess = "Synchronization issue between the number of features recorded and the current feature.";
+		    throw MAC::MACException( __FILE__, __LINE__,
+					     mess.c_str(),
+					     ITK_LOCATION );
+		  }
+	      }
+	    else
+	      layer_modalities_[ Layer_name ][Kernel].replace( Layer_size,
+							       Tensors_activation );
+	  }
       }
     catch( itk::ExceptionObject & err )
       {

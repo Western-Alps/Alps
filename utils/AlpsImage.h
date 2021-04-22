@@ -38,7 +38,9 @@ namespace Alps
     /** Constructor */
     Image( const typename Reader< Dim >::Pointer );
     /** Constructor */
-    Image( const std::vector< std::size_t >, std::shared_ptr< double > );
+    Image( const std::vector< std::size_t >,     std::shared_ptr< double > );
+    /** Constructor */
+    Image( const std::array< std::size_t, Dim >, std::shared_ptr< double > );
     /* Destructor */
     virtual ~Image(){};
 
@@ -154,6 +156,28 @@ namespace Alps
 			      std::shared_ptr< double >        Tensor ):
     tensor_size_{Tensor_size}, tensor_{Tensor}
   {}
+  //
+  //
+  // Constructor
+  template< typename T,int D >
+  Alps::Image< T, D >::Image( const std::array< std::size_t, D > Tensor_size,
+			      std::shared_ptr< double >          Tensor ):
+    tensor_{Tensor}
+  {
+    //
+    // Create the region
+    //
+    for ( int d = 0 ; d < D ; d++ )
+      {
+	size_[d]         = Tensor_size[d];
+	start_[d]        = 0;
+	tensor_size_[0] *= size_[d];
+      }
+    //
+    // Resize elements
+    region_.SetSize( size_ );
+    region_.SetIndex( start_ );
+  }
   //
   //
   // Operator []

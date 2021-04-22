@@ -52,7 +52,7 @@ namespace Alps
       const std::vector< long int >                      get_convolution_striding() const
       { return s_;};
       //! get the number of voxel output per dimension
-      const std::array< int, Dim>                        get_output_image_dimensions() const
+      const std::array< std::size_t, Dim>                get_output_image_dimensions() const
       { return n_out_; };
       // Sparse matrix holding the index od=f the weights
       const Eigen::SparseMatrix< int, Eigen::RowMajor >& get_weights_matrix() const
@@ -104,7 +104,7 @@ namespace Alps
 
       //
       //! Member representing the number of voxel output per dimension
-      std::array< int, Dim >                       n_out_;
+      std::array< std::size_t, Dim >               n_out_;
       // Sparse matrix holding the index od=f the weights
       Eigen::SparseMatrix< int, Eigen::RowMajor >  weights_matrix_;
       //! Array with the values of the weights
@@ -217,7 +217,7 @@ namespace Alps
 	for ( long int d = 0 ; d < D ; d++ )
 	  {
 	    if ( static_cast<long int>(size[d]) > 2 * (w_[d] - p_[d]) )
-	      n_out_[d] = ( static_cast<long int>(size[d]) - 2 * (w_[d] - p_[d]) ) / s_[d];
+	      n_out_[d] = ( static_cast< std::size_t >(size[d]) - 2 * (w_[d] - p_[d]) ) / s_[d];
 	    else
 	      throw MAC::MACException( __FILE__, __LINE__,
 				       "The window dimensions exceed the input image size.",

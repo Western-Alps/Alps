@@ -271,17 +271,18 @@ namespace Alps
 			std::shared_ptr< double > > current_activation = std::make_tuple( std::get< Act::ACTIVATION >(tuple),
 											  std::get< Act::DERIVATIVE >(tuple),
 											  error, werr );
-	  }
 	    
-	
-	//////////////////////////////////////
-	// Save the activation information //
-	/////////////////////////////////////
-	//
-	// If the layer does not exist, for the image, it creates it.
-	// Otherwise, it replace the values from the last epoque and save the previouse epoque.
-//	subject->add_layer( layer_name_, convolution_window_->get_output_image_dimensions(),
-//			    current_activation );
+	    
+	    //////////////////////////////////////
+	    // Save the activation information //
+	    /////////////////////////////////////
+	    //
+	    // If the layer does not exist, for the image, it creates it.
+	    // Otherwise, it replace the values from the last epoque and save the previouse epoque.
+	    subject->add_layer( layer_name_, k,
+				convolution_window_->get_output_image_dimensions(),
+				current_activation );
+	  }
       }
     catch( itk::ExceptionObject & err )
       {

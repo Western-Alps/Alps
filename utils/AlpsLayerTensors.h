@@ -58,6 +58,12 @@ namespace Alps
 		              std::shared_ptr< double >,
 		              std::shared_ptr< double >,
 		              std::shared_ptr< double > > );
+    /** Constructor */
+    LayerTensors( const std::array< std::size_t, Dim >,
+		  std::tuple< std::shared_ptr< double >,
+		              std::shared_ptr< double >,
+		              std::shared_ptr< double >,
+		              std::shared_ptr< double > > );
     /* Destructor */
     virtual ~LayerTensors(){};
 
@@ -97,7 +103,13 @@ namespace Alps
     // reference as array element of the Hadamart product between two tensors
     std::shared_ptr< Type >                     operator()( Alps::TensorOrder1, Alps::TensorOrder1 ); 
     //
-    void                                        replace( const std::vector<std::size_t>,
+    void                                        replace( const std::vector< std::size_t >,
+							  std::tuple< std::shared_ptr< double >,
+							              std::shared_ptr< double >,
+							              std::shared_ptr< double >,
+							              std::shared_ptr< double > >);  
+    //
+    void                                        replace( const std::array< std::size_t, Dim >,
 							  std::tuple< std::shared_ptr< double >,
 							              std::shared_ptr< double >,
 							              std::shared_ptr< double >,
@@ -147,6 +159,30 @@ namespace Alps
   // Constructor
   template< typename T,int D >
   Alps::LayerTensors< T, D >::LayerTensors( const std::vector< std::size_t >        Tensor_size,
+					    std::tuple< std::shared_ptr< double >,
+					                std::shared_ptr< double >,
+					                std::shared_ptr< double >,
+					                std::shared_ptr< double > > Tensors )
+  {
+    try
+      {
+	//
+	// Load the modalities into the container
+	tensors_[0] = Alps::Image< double, D >( Tensor_size, std::get< 0 >( Tensors ) );
+	tensors_[1] = Alps::Image< double, D >( Tensor_size, std::get< 1 >( Tensors ) );
+	tensors_[2] = Alps::Image< double, D >( Tensor_size, std::get< 2 >( Tensors ) );
+	tensors_[3] = Alps::Image< double, D >( Tensor_size, std::get< 3 >( Tensors ) );
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+      }
+  }
+  //
+  //
+  // Constructor
+  template< typename T,int D >
+  Alps::LayerTensors< T, D >::LayerTensors( const std::array< std::size_t, D >      Tensor_size,
 					    std::tuple< std::shared_ptr< double >,
 					                std::shared_ptr< double >,
 					                std::shared_ptr< double >,
@@ -251,7 +287,35 @@ namespace Alps
   //
   // 
   template< typename T,int D > void
-  Alps::LayerTensors< T, D >::replace( const std::vector<std::size_t>          Tensor_size,
+  Alps::LayerTensors< T, D >::replace( const std::vector< std::size_t >        Tensor_size,
+				       std::tuple< std::shared_ptr< double >,
+				                   std::shared_ptr< double >,
+				                   std::shared_ptr< double >,
+					           std::shared_ptr< double > > Tensors )
+  {
+    try
+      {
+	//
+	// Save the previous set of neurons
+	previous_epoque_tensors_.push_back( tensors_ );
+	//
+	tensors_    = std::array< Alps::Image< T, D >, 4 >();
+	// Load new tensors
+	tensors_[0] = Alps::Image< double, D >( Tensor_size, std::get< 0 >( Tensors ) );
+	tensors_[1] = Alps::Image< double, D >( Tensor_size, std::get< 1 >( Tensors ) );
+	tensors_[2] = Alps::Image< double, D >( Tensor_size, std::get< 2 >( Tensors ) );
+	tensors_[3] = Alps::Image< double, D >( Tensor_size, std::get< 3 >( Tensors ) );
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+      }
+  }
+  //
+  //
+  // 
+  template< typename T,int D > void
+  Alps::LayerTensors< T, D >::replace( const std::array< std::size_t, D >      Tensor_size,
 				       std::tuple< std::shared_ptr< double >,
 				                   std::shared_ptr< double >,
 				                   std::shared_ptr< double >,
