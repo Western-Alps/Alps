@@ -1,5 +1,5 @@
-#ifndef ALPSCONVOLUTIONLAYER_H
-#define ALPSCONVOLUTIONLAYER_H
+#ifndef ALPSRECONSTRUCTIONLAYER_H
+#define ALPSRECONSTRUCTIONLAYER_H
 //
 //
 //
@@ -19,31 +19,30 @@
 //
 namespace Alps
 {
-  /** \class ConvolutionLayer
+  /** \class ReconstructionLayer
    *
    * \brief 
-   * ConvolutionLayer class represents the basic layer element that can be used 
-   * into a convolutional neural network.
+   * ReconstructionLayer class combined information from multiple convolutional
+   * feature maps layers to build the cost function. 
    * 
    */
   template< typename ActivationFunction,
 	    typename Weights,
-	    typename Kernel,
 	    typename CostFunction,
 	    int Dim  >
-  class ConvolutionLayer : public Alps::Layer,
-			   public Alps::Mountain
+  class ReconstructionLayer : public Alps::Layer,
+			      public Alps::Mountain
   {
     //
     //
-    using Self = ConvolutionLayer< ActivationFunction, Weights, Kernel, CostFunction, Dim >;
+    using Self = ReconstructionLayer< ActivationFunction, Weights, CostFunction, Dim >;
     //
     // 
   public:
     /** Constructor. */
-    explicit ConvolutionLayer( const std::string, std::shared_ptr< Kernel > );
+    explicit ReconstructionLayer( const std::string );
     /** Destructor */
-    virtual ~ConvolutionLayer(){};
+    virtual ~ReconstructionLayer(){};
 
     
     //
@@ -89,11 +88,9 @@ namespace Alps
     // layer unique ID
     std::size_t                                         layer_id_{0};
     // Layer's name
-    std::string                                         layer_name_{"__Convolution_layer__"};
+    std::string                                         layer_name_{"__Reconstruction_layer__"};
       
     //
-    // Convolution window
-    std::shared_ptr< Kernel >                           convolution_window_;
     // enumeration for the naming convention
     enum Act
       {
@@ -113,16 +110,14 @@ namespace Alps
     //
     // Observers
     // Observers containers
-    std::map< /* kernel number */ int,
-	       std::shared_ptr< Weights > >              weights_;
+    std::shared_ptr< Weights >                          weights_;
   };
   //
   //
   //
-  template< typename AF, typename W, typename K, typename C, int D >
-  ConvolutionLayer< AF, W, K, C, D >::ConvolutionLayer( const std::string    Layer_name,
-							std::shared_ptr< K > Convolution_window ):
-    layer_name_{Layer_name}, convolution_window_{Convolution_window}
+  template< typename AF, typename W, typename C, int D >
+  ReconstructionLayer< AF, W, C, D >::ReconstructionLayer( const std::string Layer_name ):
+    layer_name_{Layer_name}
   {
     try
       {
@@ -133,12 +128,6 @@ namespace Alps
 	std::uniform_int_distribution< int > distribution( 0, 1UL << 16 );
 	//
 	layer_id_ = distribution( generator );
-
-	//
-	//
-	int kernels = convolution_window_->get_number_kernel();
-	for ( int k = 0 ; k < kernels ; k++ )
-	  weights_[k] = nullptr;
       }
     catch( itk::ExceptionObject & err )
       {
@@ -149,8 +138,8 @@ namespace Alps
   //
   //
   //
-  template< typename AF, typename W, typename K, typename C, int D > void
-  ConvolutionLayer< AF, W, K, C, D >::add_layer( std::shared_ptr< Alps::Layer > Layer )
+  template< typename AF, typename W, typename C, int D > void
+  ReconstructionLayer< AF, W, C, D >::add_layer( std::shared_ptr< Alps::Layer > Layer )
   {
     try
       {
@@ -168,8 +157,8 @@ namespace Alps
   //
   //
   //
-  template< typename AF, typename W, typename K, typename C, int D > void
-  ConvolutionLayer< AF, W, K, C, D >::forward( std::shared_ptr< Alps::Climber > Sub )
+  template< typename AF, typename W, typename C, int D > void
+  ReconstructionLayer< AF, W, C, D >::forward( std::shared_ptr< Alps::Climber > Sub )
   {
     try
       {
@@ -208,22 +197,7 @@ namespace Alps
 	  }
 	//
 	// Make sure the features have the same image dimensions.
-	if ( convolution_window_->get_weights_matrix().nonZeros() == 0 )
-	  {
-	    // If the weights were not initialized yet
-	    // ( const typename ImageType< D >::RegionType Region )
-	    convolution_window_->get_image_information( attached_layers[0].get_image(TensorOrder1::ACTIVATION).get_image_region() );
-	    // Every layer attached to this layer should have exactly the same dimensions
-	    std::size_t tot_features = attached_layers.size();
-	    std::size_t tensor_size  = attached_layers[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
-	    //
-	    for ( std::size_t feature = 1 ; feature < tot_features ; feature++ )
-	      if ( tensor_size != attached_layers[feature].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0] )
-		throw MAC::MACException( __FILE__, __LINE__,
-					 "All attached layers must have the same dimensions feature output.",
-					 ITK_LOCATION );
-	  }
-
+	
 	
 	/////////////////
 	// Activations //
@@ -232,31 +206,25 @@ namespace Alps
 	// The layer_size, here, represents the size of the output image
 	std::size_t layer_size = attached_layers[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
 	//
-	// Loop over the K kernels
-	int kernels = convolution_window_->get_number_kernel();
-	for ( int k = 0 ; k < kernels ; k++ )
+	// Check the weights were created
+	if ( !weights_ )
 	  {
-	    //
-	    // Check the weights were created
-	    if ( !weights_[k] )
-	      {
-		weights_[k] = std::make_shared< W >( std::shared_ptr< ConvolutionLayer< AF, W, K, C, D > >( this ),
-						     convolution_window_, k );
-		
-	      }
-	    auto tuple   = weights_[k]->activate( attached_layers );
+//	    weights_ = std::make_shared< W >( std::shared_ptr< ReconstructionLayer< AF, W, C, D > >( this ),
+//					      convolution_window_, k );
+	  }
+	auto tuple   = weights_->activate( attached_layers );
 //	    // activation function
 //	    std::shared_ptr< double > z     = std::shared_ptr< double >( new  double[layer_size](),
 //									 std::default_delete< double[] >() );
 //	    // Derivative of the activation function
 //	    std::shared_ptr< double > dz    = std::shared_ptr< double >( new  double[layer_size](),
 //									 std::default_delete< double[] >() );
-	    // Error back propagated in building the gradient
-	    std::shared_ptr< double > error = std::shared_ptr< double >( new  double[layer_size](),
-									 std::default_delete< double[] >() );
-	    // Weighted error back propagated in building the gradient
-	    std::shared_ptr< double > werr  = std::shared_ptr< double >( new  double[layer_size](),
-									 std::default_delete< double[] >() );
+	// Error back propagated in building the gradient
+	std::shared_ptr< double > error = std::shared_ptr< double >( new  double[layer_size](),
+								     std::default_delete< double[] >() );
+	// Weighted error back propagated in building the gradient
+	std::shared_ptr< double > werr  = std::shared_ptr< double >( new  double[layer_size](),
+								     std::default_delete< double[] >() );
 //	    // initialize to 0
 //	    for ( std::size_t s = 0 ; s < layer_size ; s++ )
 //	      {
@@ -265,26 +233,25 @@ namespace Alps
 //		error.get()[s] = 0.;
 //		werr.get()[s]  = 0.;
 //	      }
-	    //
-	    // Get the activation tuple (<0> - activation; <1> - derivative; <2> - error)
-	    std::tuple< std::shared_ptr< double >,
-			std::shared_ptr< double >,
-			std::shared_ptr< double >,
-			std::shared_ptr< double > > current_activation = std::make_tuple( std::get< Act::ACTIVATION >(tuple),
-											  std::get< Act::DERIVATIVE >(tuple),
-											  error, werr );
-	    
-	    
-	    //////////////////////////////////////
-	    // Save the activation information //
-	    /////////////////////////////////////
-	    //
-	    // If the layer does not exist, for the image, it creates it.
-	    // Otherwise, it replace the values from the last epoque and save the previouse epoque.
-	    subject->add_layer( layer_name_, k,
-				convolution_window_->get_output_image_dimensions(),
-				current_activation );
-	  }
+	//
+	// Get the activation tuple (<0> - activation; <1> - derivative; <2> - error)
+	std::tuple< std::shared_ptr< double >,
+		    std::shared_ptr< double >,
+		    std::shared_ptr< double >,
+		    std::shared_ptr< double > > current_activation = std::make_tuple( std::get< Act::ACTIVATION >(tuple),
+										      std::get< Act::DERIVATIVE >(tuple),
+										      error, werr );
+	
+	
+	//////////////////////////////////////
+	// Save the activation information //
+	/////////////////////////////////////
+	//
+	// If the layer does not exist, for the image, it creates it.
+	// Otherwise, it replace the values from the last epoque and save the previouse epoque.
+//	subject->add_layer( layer_name_, k,
+//			    convolution_window_->get_output_image_dimensions(),
+//			    current_activation );
       }
     catch( itk::ExceptionObject & err )
       {
@@ -295,8 +262,8 @@ namespace Alps
   //
   //
   //
-  template< typename AF, typename W, typename K, typename C, int D > void
-  ConvolutionLayer< AF, W, K, C, D >::backward( std::shared_ptr< Alps::Climber > Sub )
+  template< typename AF, typename W, typename C, int D > void
+  ReconstructionLayer< AF, W, C, D >::backward( std::shared_ptr< Alps::Climber > Sub )
   {
     try
       {
@@ -354,8 +321,8 @@ namespace Alps
   //
   //
   //
-  template< typename AF, typename W, typename K, typename C, int D > void
-  ConvolutionLayer< AF, W, K, C, D >::weight_update( std::shared_ptr< Alps::Climber > Sub )
+  template< typename AF, typename W, typename C, int D > void
+  ReconstructionLayer< AF, W, C, D >::weight_update( std::shared_ptr< Alps::Climber > Sub )
   {
     try
       {
