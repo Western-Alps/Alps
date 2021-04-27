@@ -209,8 +209,7 @@ namespace Alps
 	// Check the weights were created
 	if ( !weights_ )
 	  {
-//	    weights_ = std::make_shared< W >( std::shared_ptr< ReconstructionLayer< AF, W, C, D > >( this ),
-//					      convolution_window_, k );
+	    weights_ = std::make_shared< W >( std::shared_ptr< ReconstructionLayer< AF, W, C, D > >(this) );
 	  }
 	auto tuple   = weights_->activate( attached_layers );
 //	    // activation function

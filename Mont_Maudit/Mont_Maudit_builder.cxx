@@ -8,6 +8,7 @@
 #include "Mont_Maudit_builder.h"
 #include "AlpsWindow.h"
 #include "AlpsWeightsConvolution.h"
+#include "AlpsWeightsReconstruction.h"
 #include "AlpsSGD.h"
 #include "AlpsActivations.h"
 #include "AlpsCostFunction.h"
@@ -39,10 +40,11 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   using Tanh             = Alps::Activation_tanh< double >;
   using Kernel           = Alps::Window< double, 2 >;
   using Weights          = Alps::WeightsConvolution< double, Kernel, Alps::Arch::CPU, Tanh, Alps::SGD, 2 >;
+  using ReconWeights     = Alps::WeightsReconstruction< double, Alps::Arch::CPU, Sigmoid, Alps::SGD, 2 >;
   using LossFunction     = Alps::LeastSquarreEstimate< double >;
   using Convolutional    = Alps::ConvolutionLayer< Tanh, Weights, Kernel, LossFunction, /*Dim*/ 2 >;
   using Deconvolutional  = Alps::TransposedConvolutionLayer< Tanh, Weights, Kernel, LossFunction, /*Dim*/ 2 >;
-  using Reconstruction   = Alps::ReconstructionLayer< Sigmoid, Weights, LossFunction, /*Dim*/ 2 >;
+  using Reconstruction   = Alps::ReconstructionLayer< Sigmoid, ReconWeights, LossFunction, /*Dim*/ 2 >;
 
   //////////////////////////
   // Convolutional layers //
