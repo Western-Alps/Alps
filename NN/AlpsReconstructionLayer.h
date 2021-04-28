@@ -171,9 +171,9 @@ namespace Alps
 	// Create the weights //
 	////////////////////////
 	//
-	// We get the number of previous layers attached to this layer. 
+	// We get features or inputs from previous layers attached to this layer. 
 	// if the prev layer is nullptr, it represents the input data.
-	// Gather the features from other layers.
+	// ToDo: check if we can do an alias instead of copying the LayerTensors
 	std::cout << "Layer: " << layer_name_ << std::endl;
 	std::vector< Alps::LayerTensors< double, D > > attached_layers;
 	for ( auto layer : prev_layer_ )
@@ -182,29 +182,29 @@ namespace Alps
 	    if ( layer.second )
 	      {
 		name = layer.first;
-		//
-		std::cout
-		  << "Connected to: " << name << std::endl;
+		std::cout << "Connected to: " << name << std::endl;
 	      }
 	    else
-	      {
-		std::cout
-		  << "Connected to: " << name << std::endl;
-	      }
+	      std::cout << "Connected to: " << name << std::endl;
 	    //
 	    attached_layers.insert( attached_layers.end(),
 				    subject->get_layer(name).begin(), subject->get_layer(name).end() );
 	  }
 	//
 	// Make sure the features have the same image dimensions.
-	
+	std::size_t tot_features = attached_layers.size();
+	std::size_t layer_size   = attached_layers[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
+	//
+	for ( std::size_t feature = 1 ; feature < tot_features ; feature++ )
+	  if ( layer_size != attached_layers[feature].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0] )
+	    throw MAC::MACException( __FILE__, __LINE__,
+				     "All attached layers must have the same dimensions for the output features.",
+				     ITK_LOCATION );
+
 	
 	/////////////////
 	// Activations //
 	/////////////////
-	//
-	// The layer_size, here, represents the size of the output image
-	std::size_t layer_size = attached_layers[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
 	//
 	// Check the weights were created
 	if ( !weights_ )
@@ -212,26 +212,12 @@ namespace Alps
 	    weights_ = std::make_shared< W >( std::shared_ptr< ReconstructionLayer< AF, W, C, D > >(this) );
 	  }
 	auto tuple   = weights_->activate( attached_layers );
-//	    // activation function
-//	    std::shared_ptr< double > z     = std::shared_ptr< double >( new  double[layer_size](),
-//									 std::default_delete< double[] >() );
-//	    // Derivative of the activation function
-//	    std::shared_ptr< double > dz    = std::shared_ptr< double >( new  double[layer_size](),
-//									 std::default_delete< double[] >() );
 	// Error back propagated in building the gradient
 	std::shared_ptr< double > error = std::shared_ptr< double >( new  double[layer_size](),
 								     std::default_delete< double[] >() );
 	// Weighted error back propagated in building the gradient
 	std::shared_ptr< double > werr  = std::shared_ptr< double >( new  double[layer_size](),
 								     std::default_delete< double[] >() );
-//	    // initialize to 0
-//	    for ( std::size_t s = 0 ; s < layer_size ; s++ )
-//	      {
-//		z.get()[s]     = 0.;
-//		dz.get()[s]    = 0.;
-//		error.get()[s] = 0.;
-//		werr.get()[s]  = 0.;
-//	      }
 	//
 	// Get the activation tuple (<0> - activation; <1> - derivative; <2> - error)
 	std::tuple< std::shared_ptr< double >,

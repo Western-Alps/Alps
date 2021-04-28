@@ -259,8 +259,8 @@ namespace Alps
 	// Compute the feature activation
 	for ( int s = 0 ; s < size_out ; s++ )
 	  {
-	    z_out.get()[s]  = activation_.f( a_out.get()[s] );
-	    dz_out.get()[s] = activation_.df( a_out.get()[s] );
+	    z_out.get()[s]  = activation_.f( a_out.get()[s] + weight_val.get()[0] );  // add the bias
+	    dz_out.get()[s] = activation_.df( a_out.get()[s] + weight_val.get()[0] ); // add the bias
 	  }
 
     //

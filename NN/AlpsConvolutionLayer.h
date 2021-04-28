@@ -182,9 +182,9 @@ namespace Alps
 	// Create the weights //
 	////////////////////////
 	//
-	// We get the number of previous layers attached to this layer. 
+	// We get features or inputs from previous layers attached to this layer. 
 	// if the prev layer is nullptr, it represents the input data.
-	// Gather the features from other layers.
+	// ToDo: check if we can do an alias instead of copying the LayerTensors
 	std::cout << "Layer: " << layer_name_ << std::endl;
 	std::vector< Alps::LayerTensors< double, D > > attached_layers;
 	for ( auto layer : prev_layer_ )
@@ -193,46 +193,36 @@ namespace Alps
 	    if ( layer.second )
 	      {
 		name = layer.first;
-		//
-		std::cout
-		  << "Connected to: " << name << std::endl;
+		std::cout << "Connected to: " << name << std::endl;
 	      }
 	    else
-	      {
-		std::cout
-		  << "Connected to: " << name << std::endl;
-	      }
+	      std::cout << "Connected to: " << name << std::endl;
 	    //
 	    attached_layers.insert( attached_layers.end(),
 				    subject->get_layer(name).begin(), subject->get_layer(name).end() );
 	  }
 	//
-	// Make sure the features have the same image dimensions.
+	// Initialize the weights matrix
 	if ( convolution_window_->get_weights_matrix().nonZeros() == 0 )
-	  {
-	    // If the weights were not initialized yet
-	    // ( const typename ImageType< D >::RegionType Region )
-	    convolution_window_->get_image_information( attached_layers[0].get_image(TensorOrder1::ACTIVATION).get_image_region() );
-	    // Every layer attached to this layer should have exactly the same dimensions
-	    std::size_t tot_features = attached_layers.size();
-	    std::size_t tensor_size  = attached_layers[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
-	    //
-	    for ( std::size_t feature = 1 ; feature < tot_features ; feature++ )
-	      if ( tensor_size != attached_layers[feature].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0] )
-		throw MAC::MACException( __FILE__, __LINE__,
-					 "All attached layers must have the same dimensions feature output.",
-					 ITK_LOCATION );
-	  }
-
+	  // If the weights were not initialized yet
+	  convolution_window_->get_image_information( attached_layers[0].get_image(TensorOrder1::ACTIVATION).get_image_region() );
+	//
+	// Every layer attached to this layer should have exactly the same dimensions
+	std::size_t tot_features = attached_layers.size();
+	std::size_t layer_size   = attached_layers[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
+	//
+	for ( std::size_t feature = 1 ; feature < tot_features ; feature++ )
+	  if ( layer_size != attached_layers[feature].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0] )
+	    throw MAC::MACException( __FILE__, __LINE__,
+				     "All attached layers must have the same dimensions for the output features.",
+				     ITK_LOCATION );
+	
 	
 	/////////////////
 	// Activations //
 	/////////////////
 	//
-	// The layer_size, here, represents the size of the output image
-	std::size_t layer_size = attached_layers[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
-	//
-	// Loop over the K kernels
+	// Loop over the current layer K kernels
 	int kernels = convolution_window_->get_number_kernel();
 	for ( int k = 0 ; k < kernels ; k++ )
 	  {
@@ -244,6 +234,7 @@ namespace Alps
 						     convolution_window_, k );
 		
 	      }
+	    //
 	    auto tuple   = weights_[k]->activate( attached_layers );
 //	    // activation function
 //	    std::shared_ptr< double > z     = std::shared_ptr< double >( new  double[layer_size](),
