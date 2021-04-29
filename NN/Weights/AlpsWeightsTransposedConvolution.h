@@ -234,35 +234,35 @@ namespace Alps
 	std::cerr << err << std::endl;
 	exit(-1);
       }
-	//
-	// retrieve the weight matrix
-	Eigen::SparseMatrix< int, Eigen::RowMajor > matrix_weights = weights_->get_weights_matrix();
-	std::shared_ptr< double >                   weight_val     = weights_->get_convolution_weight_values( feature_ );
-	//
-	int
-	  features_number = Image_tensors.size(),
-	  size_out        = matrix_weights.rows();
-	//
-	std::shared_ptr< T > a_out  = std::shared_ptr< T >( new  T[size_out](), //-> init to 0
-							    std::default_delete< T[] >() );
-	std::shared_ptr< T > z_out  = std::shared_ptr< T >( new  T[size_out](), //-> init to 0
-							    std::default_delete< T[] >() );
-	std::shared_ptr< T > dz_out = std::shared_ptr< T >( new  T[size_out](), //-> init to 0
-							    std::default_delete< T[] >() );
-	// compute the activation
-	for ( int f = 0 ; f < features_number ; f++ )
-	  for (int k = 0 ; k < matrix_weights.outerSize() ; ++k )
-	    for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix_weights, k); it; ++it)
-	      a_out.get()[k] += weight_val.get()[ static_cast< int >(it.value()) ]
-		* Image_tensors[f][Alps::TensorOrder1::ACTIVATION][it.index()];
-	//
-	// Compute the feature activation
-	for ( int s = 0 ; s < size_out ; s++ )
-	  {
-	    z_out.get()[s]  = activation_.f( a_out.get()[s] + weight_val.get()[0] );  // add the bias
-	    dz_out.get()[s] = activation_.df( a_out.get()[s] + weight_val.get()[0] ); // add the bias
-	  }
-
+    //
+    // retrieve the weight matrix
+    Eigen::SparseMatrix< int, Eigen::RowMajor > transposed = weights_->get_weights_matrix().transpose();
+    std::shared_ptr< double >                   weight_val = weights_->get_convolution_weight_values( feature_ );
+    //
+    int
+      features_number = Image_tensors.size(),
+      size_out        = transposed.rows();
+    //
+    std::shared_ptr< T > a_out  = std::shared_ptr< T >( new  T[size_out](), //-> init to 0
+							std::default_delete< T[] >() );
+    std::shared_ptr< T > z_out  = std::shared_ptr< T >( new  T[size_out](), //-> init to 0
+							std::default_delete< T[] >() );
+    std::shared_ptr< T > dz_out = std::shared_ptr< T >( new  T[size_out](), //-> init to 0
+							std::default_delete< T[] >() );
+    // compute the activation
+    for ( int f = 0 ; f < features_number ; f++ )
+      for ( int k = 0 ; k < transposed.outerSize() ; ++k )
+	for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( transposed, k ); it; ++it )
+	  a_out.get()[k] += weight_val.get()[ static_cast< int >(it.value()) ] *
+	    Image_tensors[f][Alps::TensorOrder1::ACTIVATION][it.index()];
+    //
+    // Compute the feature activation
+    for ( int s = 0 ; s < size_out ; s++ )
+      {
+	z_out.get()[s]  = activation_.f( a_out.get()[s] + weight_val.get()[0] );  // add the bias
+	dz_out.get()[s] = activation_.df( a_out.get()[s] + weight_val.get()[0] ); // add the bias
+      }
+    
     //
     //
     return std::make_tuple( z_out, dz_out );
