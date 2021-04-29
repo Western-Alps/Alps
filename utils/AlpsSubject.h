@@ -105,7 +105,8 @@ namespace Alps
 								              std::shared_ptr< double > > );
     // Add target in the classification study case
     void                                              add_target( const std::size_t, const std::size_t );
-    void                                              add_target( const std::string ){};
+    // Add target using images
+    void                                              add_target( const std::string );
 
     //
     // Private function
@@ -359,6 +360,50 @@ namespace Alps
 	    std::string mess = "The label (";
 	    mess            += std::to_string(Label) + ") can't be bigger than the Unverse size (";
 	    mess            += std::to_string(Universe) + ").";
+	    throw MAC::MACException( __FILE__, __LINE__,
+				     mess.c_str(),
+				     ITK_LOCATION );
+	  }
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+      }
+  }
+  //
+  //
+  // 
+  template< int D > void
+  Alps::Subject< D >::add_target( const std::string Image )
+  {
+    try
+      {
+	if ( Alps::file_exists(Image) )
+	  {
+	    //
+	    // load the image ITK pointer
+	    auto image_ptr = itk::ImageIOFactory::CreateImageIO( Image.c_str(),
+								 itk::CommonEnums::IOFileMode::ReadMode );
+	    image_ptr->SetFileName( Image );
+	    image_ptr->ReadImageInformation();
+	    // Check the dimensions complies
+	    if ( image_ptr->GetNumberOfDimensions() != D )
+	      throw MAC::MACException( __FILE__, __LINE__,
+				       "The dimensions of the target image and instanciation are different.",
+				       ITK_LOCATION );
+	    //
+	    // Read the ITK image
+	    typename Reader< D >::Pointer img_ptr = Reader< D >::New();
+	    img_ptr->SetFileName( image_ptr->GetFileName() );
+	    img_ptr->Update();
+	    //
+	    // Load the modalities into the container
+	    target_ = Alps::Image< double, D >( img_ptr );
+	  }
+	else
+	  {
+	    std::string mess = "Image (";
+	    mess            += Image + ") does not exists.";
 	    throw MAC::MACException( __FILE__, __LINE__,
 				     mess.c_str(),
 				     ITK_LOCATION );

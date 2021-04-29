@@ -232,11 +232,46 @@ namespace Alps
 	// Save the activation information //
 	/////////////////////////////////////
 	//
+	// If we are at the last level, we can estimate the error of the image target
+	// with the fit
+	if ( layer_name_ == "__output_layer__" )
+	  {
+	    //
+	    // Get image target from subject
+	    auto target = subject->get_target();
+	    // Get the size of the target and compare to the fit
+	    std::vector< std::size_t > size_target = target.get_tensor_size();
+	    // Check we are comparing the same thing
+	    if( size_target[0] != layer_size )
+	      {
+		std::string
+		  mess = "The target (" + std::to_string( size_target[0] );
+		mess  += ") and the fit (" + std::to_string( layer_size );
+		mess  += ") does not match.";
+		throw MAC::MACException( __FILE__, __LINE__,
+					 mess.c_str(),
+					 ITK_LOCATION );
+	      }
+	    //
+	    // Cost function. 
+	    C cost;
+	    // Returns the error at the image level
+	    std::get< Act::ERROR >( current_activation ) = cost.dL( (std::get< Act::ACTIVATION >( current_activation )).get(),
+								     target.get_tensor().get(),
+								     (std::get< Act::DERIVATIVE >( current_activation )).get(),
+								    layer_size );
+	    // Save the energy for this image
+	    double energy = cost.L( (std::get< Act::ACTIVATION >( current_activation )).get(),
+				    target.get_tensor().get(),
+				    layer_size );
+	    // record the energy for the image
+	    subject->set_energy( energy );
+	  }
+	//
 	// If the layer does not exist, for the image, it creates it.
 	// Otherwise, it replace the values from the last epoque and save the previouse epoque.
-//	subject->add_layer( layer_name_, k,
-//			    convolution_window_->get_output_image_dimensions(),
-//			    current_activation );
+	subject->add_layer( layer_name_, {layer_size},
+			    current_activation );
       }
     catch( itk::ExceptionObject & err )
       {

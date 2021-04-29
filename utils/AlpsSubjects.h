@@ -108,7 +108,7 @@ namespace Alps
 	    // create the subject
 	    subjects_.push_back( std::make_shared< Alps::Subject< D > >(subject_number++, num_modalities) );
 	    //
-	    // If the output is descrete loap over the labels
+	    // If the output is descrete loop over the labels
 	    if ( label_universe > 0 )
 	      {
 		//std::string subject_label = "label_subject_" + std::to_string(img);

@@ -3,18 +3,16 @@
 #include <Eigen/Eigen>
 //
 #include "MACException.h"
-//#include "NeuralNetwork.h"
-//#include "NeuralNetworkComposite.h"
 #include "Mont_Maudit_builder.h"
 #include "AlpsWindow.h"
 #include "AlpsWeightsConvolution.h"
+#include "AlpsWeightsTransposedConvolution.h"
 #include "AlpsWeightsReconstruction.h"
 #include "AlpsSGD.h"
 #include "AlpsActivations.h"
 #include "AlpsCostFunction.h"
 #include "AlpsConvolutionLayer.h"
 #include "AlpsReconstructionLayer.h"
-#include "AlpsTransposedConvolutionLayer.h"
 //
 //
 //
@@ -40,10 +38,11 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   using Tanh             = Alps::Activation_tanh< double >;
   using Kernel           = Alps::Window< double, 2 >;
   using Weights          = Alps::WeightsConvolution< double, Kernel, Alps::Arch::CPU, Tanh, Alps::SGD, 2 >;
+  using Weights_T        = Alps::WeightsTransposedConvolution< double, Kernel, Alps::Arch::CPU, Tanh, Alps::SGD, 2 >;
   using ReconWeights     = Alps::WeightsReconstruction< double, Alps::Arch::CPU, Sigmoid, Alps::SGD, 2 >;
   using LossFunction     = Alps::LeastSquarreEstimate< double >;
   using Convolutional    = Alps::ConvolutionLayer< Tanh, Weights, Kernel, LossFunction, /*Dim*/ 2 >;
-  using Deconvolutional  = Alps::TransposedConvolutionLayer< Tanh, Weights, Kernel, LossFunction, /*Dim*/ 2 >;
+  using Deconvolutional  = Alps::ConvolutionLayer< Tanh, Weights_T, Kernel, LossFunction, /*Dim*/ 2 >;
   using Reconstruction   = Alps::ReconstructionLayer< Sigmoid, ReconWeights, LossFunction, /*Dim*/ 2 >;
 
   //////////////////////////
@@ -119,36 +118,43 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   //
   std::shared_ptr< Alps::Layer > nn_5 =
     std::make_shared< Deconvolutional >( "layer_5",
-					  std::dynamic_pointer_cast< Convolutional >(nn_2) );
+					 window_4 );
   nn_5->add_layer( nn_4 );
   //
   // layer 6
   //
   std::shared_ptr< Alps::Layer > nn_6 =
     std::make_shared< Deconvolutional >( "layer_6",
-					 nullptr, false );
-  nn_6->add_layer( nn_5 );   // inputs and nn_2 are inputs of nn_1, then nn_1 is input of nn_4
+					 window_3 );
+  nn_6->add_layer( nn_5 );   
   //
   // layer 7
   //
   std::shared_ptr< Alps::Layer > nn_7 =
     std::make_shared< Deconvolutional >( "layer_7",
-					 nullptr, false );
-  nn_7->add_layer( nn_5 );   // inputs and nn_2 are inputs of nn_1, then nn_1 is input of nn_4
+					 window_2 );
+  nn_7->add_layer( nn_6 ); 
+  //
+  // layer 8
+  //
+  std::shared_ptr< Alps::Layer > nn_8 =
+    std::make_shared< Deconvolutional >( "layer_8",
+					 window_1 );
+  nn_7->add_layer( nn_6 );
 
 
   ////////////////////
   // Reconstruction //
   ////////////////////
   //
-  // The output of nn_{6,7} should be combined togther as a linear combinaison in a non-linear
+  // The output of nn_{7,8} should be combined togther as a linear combinaison in a non-linear
   // function, e.g. sigmoid, with one bias:
-  // nn_8 = sigmoid( nn_6 + nn_7 + b). Then nn_8 should be directly compared to the target
+  // nn_9 = sigmoid( nn_7 + nn_8 + b). Then nn_9 should be directly compared to the target
   // in the cost function.
-  std::shared_ptr< Alps::Layer > nn_8 =
+  std::shared_ptr< Alps::Layer > nn_9 =
     std::make_shared< Reconstruction >( "__output_layer__" );
-  nn_8->add_layer( nn_6 );   // nn_6 are inputs of nn_8
   nn_8->add_layer( nn_7 );   // nn_7 are inputs of nn_8
+  nn_8->add_layer( nn_8 );   // nn_8 are inputs of nn_8
 
 
   
@@ -162,6 +168,9 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   mr_nn_.add( nn_4 );
   mr_nn_.add( nn_5 );
   mr_nn_.add( nn_6 );
+  mr_nn_.add( nn_7 );
+  mr_nn_.add( nn_8 );
+  mr_nn_.add( nn_9 );
 };
 //
 //
