@@ -140,7 +140,7 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   std::shared_ptr< Alps::Layer > nn_8 =
     std::make_shared< Deconvolutional >( "layer_8",
 					 window_1 );
-  nn_7->add_layer( nn_6 );
+  nn_8->add_layer( nn_6 );
 
 
   ////////////////////
@@ -153,8 +153,8 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   // in the cost function.
   std::shared_ptr< Alps::Layer > nn_9 =
     std::make_shared< Reconstruction >( "__output_layer__" );
-  nn_8->add_layer( nn_7 );   // nn_7 are inputs of nn_8
-  nn_8->add_layer( nn_8 );   // nn_8 are inputs of nn_8
+  nn_9->add_layer( nn_7 );   // nn_7 are inputs of nn_8
+  nn_9->add_layer( nn_8 );   // nn_8 are inputs of nn_8
 
 
   

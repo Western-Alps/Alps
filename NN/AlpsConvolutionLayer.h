@@ -113,8 +113,8 @@ namespace Alps
     //
     // Observers
     // Observers containers
-    std::map< /* kernel number */ int,
-	       std::shared_ptr< Weights > >              weights_;
+    std::map< int /* kernel number */,
+	      std::shared_ptr< Weights > >              weights_;
   };
   //
   //
@@ -291,50 +291,51 @@ namespace Alps
   {
     try
       {
-//	//
-//	// Down to subject
-//	std::shared_ptr< Alps::Subject< D > > subject = std::dynamic_pointer_cast< Alps::Subject< D > >(Sub);
-//	std::cout << "Layer backwards: " << layer_name_ << std::endl;
-//	// get the activation tuple
-//	auto image_tensors = subject->get_layer( layer_name_ );
-//	
-//
-//	//
-//	// If we don't have any next layer, we are at the last layer
-//	std::cout
-//	  << "We are in the last layer: " << layer_name_
-//	  << " with " << fc_layer_size_[0] << " nodes" << std::endl;
-//
-//
-//	/////////////////////
-//	// Weighted error //
-//	////////////////////
-//	//
-//	// Process the weighted error for the previous layer
-//	// The latest layer weighted error should already be processed
-//	for ( auto layer_weights : weights_ )
-//	  {
-//	    std::cout << "weights of layer: " << layer_weights.first << std::endl;
-//	    //
-//	    std::string name = layer_weights.first;
-//	    
-//	    weights_[name]->weighted_error( subject->get_layer( name ),
-//					    image_tensors );
-//
-//	  }
-//
-//
-//	////////////////////////
-//	// Update the weights //
-//	////////////////////////
-//	//
-//	for ( auto layer_weights : weights_ )
-//	  {
-//	    std::string name = layer_weights.first;
-//	    weights_[name]->set_activations( image_tensors,
-//					     subject->get_layer( name ) );
-//	    weights_[name]->update();
-//	  }
+	//
+	// Down to subject
+	std::shared_ptr< Alps::Subject< D > > subject = std::dynamic_pointer_cast< Alps::Subject< D > >(Sub);
+	std::cout << "Layer backwards: " << layer_name_ << std::endl;
+	// get the activation tuple
+	auto image_tensors = subject->get_layer( layer_name_ );
+	
+
+	//
+	// If we don't have any next layer, we are at the last layer
+	std::cout
+	  << "We are in the last layer: " << layer_name_ << std::endl;
+
+
+	/////////////////////
+	// Weighted error //
+	////////////////////
+	//
+	// Process the weighted error for the previous layers
+	// The latest layer weighted error should already be processed
+	int kernels = convolution_window_->get_number_kernel();
+	for ( int k = 0 ; k < kernels ; k++ )
+	  for ( auto layer_weights : prev_layer_ )
+	    {
+	      std::cout << "weights of layer: " << layer_weights.first << std::endl;
+	      //
+	      std::string name = layer_weights.first;
+	      
+	      weights_[k]->weighted_error( subject->get_layer( name ),
+					   image_tensors );
+	    }
+
+
+	////////////////////////
+	// Update the weights //
+	////////////////////////
+	//
+	for ( int k = 0 ; k < kernels ; k++ )
+	  for ( auto layer_weights : prev_layer_ )
+	    {
+	      std::string name = layer_weights.first;
+	      weights_[k]->set_activations( image_tensors,
+					    subject->get_layer( name ) );
+	      weights_[k]->update();
+	    }
       }
     catch( itk::ExceptionObject & err )
       {

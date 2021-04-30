@@ -102,9 +102,11 @@ namespace Alps
 		<< std::dynamic_pointer_cast<M>(subjects_[0].get_mountain())->get_energy()
 		<< std::endl;
 		
+	      /////////////////////
+	      // Forward process //
+	      /////////////////////
 	      //
-	      // Forward process
-	      // The end of the forward process for each image generate a cost (error for each image)
+	      // The end of the forward process, each image generate a cost (error for each image)
 	      // The notify does the work for that.
 	      for ( int sub : fold_subjects )
 		{
@@ -118,8 +120,10 @@ namespace Alps
 		}
 
 	      
+	      //////////////////////
+	      // Backward process //
+	      //////////////////////
 	      //
-	      // Backward process
 	      for ( int sub : fold_subjects )
 		{
 		  std::cout
