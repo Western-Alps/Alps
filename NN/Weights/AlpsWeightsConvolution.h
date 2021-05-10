@@ -119,7 +119,7 @@ namespace Alps
     //
     // Activation tensor from the previous layer
     virtual void set_activations( std::vector< Alps::LayerTensors< Type, Dim > >&,
-				  std::vector< Alps::LayerTensors< Type, Dim > >& )                    override{};
+				  std::vector< Alps::LayerTensors< Type, Dim > >& )                    override;
     // Get size of the tensor
     virtual const std::vector< std::size_t >       get_tensor_size() const                             override
     { return std::vector< std::size_t >(); };							      
@@ -146,11 +146,11 @@ namespace Alps
 			 std::shared_ptr< Type > > activate( std::vector< Alps::LayerTensors< Type, Dim > >& )       override;
     // Weighted error
     virtual void                                   weighted_error( std::vector< Alps::LayerTensors< Type, Dim > >&,
-								   std::vector< Alps::LayerTensors< Type, Dim > >& ) override{};
+								   std::vector< Alps::LayerTensors< Type, Dim > >& ) override;
     // Update the weights
-    virtual void                                   update()                                            override{};
+    virtual void                                   update()                                            override;
     // Forced the weight update
-    virtual void                                   forced_update()                                     override{};
+    virtual void                                   forced_update()                                     override;
 
 
 
@@ -221,6 +221,108 @@ namespace Alps
   };
   //
   //
+  //
+  template< typename T, typename K, typename A, typename S, int D > void
+  WeightsConvolution< T, K, Alps::Arch::CPU, A, S, D >::set_activations( std::vector< Alps::LayerTensors< T, D > >& Image_tensors,
+									 std::vector< Alps::LayerTensors< T, D > >& Prev_image_tensors )
+  {
+    long int
+      prev_tensors_size = 0,
+      tensors_size      = 0;
+    //
+    // retrieve the weight matrix
+    Eigen::SparseMatrix< int, Eigen::RowMajor > matrix_weights = weights_->get_weights_matrix();
+    std::shared_ptr< double >                   weight_val     = weights_->get_convolution_weight_values( feature_ );
+    //
+    int
+      features_number = Image_tensors.size(),
+      size_in         = matrix_weights.cols(),
+      size_out        = matrix_weights.rows();
+    //
+    //
+    try
+      {
+	//
+	// The weights belong to the layer
+	std::string layer_name = layer_->get_layer_name();
+	
+	//
+	// Check the dimensions are right
+	for ( auto tensor : Prev_image_tensors )
+	  prev_tensors_size += static_cast< long int >( tensor.get_tensor_size()[0] );
+	//
+	for ( auto tensor : Image_tensors )
+	  tensors_size += static_cast< long int >( tensor.get_tensor_size()[0] );
+	//
+	if ( size_out != tensors_size && size_in != prev_tensors_size + 1 )
+	  {
+	    std::string
+	      mess = std::string("There is mismatch between the weight dimensions [")
+	      + std::to_string( size_out ) + std::string(",") + std::to_string(size_in  ) 
+	      + std::string("] and the layer dimensions: [")
+	      + std::to_string( tensors_size )
+	      + std::string(",") + std::to_string( prev_tensors_size )
+	      + std::string("+1.]"); 
+	    throw MAC::MACException( __FILE__, __LINE__,
+				     mess.c_str(),
+				     ITK_LOCATION );
+	  }
+//
+//	
+//	//
+//	// Create the activation and error to update the weights
+//	Eigen::MatrixXd z     = Eigen::MatrixXd::Zero( prev_tensors_size + 1, 1 );
+//	Eigen::MatrixXd delta = Eigen::MatrixXd::Zero( tensors_size, 1 );
+//	//
+//	// Load the tensor previouse image into a Eigen vector
+//	std::size_t shift = 1;
+//	z(0,0) = 1.; // bias
+//	for ( auto tensor : Prev_image_tensors )
+//	  {
+//	    std::size_t img_size = tensor.get_tensor_size()[0];
+//	       for ( std::size_t s = 0 ; s < img_size ; s++ )
+//		 z(s+shift,0) = tensor[TensorOrder1::ACTIVATION][s];
+//	       shift += img_size;
+//	  }
+//	// treatment is sligtly different whether we are on the last layer or not
+//	if ( layer_name == "__output_layer__" )
+//	  {
+//	   // Load the error tensor of the current image into a Eigen vector
+//	   for ( auto tensor : Image_tensors )
+//	     {
+//	      std::size_t img_size = tensor.get_tensor_size()[0];
+//	      for ( std::size_t s = 0 ; s < img_size ; s++ )
+//		delta(s,0) = tensor[TensorOrder1::ERROR][s];
+//	      shift += img_size;
+//	     }
+//	  }
+//	else
+//	  {
+//	    // Hadamart production between the weighted error and the
+//	    // derivative of the activation
+//	    std::shared_ptr< T > hadamart = (Image_tensors[0])( TensorOrder1::WERROR, TensorOrder1::DERIVATIVE );
+//	    // Load the error tensor of the current image into a Eigen vector
+//	    for ( auto tensor : Image_tensors )
+//	      {
+//		std::size_t img_size = tensor.get_tensor_size()[0];
+//		for ( std::size_t s = 0 ; s < img_size ; s++ )
+//		  delta(s,0) = hadamart.get()[s];
+//		shift += img_size;
+//	      }
+//	  }
+//	// process
+//	std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
+//						   Eigen::MatrixXd > >(gradient_)->add_tensors( delta, z );
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+	exit(-1);
+      }
+  };
+  //
+  //
+  //
   template< typename T, typename K, typename A, typename S, int D > std::tuple< std::shared_ptr< T >,
 										std::shared_ptr< T > >
   WeightsConvolution< T, K, Alps::Arch::CPU, A, S, D >::activate( std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
@@ -266,6 +368,85 @@ namespace Alps
     //
     //
     return std::make_tuple( z_out, dz_out );
+  };
+  //
+  //
+  //
+  template< typename T, typename K, typename A, typename S, int D > void
+  WeightsConvolution< T, K, Alps::Arch::CPU, A, S, D >::weighted_error( std::vector< Alps::LayerTensors< T, D > >& Prev_image_tensors,
+									std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
+  {
+    long int
+      prev_tensors_size = 0,
+      tensors_size      = 0;
+    //
+    // retrieve the weight matrix
+    Eigen::SparseMatrix< int, Eigen::RowMajor > matrix_weights = weights_->get_weights_matrix();
+    std::shared_ptr< double >                   weight_val     = weights_->get_convolution_weight_values( feature_ );
+    //
+    int
+      features_number = Image_tensors.size(),
+      size_in         = matrix_weights.cols(),
+      size_out        = matrix_weights.rows();
+    //
+    try
+      {
+	//
+	// Check the dimensions are right
+	for ( auto tensor : Prev_image_tensors )
+	  prev_tensors_size += static_cast< long int >( tensor.get_tensor_size()[0] );
+	//
+	for ( auto tensor : Image_tensors )
+	  tensors_size += static_cast< long int >( tensor.get_tensor_size()[0] );
+	//
+	if ( size_out != tensors_size && size_in != prev_tensors_size + 1 )
+	  {
+	    std::string
+	      mess = std::string("There is mismatch between the weight dimensions [")
+	      + std::to_string( size_out ) + std::string(",") + std::to_string(size_in  ) 
+	      + std::string("] and the layer dimensions: [")
+	      + std::to_string( tensors_size )
+	      + std::string(",") + std::to_string( prev_tensors_size )
+	      + std::string("+1.]"); 
+	    throw MAC::MACException( __FILE__, __LINE__,
+				     mess.c_str(),
+				     ITK_LOCATION );
+	  }
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+	exit(-1);
+      }
+
+    
+    //
+    // compute the activation
+    // ToDo: make sure we use all the kernels and the product appear on a transpose vector with the lines
+    // of the weight matrix
+    for ( int f = 0 ; f < features_number ; f++ )
+      for (int k = 0 ; k < matrix_weights.outerSize() ; ++k )
+	for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix_weights, k); it; ++it )
+	  Prev_image_tensors[0][TensorOrder1::WERROR][k] = weight_val.get()[ static_cast< int >(it.value()) ]
+	    * Image_tensors[0][TensorOrder1::ERROR][k];
+  };
+  //
+  //
+  //
+  template< typename T, typename K, typename A, typename S, int D > void
+  WeightsConvolution< T, K, Alps::Arch::CPU, A, S, D >::update()
+  {
+//    *(weights_.get()) += std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
+//								    Eigen::MatrixXd > >(gradient_)->solve();
+  };
+  //
+  //
+  //
+  template< typename T, typename K, typename A, typename S, int D > void
+  WeightsConvolution< T, K, Alps::Arch::CPU, A, S, D >::forced_update()
+  {
+//    *(weights_.get()) += std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
+//								    Eigen::MatrixXd > >(gradient_)->solve( true );
   };
   /** \class WeightsConvolution
    *

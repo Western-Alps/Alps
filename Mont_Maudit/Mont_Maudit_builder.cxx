@@ -147,10 +147,10 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   // Reconstruction //
   ////////////////////
   //
-  // The output of nn_{7,8} should be combined togther as a linear combinaison in a non-linear
-  // function, e.g. sigmoid, with one bias:
-  // nn_9 = sigmoid( nn_7 + nn_8 + b). Then nn_9 should be directly compared to the target
-  // in the cost function.
+  // The output of nn_{7,8} should be combined togther as a linear combinaison in
+  // a non-linear function, e.g. sigmoid, with one bias:
+  // nn_9 = sigmoid( nn_7 + nn_8 + b). Then nn_9 should be directly compared to
+  // the target in the cost function.
   std::shared_ptr< Alps::Layer > nn_9 =
     std::make_shared< Reconstruction >( "__output_layer__" );
   nn_9->add_layer( nn_7 );   // nn_7 are inputs of nn_8

@@ -417,7 +417,7 @@ namespace Alps
 	if ( weights_->rows() != tensors_size && weights_->cols() != prev_tensors_size + 1 )
 	  {
 	    std::string
-	      mess = std::string("There is miss match between the weight dimensions ")
+	      mess = std::string("There is mismatch between the weight dimensions [")
 	      + std::to_string( weights_->rows() ) + std::string(",") + std::to_string( weights_->cols() ) 
 	      + std::string("] and the layer dimensions: [")
 	      + std::to_string( tensors_size )
