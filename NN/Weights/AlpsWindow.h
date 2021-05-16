@@ -40,7 +40,7 @@ namespace Alps
       //
       // Accessors
       //! get the number of kernel
-      const int get_number_kernel() const
+      const int                                          get_number_kernel() const
       { return k_;};
       //! get  half convolution window size.
       const std::vector< long int >                      get_convolution_window_size() const
@@ -54,15 +54,23 @@ namespace Alps
       //! get the number of voxel output per dimension
       const std::array< std::size_t, Dim>                get_output_image_dimensions() const
       { return n_out_; };
-      // Sparse matrix holding the index od=f the weights
+      //! Sparse matrix holding the index od=f the weights
       const Eigen::SparseMatrix< int, Eigen::RowMajor >& get_weights_matrix() const
       { return weights_matrix_;};
       //! Array with the values of the weights
-      std::shared_ptr< Type >                            get_convolution_weight_values( const int Kernel ) const
+      std::shared_ptr< Type >&                           get_convolution_weight_values( const int Kernel ) const
       { return weight_values_[Kernel];};
-      // load image information
+      //! Array with the derivative values of the weights
+      std::vecto< std::shared_ptr< Type > >              get_derivated_weight_values() const
+      { return derivated_weight_values_;};
+      //! load image information
       void                                               get_image_information( const typename ImageType< Dim >::RegionType );
-      
+      //
+      //
+      //! Set array with the values of the weights
+      void                                               set_convolution_weight_values( const int Kernel, W ) 
+      { weight_values_[Kernel] = W;};
+
 
     private:
       //
@@ -105,10 +113,12 @@ namespace Alps
       //
       //! Member representing the number of voxel output per dimension
       std::array< std::size_t, Dim >               n_out_;
-      // Sparse matrix holding the index od=f the weights
+      //! Sparse matrix holding the index od=f the weights
       Eigen::SparseMatrix< int, Eigen::RowMajor >  weights_matrix_;
       //! Array with the values of the weights
       std::vector< std::shared_ptr< Type > >       weight_values_;
+      //! Array with the values of the weights
+      std::vector< std::shared_ptr< Type > >       derivated_weight_values_;
   };
   //
   //
@@ -192,7 +202,21 @@ namespace Alps
 //			  << std::endl;
 	      }
 	  }
-	
+
+	////////////////////////////////
+	// Build the derivated values //
+	////////////////////////////////
+	//
+	derivated_weight_values_.resize( number_weights );
+	for ( int w = 1 ; w < number_weights ; w++ )
+	  {
+	    derivated_weight_values_[w] = std::shared_ptr< T >( new T[number_weights](),
+								std::default_delete< T[] >() );
+	    derivated_weight_values_[w].get()[w] = 1.;
+	  }
+	// The bias
+	derivated_weight_values_[0] = std::shared_ptr< T >( new T[number_weights](),
+							    std::default_delete< T[] >() );
       }
     catch( itk::ExceptionObject & err )
       {

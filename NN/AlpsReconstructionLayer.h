@@ -297,8 +297,7 @@ namespace Alps
 
 	//
 	// If we don't have any next layer, we are at the last layer
-	std::cout
-	  << "We are in the last layer: " << layer_name_ << std::endl;
+	std::cout << "We are in the layer: " << layer_name_ << std::endl;
 
 
 	/////////////////////
@@ -309,10 +308,8 @@ namespace Alps
 	// The latest layer weighted error should already be processed
 	for ( auto layer_weights : prev_layer_ )
 	  {
-	    std::cout << "weights of layer: " << layer_weights.first << std::endl;
-	    //
 	    std::string name = layer_weights.first;
-	    
+	    std::cout << "weights of layer: " << name << std::endl;
 	    weights_->weighted_error( subject->get_layer( name ),
 				      image_tensors );
 

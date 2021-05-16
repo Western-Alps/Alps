@@ -311,37 +311,51 @@ namespace Alps
 								    std::shared_ptr< T > >
   WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::activate( std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
   {
+    //
+    //
+    int
+      features_number = Image_tensors.size(),
+      size_in        = Image_tensors[0].get_tensor_size()[0];
+    //
+    std::shared_ptr< T > a_out  = std::shared_ptr< T >( new  T[size_in](), //-> init to 0
+							std::default_delete< T[] >() );
+    std::shared_ptr< T > z_out  = std::shared_ptr< T >( new  T[size_in](), //-> init to 0
+							std::default_delete< T[] >() );
+    std::shared_ptr< T > dz_out = std::shared_ptr< T >( new  T[size_in](), //-> init to 0
+							std::default_delete< T[] >() );
+    //
+    //
     try
       {
-	// ToDo: add some checks
+	//
+	// compute the activation
+	for ( int f = 0 ; f < features_number ; f++ )
+	  {
+	    //
+	    // Check the size between the getting in layer and the number of colums are the same
+	    std::size_t layer_size = Image_tensors[f].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
+	    if ( layer_size != size_in )
+	      throw MAC::MACException( __FILE__, __LINE__,
+				       "Error in the construction of the weight mastrix's dimensions.",
+				       ITK_LOCATION );
+	    //
+	    //
+	    for ( int s = 0 ; s < size_in ; s++ )
+	      a_out.get()[s] += Image_tensors[f][Alps::TensorOrder1::ACTIVATION][s];
+	  }
       }
     catch( itk::ExceptionObject & err )
       {
 	std::cerr << err << std::endl;
 	exit(-1);
       }
-	//
-	int
-	  features_number = Image_tensors.size(),
-	  size_out        = Image_tensors[0].get_tensor_size()[0];
-	//
-	std::shared_ptr< T > a_out  = std::shared_ptr< T >( new  T[size_out](), //-> init to 0
-							    std::default_delete< T[] >() );
-	std::shared_ptr< T > z_out  = std::shared_ptr< T >( new  T[size_out](), //-> init to 0
-							    std::default_delete< T[] >() );
-	std::shared_ptr< T > dz_out = std::shared_ptr< T >( new  T[size_out](), //-> init to 0
-							    std::default_delete< T[] >() );
-	// compute the activation
-	for ( int f = 0 ; f < features_number ; f++ )
-	  for ( int s = 0 ; s < size_out ; s++ )
-	    a_out.get()[s] += Image_tensors[f][Alps::TensorOrder1::ACTIVATION][s];
-	//
-	// Compute the feature activation
-	for ( int s = 0 ; s < size_out ; s++ )
-	  {
-	    z_out.get()[s]  = activation_.f(  a_out.get()[s] + *(weights_.get()) );
-	    dz_out.get()[s] = activation_.df( a_out.get()[s] + *(weights_.get()) );
-	  }
+    //
+    // Compute the feature activation
+    for ( int s = 0 ; s < size_in ; s++ )
+      {
+	z_out.get()[s]  = activation_.f(  a_out.get()[s] + *(weights_.get()) );
+	dz_out.get()[s] = activation_.df( a_out.get()[s] + *(weights_.get()) );
+      }
 
     //
     //
@@ -354,52 +368,13 @@ namespace Alps
   WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::weighted_error( std::vector< Alps::LayerTensors< T, D > >& Prev_image_tensors,
 									std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
   {
-    long int
-      prev_tensors_size = 0,
-      tensors_size      = 0;
-    try
-      {
-	//
-	// Check the dimensions are right
-	for ( auto tensor : Prev_image_tensors )
-	  prev_tensors_size += static_cast< long int >( tensor.get_tensor_size()[0] );
-	//
-	for ( auto tensor : Image_tensors )
-	  tensors_size += static_cast< long int >( tensor.get_tensor_size()[0] );
-	//
-	if ( tensors_size != prev_tensors_size )
-	  {
-	    std::string
-	      mess = std::string("There is mismatch between the weight dimensions ")
-	      + std::string("between the current reconstruction layer and the ")
-	      + std::string("previouse layer."); 
-	    throw MAC::MACException( __FILE__, __LINE__,
-				     mess.c_str(),
-				     ITK_LOCATION );
-	  }
-      }
-    catch( itk::ExceptionObject & err )
-      {
-	std::cerr << err << std::endl;
-	exit(-1);
-      }
-
-    
-//    //
-//    // reset the z_in and save the information in the object
-//    Eigen::MatrixXd error_in = Eigen::MatrixXd::Zero( tensors_size, 1 );
-//    Eigen::MatrixXd we_out   = Eigen::MatrixXd::Zero( prev_tensors_size + 1, 1 );
-//    // Load the image error tensor into a Eigen vector
-//    for ( long int s = 0 ; s < tensors_size ; s++ )
-//      error_in(s,0) = Image_tensors[0][TensorOrder1::ERROR][s];
-//    //
-//    // process
-//    we_out = error_in.transpose() * ( *(weights_.get()) );
-    // We skip the bias
-    // We add new weighted error for all the layers attached to
-    // the previous layer
-    for ( long int s = 0 ; s < prev_tensors_size ; s++ )
-      Prev_image_tensors[0][TensorOrder1::WERROR][s] = Image_tensors[0][TensorOrder1::ERROR][s];
+    int
+      prev_features_number = Prev_image_tensors.size(),
+      size_in        = Image_tensors[0].get_tensor_size()[0];
+    //
+    for ( int k = 0 ; k < prev_features_number ; k++ )
+      for ( long int s = 0 ; s < size_in ; s++ )
+	Prev_image_tensors[k][TensorOrder1::WERROR][s] = Image_tensors[0][TensorOrder1::ERROR][s];
   };
   //
   //

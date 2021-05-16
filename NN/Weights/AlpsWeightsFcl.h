@@ -305,15 +305,15 @@ namespace Alps
 	  }
 	else
 	  {
-	    // Hadamart production between the weighted error and the
+	    // Hadamard production between the weighted error and the
 	    // derivative of the activation
-	    std::shared_ptr< T > hadamart = (Image_tensors[0])( TensorOrder1::WERROR, TensorOrder1::DERIVATIVE );
+	    std::shared_ptr< T > hadamard = (Image_tensors[0])( TensorOrder1::WERROR, TensorOrder1::DERIVATIVE );
 	    // Load the error tensor of the current image into a Eigen vector
 	    for ( auto tensor : Image_tensors )
 	      {
 		std::size_t img_size = tensor.get_tensor_size()[0];
 		for ( std::size_t s = 0 ; s < img_size ; s++ )
-		  delta(s,0) = hadamart.get()[s];
+		  delta(s,0) = hadamard.get()[s];
 		shift += img_size;
 	      }
 	  }

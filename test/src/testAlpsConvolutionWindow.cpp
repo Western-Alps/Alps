@@ -85,6 +85,7 @@ TEST_F(ConvolutionWindowTest, ByDefaultConvolutionDeconvolution) {
   weight_val.get()[8] = 3.;
   weight_val.get()[9] = 1.;
   //
+  std::cout <<" matrix.outerSize() = " << matrix.outerSize() << std::endl;
   for (int k = 0 ; k < matrix.outerSize() ; ++k )
     for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix, k); it; ++it)
       {
@@ -92,7 +93,7 @@ TEST_F(ConvolutionWindowTest, ByDefaultConvolutionDeconvolution) {
 	std::cout
 	  << "value (" << it.value() << ") in ["
 	  << it.row() << "," << it.col() << "] inedx: "
-	  << it.index() << std::endl; // inner index, here it is equal to it.row()
+	  << it.index() << " and k: " << k << std::endl; // inner index, here it is equal to it.row()
       }
   //
   std::cout << "output image: \n" << image_out << std::endl;
@@ -106,7 +107,7 @@ TEST_F(ConvolutionWindowTest, ByDefaultConvolutionDeconvolution) {
   for (int k = 0 ; k < transposed.outerSize() ; ++k )
     for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( transposed, k ); it; ++it)
       {
-	deconvolution( k, 0 ) += weight_val.get()[ static_cast< int >(it.value()) ] * image_in( it.index() );
+	deconvolution( k, 0 ) += weight_val.get()[ static_cast< int >(it.value()) ] * image_out( it.index(), 0 );
 	std::cout
 	  << "value (" << it.value() << ") in ["
 	  << it.row() << "," << it.col() << "] inedx: "

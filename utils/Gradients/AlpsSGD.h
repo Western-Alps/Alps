@@ -70,6 +70,123 @@ namespace Alps
    * 
    */
   template< typename Type >
+  class StochasticGradientDescent< Type, std::shared_ptr< Type >, std::shared_ptr< Type >, Alps::Arch::CPU > : public Alps::Gradient< std::shared_ptr< Type >, std::shared_ptr< Type > >
+    {
+     public:
+      /** Costructor */
+      explicit StochasticGradientDescent();
+      /** Destructor */
+      virtual ~StochasticGradientDescent(){};
+
+      
+      //
+      // Accessors
+      //
+      // Set the layer sizes
+      virtual void             set_parameters( const std::size_t, const std::size_t ) override;
+      
+      
+      //
+      // Functions
+      //
+      // Get the type of optimizer
+      virtual const Alps::Grad get_optimizer() const
+      { return Alps::Grad::SGD;};
+      // Add tensor elements
+      virtual void             add_tensors( const std::shared_ptr< Type >,
+					    const std::shared_ptr< Type > )           override;
+      // Backward propagation
+      virtual std::shared_ptr< Type > solve( const bool = false)                      override;
+
+    private:
+      //
+      // Gradient information
+      // mini batch size
+      std::size_t     mini_batch_{0};
+      // batch represent the current state before update of the weights
+      std::size_t     batch_{0};
+      // learning rate
+      double          learning_rate_{0.00001};
+      //
+      // Update of the weights
+      // number of weights
+      std::size_t             delta_size_{0};
+      // delta_ = [W epsilon] * ...
+      std::shared_ptr< Type > delta_;
+      // activation from the previous layer
+      std::shared_ptr< Type > previous_activation_;
+    };
+  //
+  //
+  //
+  template< typename Type >
+  Alps::StochasticGradientDescent< Type, std::shared_ptr< Type >, std::shared_ptr< Type >, Alps::Arch::CPU >::StochasticGradientDescent()
+  {
+    mini_batch_    = static_cast< std::size_t >(Alps::LoadDataSet::instance()->get_data()["network"]["gradient"]["SGD"]["mini_batch"]);
+    learning_rate_ = static_cast< double >(Alps::LoadDataSet::instance()->get_data()["network"]["gradient"]["SGD"]["learning_rate"]);
+  }
+  //
+  //
+  //
+  template< typename Type > void
+  Alps::StochasticGradientDescent< Type, std::shared_ptr< Type >, std::shared_ptr< Type >, Alps::Arch::CPU >::set_parameters( const std::size_t Current_size,
+															      const std::size_t Prev_size )
+  {
+    delta_size_          = Current_size;
+    delta_               = std::shared_ptr< Type >( new  Type[Current_size](), //-> init to 0
+						    std::default_delete< T[] >() );
+    previous_activation_ = nullptr;
+  }
+  //
+  //
+  //
+  template< typename Type > void
+  Alps::StochasticGradientDescent< Type, std::shared_ptr< Type >, std::shared_ptr< Type >, Alps::Arch::CPU >::add_tensors( const std::shared_ptr< Type > Delta,
+															   const std::shared_ptr< Type > Z )
+  {
+    try
+      {
+	//
+	//
+	for ( int d = 0 ; d < delta_size_ ; d++ )
+	  delta_.get()[d] -= learning_rate_ * Delta.get()[d];
+	// An additional image, we increase the batch size
+	batch_++;
+      }
+    catch( itk::ExceptionObject & err )
+      {
+     	std::cerr << err << std::endl;
+	exit(-1);
+      }
+  }
+  //
+  //
+  //
+  template< typename Type > std::shared_ptr< Type >
+  Alps::StochasticGradientDescent< Type, std::shared_ptr< Type >, std::shared_ptr< Type >, Alps::Arch::CPU >::solve( const bool Forced = false )
+  {
+    if ( batch_ > mini_batch_ - 1 || Forced )
+      {
+	batch_ = 1;
+	return delta_;
+      }
+    else
+      return std::shared_ptr< Type >( new  Type[Current_size](), //-> init to 0
+				      std::default_delete< T[] >() );
+  }
+  /** \class StochasticGradientDescent
+   *
+   * \brief 
+   * This class is the stochastic gradient descent (SGD) class.
+   * 
+   * - MiniBatch: the size of the mini-bach
+   *   * MiniBatch =  1 -- stochastic gradient descent
+   *   * MiniBatch =  n -- batch of size n images, n < N the total 
+   *                       number of images
+   *   * MiniBatch = -1 -- the model uses all the images
+   * 
+   */
+  template< typename Type >
   class StochasticGradientDescent< Type, Eigen::MatrixXd, Eigen::MatrixXd, Alps::Arch::CPU > : public Alps::Gradient< Eigen::MatrixXd, Eigen::MatrixXd >
     {
      public:
