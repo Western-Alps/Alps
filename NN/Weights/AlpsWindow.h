@@ -58,17 +58,18 @@ namespace Alps
       const Eigen::SparseMatrix< int, Eigen::RowMajor >& get_weights_matrix() const
       { return weights_matrix_;};
       //! Array with the values of the weights
-      std::shared_ptr< Type >&                           get_convolution_weight_values( const int Kernel ) const
+      std::shared_ptr< Type >                            get_convolution_weight_values( const int Kernel ) const
       { return weight_values_[Kernel];};
       //! Array with the derivative values of the weights
-      std::vecto< std::shared_ptr< Type > >              get_derivated_weight_values() const
+      std::vector< std::shared_ptr< Type > >              get_derivated_weight_values() const
       { return derivated_weight_values_;};
       //! load image information
       void                                               get_image_information( const typename ImageType< Dim >::RegionType );
       //
       //
       //! Set array with the values of the weights
-      void                                               set_convolution_weight_values( const int Kernel, W ) 
+      void                                               set_convolution_weight_values( const int Kernel,
+											std::shared_ptr< Type > W ) 
       { weight_values_[Kernel] = W;};
 
 

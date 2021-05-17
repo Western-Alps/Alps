@@ -134,7 +134,7 @@ namespace Alps
   {
     delta_size_          = Current_size;
     delta_               = std::shared_ptr< Type >( new  Type[Current_size](), //-> init to 0
-						    std::default_delete< T[] >() );
+						    std::default_delete< Type[] >() );
     previous_activation_ = nullptr;
   }
   //
@@ -148,7 +148,7 @@ namespace Alps
       {
 	//
 	//
-	for ( int d = 0 ; d < delta_size_ ; d++ )
+	for ( std::size_t d = 0 ; d < delta_size_ ; d++ )
 	  delta_.get()[d] -= learning_rate_ * Delta.get()[d];
 	// An additional image, we increase the batch size
 	batch_++;
@@ -163,7 +163,7 @@ namespace Alps
   //
   //
   template< typename Type > std::shared_ptr< Type >
-  Alps::StochasticGradientDescent< Type, std::shared_ptr< Type >, std::shared_ptr< Type >, Alps::Arch::CPU >::solve( const bool Forced = false )
+  Alps::StochasticGradientDescent< Type, std::shared_ptr< Type >, std::shared_ptr< Type >, Alps::Arch::CPU >::solve( const bool Forced )
   {
     if ( batch_ > mini_batch_ - 1 || Forced )
       {
@@ -171,8 +171,8 @@ namespace Alps
 	return delta_;
       }
     else
-      return std::shared_ptr< Type >( new  Type[Current_size](), //-> init to 0
-				      std::default_delete< T[] >() );
+      return std::shared_ptr< Type >( new  Type[delta_size_](), //-> init to 0
+				      std::default_delete< Type[] >() );
   }
   /** \class StochasticGradientDescent
    *

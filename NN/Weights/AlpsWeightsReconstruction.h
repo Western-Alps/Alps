@@ -205,12 +205,10 @@ namespace Alps
 				     ITK_LOCATION );
 	  }
 	}
-//	//
-//	//
-//	std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
-//						   Eigen::MatrixXd > >(gradient_)->set_parameters( current_nodes,
-//												   previous_nodes + 1 );
-	
+	//
+	// There is only one weight for the reconstruction
+	std::dynamic_pointer_cast< Alps::Gradient< std::shared_ptr< T >,
+						   std::shared_ptr< T > > >(gradient_)->set_parameters( 1, 0 );
       }
     catch( itk::ExceptionObject & err )
       {
@@ -225,84 +223,21 @@ namespace Alps
   WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::set_activations( std::vector< Alps::LayerTensors< T, D > >& Image_tensors,
 									 std::vector< Alps::LayerTensors< T, D > >& Prev_image_tensors )
   {
-    try
-      {
-	//
-	// The weights belong to the layer
-	std::string layer_name = layer_->get_layer_name();
-	
-	//
-	// Check the dimensions are right
-	long int
-	  tensors_size      = 0,
-	  prev_tensors_size = 0;
-	for ( auto tensor : Image_tensors )
-	  tensors_size += static_cast< long int >( tensor.get_tensor_size()[0] );
-	for ( auto tensor : Prev_image_tensors )
-	  prev_tensors_size += static_cast< long int >( tensor.get_tensor_size()[0] );
-	//
-	if ( tensors_size != prev_tensors_size  )
-	  {
-	    std::string
-	      mess = std::string("There is mismatch between the weight dimensions ")
-	      + std::string("between the current reconstruction layer and the ")
-	      + std::string("previouse layer."); 
-	    throw MAC::MACException( __FILE__, __LINE__,
-				     mess.c_str(),
-				     ITK_LOCATION );
-	  }
-
-	
-	//
-	// Create the activation and error to update the weights
-	Eigen::MatrixXd z     = Eigen::MatrixXd::Zero( prev_tensors_size + 1, 1 );
-	Eigen::MatrixXd delta = Eigen::MatrixXd::Zero( tensors_size, 1 );
-	//
-	// Load the tensor previouse image into a Eigen vector
-	std::size_t shift = 1;
-	z(0,0) = 1.; // bias
-	for ( auto tensor : Prev_image_tensors )
-	  {
-	    std::size_t img_size = tensor.get_tensor_size()[0];
-	       for ( std::size_t s = 0 ; s < img_size ; s++ )
-		 z(s+shift,0) = tensor[TensorOrder1::ACTIVATION][s];
-	       shift += img_size;
-	  }
-	// treatment is sligtly different whether we are on the last layer or not
-	if ( layer_name == "__output_layer__" )
-	  {
-	   // Load the error tensor of the current image into a Eigen vector
-	   for ( auto tensor : Image_tensors )
-	     {
-	      std::size_t img_size = tensor.get_tensor_size()[0];
-	      for ( std::size_t s = 0 ; s < img_size ; s++ )
-		delta(s,0) = tensor[TensorOrder1::ERROR][s];
-	      shift += img_size;
-	     }
-	  }
-	else
-	  {
-	    // Hadamart production between the weighted error and the
-	    // derivative of the activation
-	    std::shared_ptr< T > hadamart = (Image_tensors[0])( TensorOrder1::WERROR, TensorOrder1::DERIVATIVE );
-	    // Load the error tensor of the current image into a Eigen vector
-	    for ( auto tensor : Image_tensors )
-	      {
-		std::size_t img_size = tensor.get_tensor_size()[0];
-		for ( std::size_t s = 0 ; s < img_size ; s++ )
-		  delta(s,0) = hadamart.get()[s];
-		shift += img_size;
-	      }
-	  }
-//	// process
-//	std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
-//						   Eigen::MatrixXd > >(gradient_)->add_tensors( delta, z );
-      }
-    catch( itk::ExceptionObject & err )
-      {
-	std::cerr << err << std::endl;
-	exit(-1);
-      }
+    //
+    //
+    std::size_t layer_size = Image_tensors[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
+    double de = 0.;
+    //
+    for ( int d = 0 ; d < layer_size ; d++ )
+      de += Image_tensors[0].get_image(TensorOrder1::ERROR).get_tensor_size()[0];
+    //
+    std::shared_ptr< T > dE = std::shared_ptr< T >( new T[1](), //-> init to 0
+						    std::default_delete< T[] >() );
+    dE.get()[0] = de;
+    //
+    //process
+    std::dynamic_pointer_cast< Alps::Gradient< std::shared_ptr< T >,
+					       std::shared_ptr< T > > >(gradient_)->add_tensors( dE, nullptr );
   };
   //
   //
@@ -370,7 +305,7 @@ namespace Alps
   {
     int
       prev_features_number = Prev_image_tensors.size(),
-      size_in        = Image_tensors[0].get_tensor_size()[0];
+      size_in              = Image_tensors[0].get_tensor_size()[0];
     //
     for ( int k = 0 ; k < prev_features_number ; k++ )
       for ( long int s = 0 ; s < size_in ; s++ )
@@ -382,8 +317,8 @@ namespace Alps
   template< typename T, typename A, typename S, int D > void
   WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::update()
   {
-//    *(weights_.get()) += std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
-//								    Eigen::MatrixXd > >(gradient_)->solve();
+    weights_.get()[0] += std::dynamic_pointer_cast< Alps::Gradient< std::shared_ptr< T >,
+								    std::shared_ptr< T > > >(gradient_)->solve().get()[0];
   };
   //
   //
@@ -391,8 +326,8 @@ namespace Alps
   template< typename T, typename A, typename S, int D > void
   WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::forced_update()
   {
-//    *(weights_.get()) += std::dynamic_pointer_cast< Alps::Gradient< Eigen::MatrixXd,
-//								    Eigen::MatrixXd > >(gradient_)->solve( true );
+    weights_.get()[0] += std::dynamic_pointer_cast< Alps::Gradient< std::shared_ptr< T >,
+								    std::shared_ptr< T > > >(gradient_)->solve( true ).get()[0];
   };
   /** \class WeightsReconstruction
    *

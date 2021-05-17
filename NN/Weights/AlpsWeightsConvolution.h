@@ -190,7 +190,7 @@ namespace Alps
 									   std::shared_ptr< T >,
 									   std::shared_ptr< T >,
 									   Alps::Arch::CPU > >();
-	    
+	    //
 	    break;
 	  };
 	case Alps::Grad::MOMENTUM:
@@ -209,7 +209,8 @@ namespace Alps
 	//
 	//
 	std::size_t weight_number = weights_->get_derivated_weight_values().size();
-	gradient_->set_parameters( weight_number, 0 );
+	std::dynamic_pointer_cast< Alps::Gradient< std::shared_ptr< T >,
+						   std::shared_ptr< T > > >(gradient_)->set_parameters( weight_number, 0 );
 	
       }
     catch( itk::ExceptionObject & err )
@@ -229,12 +230,12 @@ namespace Alps
     // retrieve the weight matrix
     Eigen::SparseMatrix< int, Eigen::RowMajor > matrix_weights   = weights_->get_weights_matrix();
     std::shared_ptr< double >                   weight_val       = weights_->get_convolution_weight_values( feature_ );
-    std::vecto< std::shared_ptr< double > >&    deriv_weight_val = weights_->get_derivated_weight_values();
+    std::vector< std::shared_ptr< double > >    deriv_weight_val = weights_->get_derivated_weight_values();
     //
     int
-      weight_number   = deriv_weight_val.size(),
-      size_in         = matrix_weights.cols(),
-      size_out        = matrix_weights.rows();
+      prev_features_number = Prev_image_tensors.size(),
+      weight_number        = deriv_weight_val.size(),
+      size_out             = matrix_weights.rows();
 
     //
     // Hadamard production between the weighted error and the
@@ -260,7 +261,7 @@ namespace Alps
 	    for ( int f = 0 ; f < prev_features_number ; f++ )
 	      for (int k = 0 ; k < matrix_weights.outerSize() ; ++k )
 		for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix_weights, k); it; ++it )
-		  wz[k] += deriv_weight_val[w].get()[ static_cast< int >(it.value()) ]
+		  wz.get()[k] += deriv_weight_val[w].get()[ static_cast< int >(it.value()) ]
 		    * Prev_image_tensors[f][Alps::TensorOrder1::ACTIVATION][it.index()];
 	    //
 	    for ( int o = 0 ; o < size_out ; o++)
@@ -277,7 +278,8 @@ namespace Alps
 
     //
     // process
-    gradient_->add_tensors( dE, nullptr );
+    std::dynamic_pointer_cast< Alps::Gradient< std::shared_ptr< T >,
+					       std::shared_ptr< T > > >(gradient_)->add_tensors( dE, nullptr );
   };
   //
   //
@@ -311,7 +313,7 @@ namespace Alps
 	    //
 	    // Check the size between the getting in layer and the number of colums are the same
 	    std::size_t layer_size = Image_tensors[f].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
-	    if ( layer_size != size_in )
+	    if ( layer_size != static_cast< std::size_t >(size_in) )
 	      throw MAC::MACException( __FILE__, __LINE__,
 				       "Error in the construction of the weight mastrix's dimensions.",
 				       ITK_LOCATION );
@@ -348,19 +350,14 @@ namespace Alps
   WeightsConvolution< T, K, Alps::Arch::CPU, A, S, D >::weighted_error( std::vector< Alps::LayerTensors< T, D > >& Prev_image_tensors,
 									std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
   {
-    long int
-      prev_tensors_size = 0,
-      tensors_size      = 0;
     //
     // retrieve the weight matrix
     Eigen::SparseMatrix< int, Eigen::RowMajor > matrix_weights = weights_->get_weights_matrix().transpose();
     std::shared_ptr< double >                   weight_val     = weights_->get_convolution_weight_values( feature_ );
     //
     int
-      features_number      = Image_tensors.size(),
       prev_features_number = Prev_image_tensors.size(),
-      size_in              = matrix_weights.rows(),
-      size_out             = matrix_weights.cols();
+      size_in              = matrix_weights.rows();
     //
     std::shared_ptr< T > we = std::shared_ptr< T >( new  T[size_in](), //-> init to 0
 						    std::default_delete< T[] >() );
@@ -381,7 +378,9 @@ namespace Alps
   template< typename T, typename K, typename A, typename S, int D > void
   WeightsConvolution< T, K, Alps::Arch::CPU, A, S, D >::update()
   {
-    weights_->set_convolution_weight_values( feature_, gradient_->solve() )
+    weights_->set_convolution_weight_values( feature_,
+					     std::dynamic_pointer_cast< Alps::Gradient< std::shared_ptr< T >,
+					                                                std::shared_ptr< T > > >(gradient_)->solve() );
   };
   //
   //
@@ -389,7 +388,9 @@ namespace Alps
   template< typename T, typename K, typename A, typename S, int D > void
   WeightsConvolution< T, K, Alps::Arch::CPU, A, S, D >::forced_update()
   {
-    weights_->set_convolution_weight_values( feature_, gradient_->solve(true) )
+    weights_->set_convolution_weight_values( feature_,
+					     std::dynamic_pointer_cast< Alps::Gradient< std::shared_ptr< T >,
+					                                                std::shared_ptr< T > > >(gradient_)->solve(true) );
   };
   /** \class WeightsConvolution
    *

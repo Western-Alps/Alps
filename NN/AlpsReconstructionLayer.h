@@ -257,8 +257,8 @@ namespace Alps
 	    C cost;
 	    // Returns the error at the image level
 	    std::get< Act::ERROR >( current_activation ) = cost.dL( (std::get< Act::ACTIVATION >( current_activation )).get(),
-								     target.get_tensor().get(),
-								     (std::get< Act::DERIVATIVE >( current_activation )).get(),
+								    target.get_tensor().get(),
+								    (std::get< Act::DERIVATIVE >( current_activation )).get(),
 								    layer_size );
 	    // Save the energy for this image
 	    double energy = cost.L( (std::get< Act::ACTIVATION >( current_activation )).get(),
