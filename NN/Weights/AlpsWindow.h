@@ -244,9 +244,15 @@ namespace Alps
 	    if ( static_cast<long int>(size[d]) > 2 * (w_[d] - p_[d]) )
 	      n_out_[d] = ( static_cast< std::size_t >(size[d]) - 2 * (w_[d] - p_[d]) ) / s_[d];
 	    else
-	      throw MAC::MACException( __FILE__, __LINE__,
-				       "The window dimensions exceed the input image size.",
-				       ITK_LOCATION );
+	      {
+		std::cout << "size[" << d <<"] = " << size[d] << std::endl;
+		std::cout << "w_[d] = " << w_[d] << std::endl;
+		std::cout << "p_[d] = " << p_[d] << std::endl;
+		std::cout << "2 * (w_[d] - p_[d]) = " << 2 * (w_[d] - p_[d]) << std::endl;
+		throw MAC::MACException( __FILE__, __LINE__,
+					 "The window dimensions exceed the input image size.",
+					 ITK_LOCATION );
+	      }
 	    //
 	    rows *= n_out_[d];
 	    cols *= size[d];

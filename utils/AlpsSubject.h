@@ -152,6 +152,7 @@ namespace Alps
 	  {
 	    //
 	    // Load the modalities into the container
+	    layer_modalities_["__input_layer__"].push_back( Alps::LayerTensors< double, D >(Modality) );
 	    modalities_.push_back( Alps::LayerTensors< double, D >(Modality) );
 	  }
 	else

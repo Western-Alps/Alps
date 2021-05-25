@@ -164,7 +164,7 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   /////////////
   mr_nn_.add( nn_1 );
   mr_nn_.add( nn_2 );
-  mr_nn_.add( nn_4 );
+  mr_nn_.add( nn_3 );
   mr_nn_.add( nn_4 );
   mr_nn_.add( nn_5 );
   mr_nn_.add( nn_6 );

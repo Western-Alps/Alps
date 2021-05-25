@@ -147,7 +147,7 @@ namespace Alps
 	img_ptr->Update();
 	//
 	// Load the modalities into the container
-	tensors_[ 0 ] = Alps::Image< double, D >( img_ptr );
+	tensors_[0] = Alps::Image< double, D >( img_ptr );
       }
     catch( itk::ExceptionObject & err )
       {
