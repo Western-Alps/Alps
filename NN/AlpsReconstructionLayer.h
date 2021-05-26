@@ -110,7 +110,7 @@ namespace Alps
     //
     // Observers
     // Observers containers
-    std::shared_ptr< Weights >                          weights_;
+    std::shared_ptr< Weights >                          weights_{nullptr};
   };
   //
   //

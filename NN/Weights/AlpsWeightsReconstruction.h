@@ -186,8 +186,8 @@ namespace Alps
 	case Alps::Grad::SGD:
 	  {
 	    gradient_ = std::make_shared< Alps::StochasticGradientDescent< double,
-									   Eigen::MatrixXd,
-									   Eigen::MatrixXd,
+									   std::shared_ptr< T >,
+									   std::shared_ptr< T >,
 									   Alps::Arch::CPU > >();
 	    
 	    break;
