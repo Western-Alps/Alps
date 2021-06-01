@@ -38,7 +38,7 @@ namespace Alps
 					   const std::vector< int > ){};
     
     /** Destructor */
-    virtual ~WeightsTransposedConvolution(){};
+    virtual ~WeightsTransposedConvolution() = default;
 
 
     //
@@ -112,7 +112,7 @@ namespace Alps
 				 std::shared_ptr< Kernel >, const int );
     
     /** Destructor */
-    virtual ~WeightsTransposedConvolution(){};
+    virtual ~WeightsTransposedConvolution() = default;
 
 
     //
@@ -140,8 +140,7 @@ namespace Alps
     virtual void                                   save_tensor() const                                 override{};
     // Load the weights										      
     virtual void                                   load_tensor( const std::string )                    override{};
-    //
-    //
+   //
     // Activate
     virtual std::tuple < std::shared_ptr< Type >,
 			 std::shared_ptr< Type > > activate( std::vector< Alps::LayerTensors< Type, Dim > >& )       override;
@@ -228,6 +227,10 @@ namespace Alps
 										     std::vector< Alps::LayerTensors< T, D > >& Prev_image_tensors )
   {
     //
+    // We use the non-transposed weights
+    weights_->set_transpose( true );
+
+    //
     // retrieve the weight matrix
     Eigen::SparseMatrix< int, Eigen::RowMajor > matrix_weights   = weights_->get_weights_matrix().transpose();
     std::shared_ptr< double >                   weight_val       = weights_->get_convolution_weight_values( feature_ );
@@ -289,6 +292,10 @@ namespace Alps
 										std::shared_ptr< T > >
   WeightsTransposedConvolution< T, K, Alps::Arch::CPU, A, S, D >::activate( std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
   {
+    //
+    // We use the non-transposed weights
+    weights_->set_transpose( true );
+
     //
     // retrieve the weight matrix
     Eigen::SparseMatrix< int, Eigen::RowMajor > matrix_weights = weights_->get_weights_matrix().transpose();
@@ -352,6 +359,10 @@ namespace Alps
 										    std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
   {
     //
+    // We use the non-transposed weights
+    weights_->set_transpose( true );
+
+   //
     // retrieve the weight matrix
     Eigen::SparseMatrix< int, Eigen::RowMajor > matrix_weights = weights_->get_weights_matrix();
     std::shared_ptr< double >                   weight_val     = weights_->get_convolution_weight_values( feature_ );
@@ -416,7 +427,7 @@ namespace Alps
 				 const std::vector< int > ){};
     
     /** Destructor */
-    virtual ~WeightsTransposedConvolution(){};
+    virtual ~WeightsTransposedConvolution() = default;
 
 
     //

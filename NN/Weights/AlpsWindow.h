@@ -53,10 +53,10 @@ namespace Alps
       { return s_;};
       //! get the number of voxel output per dimension
       const std::array< std::size_t, Dim>                get_output_image_dimensions() const
-      { return n_out_; };
+      { return (transposed_ ? n_in_ : n_out_); };
       //! Sparse matrix holding the index od=f the weights
       const Eigen::SparseMatrix< int, Eigen::RowMajor >& get_weights_matrix() const
-      { return weights_matrix_;};
+      {return weights_matrix_;};
       //! Array with the values of the weights
       std::shared_ptr< Type >                            get_convolution_weight_values( const int Kernel ) const
       { return weight_values_[Kernel];};
@@ -64,13 +64,22 @@ namespace Alps
       std::vector< std::shared_ptr< Type > >              get_derivated_weight_values() const
       { return derivated_weight_values_;};
       //! load image information
-      void                                               get_image_information( const typename ImageType< Dim >::RegionType );
+      void                                                get_image_information( const typename ImageType< Dim >::RegionType );
       //
       //
       //! Set array with the values of the weights
-      void                                               set_convolution_weight_values( const int Kernel,
-											std::shared_ptr< Type > W ) 
+      void                                                set_convolution_weight_values( const int Kernel,
+											 std::shared_ptr< Type > W )
       { weight_values_[Kernel] = W;};
+      //! Set if the window is used as transposed of not
+      void                                                set_transpose( const bool Transpose )
+      { transposed_ = Transpose;};
+
+
+      //
+      // Functions
+      const bool                                           initialized() const
+      { return (weights_matrix_.nonZeros() == 0 ? false : true );};
 
 
     private:
@@ -112,6 +121,10 @@ namespace Alps
       std::vector< long int >                      s_;
 
       //
+      //! Member checking if we are using the direct window or the transposed
+      bool                                         transposed_{false};
+      //! Member representing the number of voxel input per dimension
+      std::array< std::size_t, Dim >               n_in_;
       //! Member representing the number of voxel output per dimension
       std::array< std::size_t, Dim >               n_out_;
       //! Sparse matrix holding the index od=f the weights
@@ -241,6 +254,9 @@ namespace Alps
 	  cols = 1 ;
 	for ( long int d = 0 ; d < D ; d++ )
 	  {
+	    // record the input dimensions
+	    n_in_[d] = size[d];
+	    // creates the output dimensions
 	    if ( static_cast<long int>(size[d]) > 2 * (w_[d] - p_[d]) )
 	      n_out_[d] = ( static_cast< std::size_t >(size[d]) - 2 * (w_[d] - p_[d]) ) / s_[d];
 	    else
@@ -255,7 +271,7 @@ namespace Alps
 	      }
 	    //
 	    rows *= n_out_[d];
-	    cols *= size[d];
+	    cols *= n_in_[d];
  	  }
 	//
 	weights_matrix_.resize( rows, cols );

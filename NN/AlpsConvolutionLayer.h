@@ -203,7 +203,8 @@ namespace Alps
 	  }
 	//
 	// Initialize the weights matrix if not yet done
-	if ( convolution_window_->get_weights_matrix().nonZeros() == 0 )
+	//if ( convolution_window_->get_weights_matrix().nonZeros() == 0 )
+	if ( !convolution_window_->initialized() )
 	  // If the weights were not initialized yet
 	  convolution_window_->get_image_information( attached_layers[0].get_image(TensorOrder1::ACTIVATION).get_image_region() );
 	//

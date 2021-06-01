@@ -38,7 +38,7 @@ namespace Alps
 				 const std::vector< int > ){};
     
     /** Destructor */
-    virtual ~WeightsConvolution(){};
+    virtual ~WeightsConvolution() = default;
 
 
     //
@@ -112,7 +112,7 @@ namespace Alps
 				 std::shared_ptr< Kernel >, const int );
     
     /** Destructor */
-    virtual ~WeightsConvolution(){};
+    virtual ~WeightsConvolution() = default;
 
 
     //
@@ -228,6 +228,10 @@ namespace Alps
 									   std::vector< Alps::LayerTensors< T, D > >& Prev_image_tensors )
   {
     //
+    // We use the non-transposed weights
+    weights_->set_transpose( false );
+
+    //
     // retrieve the weight matrix
     Eigen::SparseMatrix< int, Eigen::RowMajor > matrix_weights   = weights_->get_weights_matrix();
     std::shared_ptr< double >                   weight_val       = weights_->get_convolution_weight_values( feature_ );
@@ -290,6 +294,10 @@ namespace Alps
   WeightsConvolution< T, K, Alps::Arch::CPU, A, S, D >::activate( std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
   {
     //
+    // We use the non-transposed weights
+    weights_->set_transpose( false );
+    
+    //
     // retrieve the weight matrix
     Eigen::SparseMatrix< int, Eigen::RowMajor > matrix_weights = weights_->get_weights_matrix();
     std::shared_ptr< double >                   weight_val     = weights_->get_convolution_weight_values( feature_ );
@@ -351,6 +359,10 @@ namespace Alps
   WeightsConvolution< T, K, Alps::Arch::CPU, A, S, D >::weighted_error( std::vector< Alps::LayerTensors< T, D > >& Prev_image_tensors,
 									  std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
   {
+    //
+    // We use the non-transposed weights
+    weights_->set_transpose( false );
+
     //
     // retrieve the weight matrix
     Eigen::SparseMatrix< int, Eigen::RowMajor > matrix_weights = weights_->get_weights_matrix().transpose();
@@ -416,7 +428,7 @@ namespace Alps
 				 const std::vector< int > ){};
     
     /** Destructor */
-    virtual ~WeightsConvolution(){};
+    virtual ~WeightsConvolution() = default;
 
 
     //

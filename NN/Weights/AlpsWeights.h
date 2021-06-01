@@ -41,7 +41,7 @@ namespace Alps
   {
   public:
     // Destructor
-    virtual ~Weights(){};
+    virtual ~Weights() = default;
 
 
     //
@@ -56,14 +56,14 @@ namespace Alps
     //
     // Activate
     virtual std::tuple < std::shared_ptr< Tensor1_Type >,
-			 std::shared_ptr< Tensor1_Type > > activate( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& )       = 0;
+			 std::shared_ptr< Tensor1_Type > > activate( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& )      = 0;
     // Weighted error
     virtual void                                           weighted_error( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >&,
 									   std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) = 0;
     // Update the weights
-    virtual void                                           update()                                                                = 0;
+    virtual void                                           update()                                                               = 0;
     // Force the update of the weights
-    virtual void                                           forced_update()                                                         = 0;
+    virtual void                                           forced_update()                                                       = 0;
   };
 }
 #endif
