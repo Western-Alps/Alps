@@ -36,9 +36,15 @@ namespace Alps
    * neural networks layers. 
    *
    */
-  template< typename Tensor1_Type, typename Tensor2_Type >
+  template< typename Tensor1_Type, typename Tensor2_Type, int Dim >
   class Weights : public Alps::Tensor< Tensor2_Type, /*Order*/ 2 >
   {
+    //
+    // Aliases
+    using LayerTensorsVec = std::vector< Alps::LayerTensors< Tensor1_Type, Dim > >;
+    using ActivationVec   = std::array < std::vector< Tensor1_Type >, 2 >;
+
+    
   public:
     // Destructor
     virtual ~Weights() = default;
@@ -48,22 +54,21 @@ namespace Alps
     // Accessors
     //
     // Activation tensor from the previous layer
-    virtual void set_activations( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >&,
-				  std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) = 0;
+    virtual void           set_activations( LayerTensorsVec&,
+					    LayerTensorsVec& ) = 0;
     
     //
     // Functions
     //
     // Activate
-    virtual std::tuple < std::shared_ptr< Tensor1_Type >,
-			 std::shared_ptr< Tensor1_Type > > activate( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& )      = 0;
+    virtual ActivationVec  activate( LayerTensorsVec& )        = 0;
     // Weighted error
-    virtual void                                           weighted_error( std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >&,
-									   std::vector< Alps::LayerTensors< Tensor1_Type, 2 > >& ) = 0;
+    virtual void           weighted_error( LayerTensorsVec&,
+					   LayerTensorsVec& )  = 0;
     // Update the weights
-    virtual void                                           update()                                                               = 0;
+    virtual void           update()                            = 0;
     // Force the update of the weights
-    virtual void                                           forced_update()                                                       = 0;
+    virtual void           forced_update()                    = 0;
   };
 }
 #endif

@@ -33,10 +33,15 @@ namespace Alps
     // Functions
     //
     // Loss function function
-    virtual Type                      L( Type*, Type*, std::size_t )         = 0;
+    virtual Type                   L( const std::vector< Type >&,
+				      const std::vector< Type >&,
+				      const std::size_t )          = 0;
     //
     // Loss function derivative
-    virtual std::shared_ptr< Type >  dL( Type*, Type*, Type*, std::size_t )  = 0;
+    virtual std::vector< Type >  dL( const std::vector< Type >&,
+				     const std::vector< Type >&,
+				     const std::vector< Type >&,
+				     const std::size_t )            = 0;
   };
   /** \class Function
    *
@@ -58,17 +63,23 @@ namespace Alps
     // Accessors
     //
     // get function name 
-    virtual Func                    get_function_name() const {return name_;};
+    virtual Func                    get_function_name() const    override
+    {return name_;};
  
 
     //
     // Functions
     //
     // Loss function function
-    virtual Type                      L( Type*, Type*, std::size_t );
+    virtual Type                   L( const std::vector< Type >&,
+				      const std::vector< Type >&,
+				      const std::size_t )              override;
     //
     // Loss function derivative
-    virtual std::shared_ptr< Type >  dL( Type*, Type*, Type*, std::size_t );
+    virtual std::vector< Type >  dL( const std::vector< Type >&,
+				     const std::vector< Type >&,
+				     const std::vector< Type >&,
+				     const std::size_t )           override;
 
       
     private:
@@ -79,9 +90,9 @@ namespace Alps
   //
   //
   template< typename T > T
-  LeastSquarreEstimate< T >::L( T*          Optimum,
-				T*          Target,
-				std::size_t N )
+  LeastSquarreEstimate< T >::L( const std::vector< T >& Optimum,
+				const std::vector< T >& Target,
+				const std::size_t       N )
   {
     T cost = 0;
     for ( std::size_t i = 0 ; i < N ; i++ )
@@ -94,15 +105,15 @@ namespace Alps
   //
   //
   //
-  template< typename T > std::shared_ptr< T >
-  LeastSquarreEstimate< T >::dL( T*          Optimum,
-				 T*          Target,
-				 T*          DOptimum,
-				 std::size_t N )
+  template< typename T > std::vector< T >
+  LeastSquarreEstimate< T >::dL( const std::vector< T >& Optimum,
+				 const std::vector< T >& Target,
+				 const std::vector< T >& DOptimum,
+				 const std::size_t       N )
   {
-    std::shared_ptr< T > error ( new T[N], std::default_delete<  T [] >() );
+    std::vector< T > error ( N, 0. );
     for ( std::size_t i = 0 ; i < N ; i++ )
-      ( error.get() )[i] = (Optimum[i] - Target[i]) * DOptimum[i];
+      error[i] = (Optimum[i] - Target[i]) * DOptimum[i];
     //
     //
     return error;

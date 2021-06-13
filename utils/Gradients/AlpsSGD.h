@@ -52,10 +52,10 @@ namespace Alps
     virtual const Alps::Grad get_optimizer() const
     { return Alps::Grad::SGD;};
     // Add tensor elements
-    virtual void         add_tensors( const Tensor1_Type, const Tensor1_Type ) override {};
+    virtual void         add_tensors( const Tensor1_Type&, const Tensor1_Type& ) override {};
     // Backward propagation
     virtual Tensor2_Type solve( const bool = false )                           override
-      { return Tensor2_Type();};
+    { return Tensor2_Type();};
   };
   /** \class StochasticGradientDescent
    *
@@ -70,57 +70,59 @@ namespace Alps
    * 
    */
   template< typename Type >
-  class StochasticGradientDescent< Type, std::shared_ptr< Type >, std::shared_ptr< Type >, Alps::Arch::CPU > : public Alps::Gradient< std::shared_ptr< Type >, std::shared_ptr< Type > >
-    {
-     public:
-      /** Costructor */
-      explicit StochasticGradientDescent();
-      /** Destructor */
-      virtual ~StochasticGradientDescent(){};
+  class StochasticGradientDescent< Type, std::vector< Type >, std::vector< Type >, Alps::Arch::CPU > :
+    public Alps::Gradient< std::vector< Type >, std::vector< Type > >
+  {
+  public:
+    /** Costructor */
+    explicit StochasticGradientDescent();
+    /** Destructor */
+    virtual ~StochasticGradientDescent(){};
+    
+      
+    //
+    // Accessors
+    //
+    // Set the layer sizes
+    virtual void                set_parameters( const std::size_t,
+						const std::size_t )        override;
+      
+      
+    //
+    // Functions
+    //
+    // Get the type of optimizer
+    virtual const Alps::Grad    get_optimizer() const
+    { return Alps::Grad::SGD;};
+    // Add tensor elements
+    virtual void                add_tensors( const std::vector< Type >&,
+					     const std::vector< Type >& )  override;
+    // Backward propagation
+    virtual std::vector< Type > solve( const bool = false)                 override;
 
-      
-      //
-      // Accessors
-      //
-      // Set the layer sizes
-      virtual void             set_parameters( const std::size_t, const std::size_t ) override;
-      
-      
-      //
-      // Functions
-      //
-      // Get the type of optimizer
-      virtual const Alps::Grad get_optimizer() const
-      { return Alps::Grad::SGD;};
-      // Add tensor elements
-      virtual void             add_tensors( const std::shared_ptr< Type >,
-					    const std::shared_ptr< Type > )           override;
-      // Backward propagation
-      virtual std::shared_ptr< Type > solve( const bool = false)                      override;
-
-    private:
-      //
-      // Gradient information
-      // mini batch size
-      std::size_t     mini_batch_{0};
-      // batch represent the current state before update of the weights
-      std::size_t     batch_{0};
-      // learning rate
-      double          learning_rate_{0.00001};
-      //
-      // Update of the weights
-      // number of weights
-      std::size_t             delta_size_{0};
-      // delta_ = [W epsilon] * ...
-      std::shared_ptr< Type > delta_;
-      // activation from the previous layer
-      std::shared_ptr< Type > previous_activation_;
-    };
+  private:
+    //
+    // Gradient information
+    // mini batch size
+    std::size_t             mini_batch_{0};
+    // batch represent the current state before update of the weights
+    std::size_t             batch_{0};
+    // learning rate
+    double                  learning_rate_{0.00001};
+    //
+    // Update of the weights
+    // number of weights
+    std::size_t             delta_size_{0};
+    // delta_ = [W epsilon] * ...
+    std::vector< Type >     delta_;
+    // activation from the previous layer
+    std::vector< Type >     previous_activation_;
+  };
   //
   //
   //
   template< typename Type >
-  Alps::StochasticGradientDescent< Type, std::shared_ptr< Type >, std::shared_ptr< Type >, Alps::Arch::CPU >::StochasticGradientDescent()
+  Alps::StochasticGradientDescent< Type, std::vector< Type >, std::vector< Type >, Alps::Arch::CPU >::StochasticGradientDescent()
   {
     mini_batch_    = static_cast< std::size_t >(Alps::LoadDataSet::instance()->get_data()["network"]["gradient"]["SGD"]["mini_batch"]);
     learning_rate_ = static_cast< double >(Alps::LoadDataSet::instance()->get_data()["network"]["gradient"]["SGD"]["learning_rate"]);
@@ -129,27 +131,26 @@ namespace Alps
   //
   //
   template< typename Type > void
-  Alps::StochasticGradientDescent< Type, std::shared_ptr< Type >, std::shared_ptr< Type >, Alps::Arch::CPU >::set_parameters( const std::size_t Current_size,
-															      const std::size_t Prev_size )
+  Alps::StochasticGradientDescent< Type, std::vector< Type >, std::vector< Type >, Alps::Arch::CPU >::set_parameters( const std::size_t Current_size,
+														      const std::size_t Prev_size )
   {
     delta_size_          = Current_size;
-    delta_               = std::shared_ptr< Type >( new  Type[Current_size](), //-> init to 0
-						    std::default_delete< Type[] >() );
-    previous_activation_ = nullptr;
+    delta_               = std::vector< Type >( Current_size, 0. );
+    //previous_activation_ = nullptr;
   }
   //
   //
   //
   template< typename Type > void
-  Alps::StochasticGradientDescent< Type, std::shared_ptr< Type >, std::shared_ptr< Type >, Alps::Arch::CPU >::add_tensors( const std::shared_ptr< Type > Delta,
-															   const std::shared_ptr< Type > Z )
+  Alps::StochasticGradientDescent< Type, std::vector< Type >, std::vector< Type >, Alps::Arch::CPU >::add_tensors( const std::vector< Type >& Delta,
+														   const std::vector< Type >& Z )
   {
     try
       {
 	//
 	//
 	for ( std::size_t d = 0 ; d < delta_size_ ; d++ )
-	  delta_.get()[d] -= learning_rate_ * Delta.get()[d];
+	  delta_[d] -= learning_rate_ * Delta[d];
 	// An additional image, we increase the batch size
 	batch_++;
       }
@@ -162,8 +163,8 @@ namespace Alps
   //
   //
   //
-  template< typename Type > std::shared_ptr< Type >
-  Alps::StochasticGradientDescent< Type, std::shared_ptr< Type >, std::shared_ptr< Type >, Alps::Arch::CPU >::solve( const bool Forced )
+  template< typename Type > std::vector< Type >
+  Alps::StochasticGradientDescent< Type, std::vector< Type >, std::vector< Type >, Alps::Arch::CPU >::solve( const bool Forced )
   {
     if ( batch_ > mini_batch_ - 1 || Forced )
       {
@@ -171,8 +172,7 @@ namespace Alps
 	return delta_;
       }
     else
-      return std::shared_ptr< Type >( new  Type[delta_size_](), //-> init to 0
-				      std::default_delete< Type[] >() );
+      return std::vector< Type >( delta_size_, 0. );
   }
   /** \class StochasticGradientDescent
    *
@@ -188,48 +188,48 @@ namespace Alps
    */
   template< typename Type >
   class StochasticGradientDescent< Type, Eigen::MatrixXd, Eigen::MatrixXd, Alps::Arch::CPU > : public Alps::Gradient< Eigen::MatrixXd, Eigen::MatrixXd >
-    {
-     public:
-      /** Costructor */
-      explicit StochasticGradientDescent();
-      /** Destructor */
-      virtual ~StochasticGradientDescent(){};
+  {
+  public:
+    /** Costructor */
+    explicit StochasticGradientDescent();
+    /** Destructor */
+    virtual ~StochasticGradientDescent(){};
 
       
-      //
-      // Accessors
-      //
-      // Set the layer sizes
-      virtual void            set_parameters( const std::size_t, const std::size_t )      override;
+    //
+    // Accessors
+    //
+    // Set the layer sizes
+    virtual void            set_parameters( const std::size_t, const std::size_t )      override;
       
       
-      //
-      // Functions
-      //
-      // Get the type of optimizer
-      virtual const Alps::Grad get_optimizer() const
-      { return Alps::Grad::SGD;};
-      // Add tensor elements
-      virtual void            add_tensors( const Eigen::MatrixXd, const Eigen::MatrixXd ) override;
-      // Backward propagation
-      virtual Eigen::MatrixXd solve( const bool = false)                                  override;
+    //
+    // Functions
+    //
+    // Get the type of optimizer
+    virtual const Alps::Grad get_optimizer() const
+    { return Alps::Grad::SGD;};
+    // Add tensor elements
+    virtual void            add_tensors( const Eigen::MatrixXd&, const Eigen::MatrixXd& ) override;
+    // Backward propagation
+    virtual Eigen::MatrixXd solve( const bool = false)                                  override;
 
-    private:
-      //
-      // Gradient information
-      // mini batch size
-      std::size_t     mini_batch_{0};
-      // batch represent the current state before update of the weights
-      std::size_t     batch_{0};
-      // learning rate
-      double          learning_rate_{0.00001};
-      //
-      // Update of the weights
-      // delta_ = [W epsilon] * ...
-      Eigen::MatrixXd delta_;
-      // activation from the previous layer
-      Eigen::MatrixXd previous_activation_;
-    };
+  private:
+    //
+    // Gradient information
+    // mini batch size
+    std::size_t     mini_batch_{0};
+    // batch represent the current state before update of the weights
+    std::size_t     batch_{0};
+    // learning rate
+    double          learning_rate_{0.00001};
+    //
+    // Update of the weights
+    // delta_ = [W epsilon] * ...
+    Eigen::MatrixXd delta_;
+    // activation from the previous layer
+    Eigen::MatrixXd previous_activation_;
+  };
   //
   //
   //
@@ -253,8 +253,8 @@ namespace Alps
   //
   //
   template< typename Type > void
-  Alps::StochasticGradientDescent< Type, Eigen::MatrixXd, Eigen::MatrixXd, Alps::Arch::CPU >::add_tensors( const Eigen::MatrixXd Delta,
-													   const Eigen::MatrixXd Z )
+  Alps::StochasticGradientDescent< Type, Eigen::MatrixXd, Eigen::MatrixXd, Alps::Arch::CPU >::add_tensors( const Eigen::MatrixXd& Delta,
+													   const Eigen::MatrixXd& Z )
   {
     try
       {
@@ -310,32 +310,32 @@ namespace Alps
    */
   template< typename Type, typename Tensor1_Type, typename Tensor2_Type >
   class StochasticGradientDescent< Type, Tensor1_Type, Tensor2_Type, Alps::Arch::CUDA > : public Alps::Gradient< Tensor1_Type, Tensor2_Type >
-    {
-     public:
-      /** Costructor */
-      explicit StochasticGradientDescent(){};
-      /** Destructor */
-      virtual ~StochasticGradientDescent(){};
+  {
+  public:
+    /** Costructor */
+    explicit StochasticGradientDescent(){};
+    /** Destructor */
+    virtual ~StochasticGradientDescent(){};
 
       
-      //
-      // Accessors
-      //
-      // Set the layer sizes
-      virtual void            set_parameters( const std::size_t, const std::size_t )      override{};
+    //
+    // Accessors
+    //
+    // Set the layer sizes
+    virtual void            set_parameters( const std::size_t, const std::size_t )      override{};
 
       
-      //
-      // Functions
-      //
-      // Get the type of optimizer
-      virtual const Alps::Grad get_optimizer() const
-      { return Alps::Grad::SGD;};
-      // Add tensor elements
-      virtual void         add_tensors( const Tensor1_Type, const Tensor1_Type ) override {};
-      // Backward propagation
-      virtual Tensor2_Type solve( const bool = false )                                     override
-      { return Tensor2_Type();};
-    };
+    //
+    // Functions
+    //
+    // Get the type of optimizer
+    virtual const Alps::Grad get_optimizer() const
+    { return Alps::Grad::SGD;};
+    // Add tensor elements
+    virtual void         add_tensors( const Tensor1_Type&, const Tensor1_Type& ) override {};
+    // Backward propagation
+    virtual Tensor2_Type solve( const bool = false )                                     override
+    { return Tensor2_Type();};
+  };
 }
 #endif

@@ -62,44 +62,38 @@ TEST_F(LayerTensorsTest, ByDefaultLayerTensorsHadamart) {
   std::vector< std::size_t > size(1);
   size[0] = 5;
   //
-  std::shared_ptr< double > activation  = std::shared_ptr< double >( new  double[5],
-								     std::default_delete< double[] >() );
-  std::shared_ptr< double > derivative  = std::shared_ptr< double >( new  double[5],
-								     std::default_delete< double[] >() );
-  std::shared_ptr< double > error       = std::shared_ptr< double >( new  double[5],
-								     std::default_delete< double[] >() );
-  std::shared_ptr< double > werror      = nullptr;
+  std::vector< double > activation  = std::vector< double >( 5, 0. );
+  std::vector< double > derivative  = std::vector< double >( 5, 0. );
+  std::vector< double > error       = std::vector< double >( 5, 0. );
+  std::vector< double > werror      = std::vector< double >( 5, 0. );
   //
   for ( int i = 0 ; i < 5 ; i++ )
     {
-      activation.get()[i] = static_cast<double>( i );
-      derivative.get()[i] = static_cast<double>( i * 10 );
-      error.get()[i]      = static_cast<double>( i * 100 );
+      activation[i] = static_cast<double>( i );
+      derivative[i] = static_cast<double>( i * 10 );
+      error[i]      = static_cast<double>( i * 100 );
     }
   //
-  std::tuple< std::shared_ptr< double >,
-	      std::shared_ptr< double >,
-	      std::shared_ptr< double >,
-	      std::shared_ptr< double > > current = std::make_tuple( activation, derivative, error, werror );
+  std::array< std::vector< double >, 4 > current = { activation, derivative, error, werror };
     
   Alps::LayerTensors< double, 2 > Subj( size, current );
   //
   // Test the hadamart product
-  std::shared_ptr< double > hadamart = Subj( Alps::TensorOrder1::ACTIVATION,
-					     Alps::TensorOrder1::DERIVATIVE );
+  std::vector< double > hadamart = std::move( Subj(Alps::TensorOrder1::ACTIVATION,
+						   Alps::TensorOrder1::DERIVATIVE) );
 //  //
 //  for ( int i = 0 ; i < 5 ; i++ )
 //    std::cout << "hadamart("<<i<<") = " << hadamart.get()[i] << std::endl;
   
   //
   //
-  EXPECT_EQ( hadamart.get()[4], 44 );
+  EXPECT_EQ( hadamart[4], 44 );
 }
 //// Accessors
 //TEST_F(LayerTensorsTest, ByDefaultImageSet) {
 //  //
 //  //
-//  std::shared_ptr< double > zz = std::shared_ptr< double >( new double[3], std::default_delete< double[] >() );
+//  std::vector< double > zz = std::vector< double >( new double[3], std::default_delete< double[] >() );
 //  ( zz.get() )[0] = 99.99;
 //  ( zz.get() )[1] = 99.99;
 //  ( zz.get() )[2] = 99.99;

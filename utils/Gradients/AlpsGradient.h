@@ -159,18 +159,18 @@ namespace Alps
     // Accessors
     //
     // Set the layer sizes
-    virtual void            set_parameters( const std::size_t, const std::size_t ) = 0;
+    virtual void            set_parameters( const std::size_t, const std::size_t )   = 0;
       
  
     //
     // Functions
     //
     // Get the type of optimizer
-    virtual const Alps::Grad get_optimizer() const                                 = 0;
+    virtual const Alps::Grad get_optimizer() const                                   = 0;
     // Add tensor elements
-    virtual void             add_tensors( const Tensor1_Type, const Tensor1_Type ) = 0;
+    virtual void             add_tensors( const Tensor1_Type&, const Tensor1_Type& ) = 0;
     // Backward propagation
-    virtual Tensor2_Type     solve( const bool = false)                            = 0;
+    virtual Tensor2_Type     solve( const bool = false)                              = 0;
   };
 }
 #endif

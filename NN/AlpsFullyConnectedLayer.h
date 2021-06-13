@@ -226,25 +226,13 @@ namespace Alps
 	//
 	std::size_t layer_size = fc_layer_size_[0];
 	// activation function
-	std::shared_ptr< double > z     = std::shared_ptr< double >( new  double[layer_size](), //-> init to 0
-								     std::default_delete< double[] >() );
+	std::vector< double > z( layer_size, 0. );
 	// Derivative of the activation function
-	std::shared_ptr< double > dz    = std::shared_ptr< double >( new  double[layer_size](), //-> init to 0
-								     std::default_delete< double[] >() );
+	std::vector< double > dz( layer_size, 0. );
 	// Error back propagated in building the gradient
-	std::shared_ptr< double > error = std::shared_ptr< double >( new  double[layer_size](), //-> init to 0
-								     std::default_delete< double[] >() );
+	std::vector< double > error( layer_size, 0. );
 	// Weighted error back propagated in building the gradient
-	std::shared_ptr< double > werr  = std::shared_ptr< double >( new  double[layer_size](), //-> init to 0
-								     std::default_delete< double[] >() );
-//	// initialize to 0
-//	for ( std::size_t s = 0 ; s < layer_size ; s++ )
-//	  {
-//	    z.get()[s]     = 0.;
-//	    dz.get()[s]    = 0.;
-//	    error.get()[s] = 0.;
-//	    werr.get()[s]  = 0.;
-//	  }
+	std::vector< double > werr( layer_size, 0. );
 	// We concaten the tensors from any layer connected to this layer
 	for ( auto layer : prev_layer_ )
 	  {
@@ -258,16 +246,13 @@ namespace Alps
 	    //
 	    for ( std::size_t s = 0 ; s < layer_size ; s++ )
 	      {
-		z.get()[s]  += std::get< Act::ACTIVATION >(tuple).get()[s];
-		dz.get()[s] += std::get< Act::DERIVATIVE >(tuple).get()[s];
+		z[s]  += tuple[ Act::ACTIVATION ][s];
+		dz[s] += tuple[ Act::DERIVATIVE ][s];
 	      }
 	  }
 	//
 	// Get the activation tuple (<0> - activation; <1> - derivative; <2> - error)
-	std::tuple< std::shared_ptr< double >,
-		    std::shared_ptr< double >,
-		    std::shared_ptr< double >,
-		    std::shared_ptr< double > > current_activation = std::make_tuple( z, dz, error, werr );
+	std::array< std::vector< double >, 4 > current_activation = { z, dz, error, werr };
 
 	
 	//////////////////////////////////////
@@ -298,13 +283,13 @@ namespace Alps
 	    // Cost function. 
 	    C cost;
 	    // Returns the error at the image level
-	    std::get< Act::ERROR >( current_activation ) = cost.dL( (std::get< Act::ACTIVATION >( current_activation )).get(),
-								     target.get_tensor().get(),
-								     (std::get< Act::DERIVATIVE >( current_activation )).get(),
-								     fc_layer_size_[0] );
+	    current_activation[Act::ERROR] = std::move( cost.dL(current_activation[Act::ACTIVATION],
+								target.get_tensor(),
+								current_activation[Act::DERIVATIVE],
+								fc_layer_size_[0]) );
 	    // Save the energy for this image
-	    double energy = cost.L( (std::get< Act::ACTIVATION >( current_activation )).get(),
-				    target.get_tensor().get(),
+	    double energy = cost.L( current_activation[Act::ACTIVATION],
+				    target.get_tensor(),
 				    fc_layer_size_[0] );
 	    // record the energy for the image
 	    subject->set_energy( energy );

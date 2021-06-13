@@ -58,10 +58,10 @@ namespace Alps
       const Eigen::SparseMatrix< int, Eigen::RowMajor >& get_weights_matrix() const
       {return weights_matrix_;};
       //! Array with the values of the weights
-      std::shared_ptr< Type >                            get_convolution_weight_values( const int Kernel ) const
+      const std::vector< Type >&                         get_convolution_weight_values( const int Kernel ) const
       { return weight_values_[Kernel];};
       //! Array with the derivative values of the weights
-      std::vector< std::shared_ptr< Type > >              get_derivated_weight_values() const
+      const std::vector< std::vector< Type > >&          get_derivated_weight_values() const
       { return derivated_weight_values_;};
       //! load image information
       void                                                get_image_information( const typename ImageType< Dim >::RegionType );
@@ -69,7 +69,7 @@ namespace Alps
       //
       //! Set array with the values of the weights
       void                                                set_convolution_weight_values( const int Kernel,
-											 std::shared_ptr< Type > W )
+											 std::vector< Type > W )
       { weight_values_[Kernel] = W;};
       //! Set if the window is used as transposed of not
       void                                                set_transpose( const bool Transpose )
@@ -130,9 +130,9 @@ namespace Alps
       //! Sparse matrix holding the index od=f the weights
       Eigen::SparseMatrix< int, Eigen::RowMajor >  weights_matrix_;
       //! Array with the values of the weights
-      std::vector< std::shared_ptr< Type > >       weight_values_;
+      std::vector< std::vector< Type > >           weight_values_;
       //! Array with the values of the weights
-      std::vector< std::shared_ptr< Type > >       derivated_weight_values_;
+      std::vector< std::vector< Type > >           derivated_weight_values_;
   };
   //
   //
@@ -202,17 +202,16 @@ namespace Alps
 	// feel up the arrays
 	for ( int k = 0 ; k < Num_kernel ; k++ )
 	  {
-	    weight_values_[k] = std::shared_ptr< T >( new T[number_weights],
-						      std::default_delete< T[] >() );
+	    weight_values_[k] = std::vector< T >( number_weights, 0. );
 	    //
 	    for ( int w = 0 ; w < number_weights ; w++ )
 	      {
-		weight_values_[k].get()[w] = distribution( generator );
+		weight_values_[k][w] = distribution( generator );
 //		//
 //		std::cout << "weight_values_[kernel: "
 //			  <<k<< "].get()[weight: "
 //			  <<w<<"] = "
-//			  << weight_values_[k].get()[w]
+//			  << weight_values_[k][w]
 //			  << std::endl;
 	      }
 	  }
@@ -224,13 +223,12 @@ namespace Alps
 	derivated_weight_values_.resize( number_weights );
 	for ( int w = 1 ; w < number_weights ; w++ )
 	  {
-	    derivated_weight_values_[w] = std::shared_ptr< T >( new T[number_weights](),
-								std::default_delete< T[] >() );
-	    derivated_weight_values_[w].get()[w] = 1.;
+	    derivated_weight_values_[w] = std::vector< T >( number_weights, 0. );
+	    // ToDo: there is something weird here!
+	    derivated_weight_values_[w][w] = 1.;
 	  }
 	// The bias
-	derivated_weight_values_[0] = std::shared_ptr< T >( new T[number_weights](),
-							    std::default_delete< T[] >() );
+	derivated_weight_values_[0] = std::vector< T >( number_weights, 0. );
       }
     catch( itk::ExceptionObject & err )
       {

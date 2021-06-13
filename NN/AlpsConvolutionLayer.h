@@ -239,34 +239,16 @@ namespace Alps
 	      }
 	    //
 	    auto tuple   = weights_[k]->activate( attached_layers );
-//	    // activation function
-//	    std::shared_ptr< double > z     = std::shared_ptr< double >( new  double[layer_size](),
-//									 std::default_delete< double[] >() );
-//	    // Derivative of the activation function
-//	    std::shared_ptr< double > dz    = std::shared_ptr< double >( new  double[layer_size](),
-//									 std::default_delete< double[] >() );
+	    // activation function
 	    // Error back propagated in building the gradient
-	    std::shared_ptr< double > error = std::shared_ptr< double >( new  double[layer_size](),
-									 std::default_delete< double[] >() );
+	    std::vector< double > error( layer_size, 0. );
 	    // Weighted error back propagated in building the gradient
-	    std::shared_ptr< double > werr  = std::shared_ptr< double >( new  double[layer_size](),
-									 std::default_delete< double[] >() );
-//	    // initialize to 0
-//	    for ( std::size_t s = 0 ; s < layer_size ; s++ )
-//	      {
-//		z.get()[s]     = 0.;
-//		dz.get()[s]    = 0.;
-//		error.get()[s] = 0.;
-//		werr.get()[s]  = 0.;
-//	      }
+	    std::vector< double > werr( layer_size, 0. );
 	    //
 	    // Get the activation tuple (<0> - activation; <1> - derivative; <2> - error)
-	    std::tuple< std::shared_ptr< double >,
-			std::shared_ptr< double >,
-			std::shared_ptr< double >,
-			std::shared_ptr< double > > current_activation = std::make_tuple( std::get< Act::ACTIVATION >(tuple),
-											  std::get< Act::DERIVATIVE >(tuple),
-											  error, werr );
+	    std::array< std::vector< double >, 4 > current_activation = { tuple[ Act::ACTIVATION ],
+									  tuple[ Act::DERIVATIVE ],
+									  error, werr };
 	    
 	    
 	    //////////////////////////////////////
@@ -333,8 +315,8 @@ namespace Alps
 	  for ( auto layer_weights : prev_layer_ )
 	    {
 	      std::string name = layer_weights.first;
-	      weights_[k]->set_activations( image_tensors,
-					    subject->get_layer( name ) );
+	      weights_[k]->set_activations( subject->get_layer( name ),
+					    image_tensors );
 	      weights_[k]->update();
 	    }
       }

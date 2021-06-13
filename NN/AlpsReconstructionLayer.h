@@ -213,20 +213,15 @@ namespace Alps
 	  }
 	auto tuple   = weights_->activate( attached_layers );
 	// Error back propagated in building the gradient
-	std::shared_ptr< double > error = std::shared_ptr< double >( new  double[layer_size](),
-								     std::default_delete< double[] >() );
+	std::vector< double > error( layer_size, 0. );
 	// Weighted error back propagated in building the gradient
-	std::shared_ptr< double > werr  = std::shared_ptr< double >( new  double[layer_size](),
-								     std::default_delete< double[] >() );
+	std::vector< double > werr( layer_size, 0. );
 	//
 	// Get the activation tuple (<0> - activation; <1> - derivative; <2> - error)
-	std::tuple< std::shared_ptr< double >,
-		    std::shared_ptr< double >,
-		    std::shared_ptr< double >,
-		    std::shared_ptr< double > > current_activation = std::make_tuple( std::get< Act::ACTIVATION >(tuple),
-										      std::get< Act::DERIVATIVE >(tuple),
-										      error, werr );
-	
+	std::array< std::vector< double >, 4 > current_activation = { tuple[ Act::ACTIVATION ],
+								      tuple[ Act::DERIVATIVE ],
+								      error, werr };
+	    
 	
 	//////////////////////////////////////
 	// Save the activation information //
@@ -256,13 +251,13 @@ namespace Alps
 	    // Cost function. 
 	    C cost;
 	    // Returns the error at the image level
-	    std::get< Act::ERROR >( current_activation ) = cost.dL( (std::get< Act::ACTIVATION >( current_activation )).get(),
-								    target.get_tensor().get(),
-								    (std::get< Act::DERIVATIVE >( current_activation )).get(),
-								    layer_size );
+	    current_activation[Act::ERROR] = std::move( cost.dL(current_activation[Act::ACTIVATION],
+								target.get_tensor(),
+								current_activation[Act::DERIVATIVE],
+								layer_size) );
 	    // Save the energy for this image
-	    double energy = cost.L( (std::get< Act::ACTIVATION >( current_activation )).get(),
-				    target.get_tensor().get(),
+	    double energy = cost.L( current_activation[Act::ACTIVATION],
+				    target.get_tensor(),
 				    layer_size );
 	    // record the energy for the image
 	    subject->set_energy( energy );

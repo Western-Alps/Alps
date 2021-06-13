@@ -55,7 +55,7 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   std::vector< long int > padding_1  = {1,2}; // padding
   std::vector< long int > striding_1 = {1,1}; // striding
   //
-  std::shared_ptr< Kernel > window_1 = std::make_shared< Kernel >( 10, // number of kernels
+  std::shared_ptr< Kernel > window_1 = std::make_shared< Kernel >( 1, // number of kernels
 								   h_window_1, padding_1, striding_1 );
   //
   std::shared_ptr< Alps::Layer > nn_1 =
@@ -71,7 +71,7 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   std::vector< long int > padding_2  = {0,0}; // padding
   std::vector< long int > striding_2 = {1,1}; // striding
   //
-  std::shared_ptr< Kernel > window_2 = std::make_shared< Kernel >( 20, // number of kernels
+  std::shared_ptr< Kernel > window_2 = std::make_shared< Kernel >( 2, // number of kernels
 								   h_window_2, padding_2, striding_2 );
   //
   std::shared_ptr< Alps::Layer > nn_2 =
@@ -85,7 +85,7 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   std::vector< long int > padding_3  = {0,0}; // padding
   std::vector< long int > striding_3 = {1,1}; // striding
   //
-  std::shared_ptr< Kernel > window_3 = std::make_shared< Kernel >( 10, // number of kernels
+  std::shared_ptr< Kernel > window_3 = std::make_shared< Kernel >( 3, // number of kernels
 								   h_window_3, padding_3, striding_3 );
   //
   std::shared_ptr< Alps::Layer > nn_3 =

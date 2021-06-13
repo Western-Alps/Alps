@@ -30,14 +30,14 @@ TEST_F(CostFunctionTest, ByDefaultCostFunctionLSE_L) {
   //
   //
   int N = 3;
-  std::shared_ptr< double > shv1( new double[N], std::default_delete< double [] >() );
-  std::shared_ptr< double > shv2( new double[N], std::default_delete< double [] >() );
+  std::vector< double > shv1( N, 0. );
+  std::vector< double > shv2( N, 0. );
   //  
-  shv1.get()[0] = 1.; shv1.get()[1] = 2.; shv1.get()[2] = 3.; 
-  shv2.get()[0] = 4.; shv2.get()[1] = 5.; shv2.get()[2] = 6.; 
+  shv1[0] = 1.; shv1[1] = 2.; shv1[2] = 3.; 
+  shv2[0] = 4.; shv2[1] = 5.; shv2[2] = 6.; 
   //
   //
-  EXPECT_EQ( LSE.L(shv1.get(), shv2.get(), N), N * 9. );
+  EXPECT_EQ( LSE.L(shv1, shv2, N), N * 9. );
 }
 // Derivative of the activation function
 TEST_F(CostFunctionTest, ByDefaultCostFunctionTanh_df) {
@@ -46,13 +46,13 @@ TEST_F(CostFunctionTest, ByDefaultCostFunctionTanh_df) {
   //
   //
   int N = 3;
-  std::shared_ptr< double > shv1( new double[N], std::default_delete< double [] >() );
-  std::shared_ptr< double > shv2( new double[N], std::default_delete< double [] >() );
-  std::shared_ptr< double > shv3( new double[N], std::default_delete< double [] >() );
+  std::vector< double > shv1( N, 0. );
+  std::vector< double > shv2( N, 0. );
+  std::vector< double > shv3( N, 0. );
   //  
-  shv1.get()[0] = 1.; shv1.get()[1] = 2.; shv1.get()[2] = 3.; 
-  shv2.get()[0] = 4.; shv2.get()[1] = 5.; shv2.get()[2] = 6.; 
-  shv3.get()[0] = 1.; shv3.get()[1] = 2.; shv3.get()[2] = 3.;
+  shv1[0] = 1.; shv1[1] = 2.; shv1[2] = 3.; 
+  shv2[0] = 4.; shv2[1] = 5.; shv2[2] = 6.; 
+  shv3[0] = 1.; shv3[1] = 2.; shv3[2] = 3.;
   //
   double val =0.;
   for ( int i = 0 ; i < N ; i++ )
@@ -60,7 +60,7 @@ TEST_F(CostFunctionTest, ByDefaultCostFunctionTanh_df) {
 //      std::cout << "dL[" << i << "] = "
 //		<< LSE.dL(shv1.get(), shv2.get(), shv3.get(), N).get()[i]
 //		<< std::endl;
-      val += LSE.dL(shv1.get(), shv2.get(), shv3.get(), N).get()[i];
+      val += LSE.dL(shv1, shv2, shv3, N)[i];
     }
   
   //

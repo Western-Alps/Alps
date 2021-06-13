@@ -32,7 +32,7 @@ namespace Alps
       // 
     public:
       /** Destructor */
-      virtual ~Tensor(){};
+      virtual ~Tensor() = default;
 
       //
       // Accessors
@@ -40,11 +40,13 @@ namespace Alps
       // Get size of the tensor
       virtual const std::vector< std::size_t > get_tensor_size() const                       = 0;
       // Get the tensor
-      virtual std::shared_ptr< Type >          get_tensor() const                            = 0;
-      // Set size of the tensor
-      virtual void                             set_tensor_size( std::vector< std::size_t > ) = 0;
-      // Set the tensor
-      virtual void                             set_tensor( std::shared_ptr< Type > )         = 0;
+      virtual const std::vector< Type >&       get_tensor() const                            = 0;
+      // Update the tensor
+      virtual std::vector< Type >&             update_tensor()                               = 0;
+//      // Set size of the tensor
+//      virtual void                             set_tensor_size( std::vector< std::size_t > ) = 0;
+//      // Set the tensor
+//      virtual void                             set_tensor( std::shared_ptr< Type > )         = 0;
 
       //
       // Functions

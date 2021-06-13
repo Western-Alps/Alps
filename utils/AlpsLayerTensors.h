@@ -54,16 +54,10 @@ namespace Alps
     LayerTensors( const std::string );
     /** Constructor */
     LayerTensors( const std::vector< std::size_t >,
-		  std::tuple< std::shared_ptr< double >,
-		              std::shared_ptr< double >,
-		              std::shared_ptr< double >,
-		              std::shared_ptr< double > > );
+		  std::array< std::vector< Type >, 4 > );
     /** Constructor */
     LayerTensors( const std::array< std::size_t, Dim >,
-		  std::tuple< std::shared_ptr< double >,
-		              std::shared_ptr< double >,
-		              std::shared_ptr< double >,
-		              std::shared_ptr< double > > );
+		  std::array< std::vector< Type >, 4 > );
     /* Destructor */
     virtual ~LayerTensors(){};
 
@@ -75,12 +69,15 @@ namespace Alps
     virtual const std::vector< std::size_t >    get_tensor_size() const                       override
     { return tensors_[0].get_tensor_size();};
     // Get the tensor
-    virtual std::shared_ptr< Type >             get_tensor() const                            override
-    { return nullptr;};
-    // Set size of the tensor
-    virtual void                                set_tensor_size( std::vector< std::size_t > ) override{};
-    // Set the tensor
-    virtual void                                set_tensor( std::shared_ptr< Type > )         override{};
+    virtual const std::vector< Type >&          get_tensor() const                            override
+    { };
+    // Update the tensor
+    virtual std::vector< Type >&                update_tensor()                               override 
+    { };
+//    // Set size of the tensor
+//    virtual void                                set_tensor_size( std::vector< std::size_t > ) override{};
+//    // Set the tensor
+//    virtual void                                set_tensor( std::shared_ptr< Type > )         override{};
     //
     // Access the images directly
     const Alps::Image< Type, Dim >&             get_image( Alps::TensorOrder1 ) const;
@@ -97,23 +94,17 @@ namespace Alps
     //
     // Implementation of [] operator.  This function must return a 
     // reference as array element can be put on left side 
-    Type*                                       operator[]( Alps::TensorOrder1 Idx ); 
+    std::vector< Type >&                        operator[]( Alps::TensorOrder1 Idx ); 
     //
     // Implementation of () operator.  This function must return a 
-    // reference as array element of the Hadamart product between two tensors
-    std::shared_ptr< Type >                     operator()( Alps::TensorOrder1, Alps::TensorOrder1 ); 
+    // reference as array element of the Hadamard product between two tensors
+    std::vector< Type >                         operator()( Alps::TensorOrder1, Alps::TensorOrder1 ); 
     //
     void                                        replace( const std::vector< std::size_t >,
-							  std::tuple< std::shared_ptr< double >,
-							              std::shared_ptr< double >,
-							              std::shared_ptr< double >,
-							              std::shared_ptr< double > >);  
+							  std::array< std::vector< Type >, 4 > );  
     //
     void                                        replace( const std::array< std::size_t, Dim >,
-							  std::tuple< std::shared_ptr< double >,
-							              std::shared_ptr< double >,
-							              std::shared_ptr< double >,
-							              std::shared_ptr< double > >);  
+							  std::array< std::vector< Type >, 4 > );  
     
   private:
     // (Z,error, )
@@ -158,20 +149,17 @@ namespace Alps
   //
   // Constructor
   template< typename T,int D >
-  Alps::LayerTensors< T, D >::LayerTensors( const std::vector< std::size_t >        Tensor_size,
-					    std::tuple< std::shared_ptr< double >,
-					                std::shared_ptr< double >,
-					                std::shared_ptr< double >,
-					                std::shared_ptr< double > > Tensors )
+  Alps::LayerTensors< T, D >::LayerTensors( const std::vector< std::size_t >     Tensor_size,
+					    std::array< std::vector< T >, 4 > Tensors )
   {
     try
       {
 	//
 	// Load the modalities into the container
-	tensors_[0] = Alps::Image< double, D >( Tensor_size, std::get< 0 >( Tensors ) );
-	tensors_[1] = Alps::Image< double, D >( Tensor_size, std::get< 1 >( Tensors ) );
-	tensors_[2] = Alps::Image< double, D >( Tensor_size, std::get< 2 >( Tensors ) );
-	tensors_[3] = Alps::Image< double, D >( Tensor_size, std::get< 3 >( Tensors ) );
+	tensors_[0] = Alps::Image< T, D >( Tensor_size, Tensors[0] );
+	tensors_[1] = Alps::Image< T, D >( Tensor_size, Tensors[1] );
+	tensors_[2] = Alps::Image< T, D >( Tensor_size, Tensors[2] );
+	tensors_[3] = Alps::Image< T, D >( Tensor_size, Tensors[3] );
       }
     catch( itk::ExceptionObject & err )
       {
@@ -182,20 +170,17 @@ namespace Alps
   //
   // Constructor
   template< typename T,int D >
-  Alps::LayerTensors< T, D >::LayerTensors( const std::array< std::size_t, D >      Tensor_size,
-					    std::tuple< std::shared_ptr< double >,
-					                std::shared_ptr< double >,
-					                std::shared_ptr< double >,
-					                std::shared_ptr< double > > Tensors )
+  Alps::LayerTensors< T, D >::LayerTensors( const std::array< std::size_t, D >   Tensor_size,
+					    std::array< std::vector< T >, 4 > Tensors )
   {
     try
       {
 	//
 	// Load the modalities into the container
-	tensors_[0] = Alps::Image< double, D >( Tensor_size, std::get< 0 >( Tensors ) );
-	tensors_[1] = Alps::Image< double, D >( Tensor_size, std::get< 1 >( Tensors ) );
-	tensors_[2] = Alps::Image< double, D >( Tensor_size, std::get< 2 >( Tensors ) );
-	tensors_[3] = Alps::Image< double, D >( Tensor_size, std::get< 3 >( Tensors ) );
+	tensors_[0] = Alps::Image< T, D >( Tensor_size, Tensors[0] );
+	tensors_[1] = Alps::Image< T, D >( Tensor_size, Tensors[1] );
+	tensors_[2] = Alps::Image< T, D >( Tensor_size, Tensors[2] );
+	tensors_[3] = Alps::Image< T, D >( Tensor_size, Tensors[3] );
       }
     catch( itk::ExceptionObject & err )
       {
@@ -227,7 +212,7 @@ namespace Alps
   //
   //
   // Operator []
-  template< typename T,int D > T*
+  template< typename T,int D > std::vector< T >&
   Alps::LayerTensors< T, D >::operator[]( Alps::TensorOrder1 Idx ) 
   {
     try
@@ -244,12 +229,12 @@ namespace Alps
       }
     //
     //
-    return tensors_[ static_cast< int >( Idx ) ].get_tensor().get(); 
+    return tensors_[ static_cast< int >( Idx ) ].update_tensor(); 
   }
   //
   //
   // Operator ()
-  template< typename T,int D > std::shared_ptr< T >
+  template< typename T,int D > std::vector< T >
   Alps::LayerTensors< T, D >::operator()( Alps::TensorOrder1 Idx1,
 					  Alps::TensorOrder1 Idx2 ) 
   {
@@ -271,40 +256,46 @@ namespace Alps
     //
     std::size_t img_size = tensors_[ static_cast< int >( Idx1 ) ].get_tensor_size()[0];
     // prepare the return pointer
-    std::shared_ptr< T > hadamart = std::shared_ptr< T >( new  T[img_size],
-							  std::default_delete< T[] >() );
+    std::vector< T > hadamard( img_size, 0. );
     //
     for ( std::size_t s = 0 ; s < img_size ; s++ )
-      hadamart.get()[s] =
-	tensors_[ static_cast< int >( Idx1 ) ].get_tensor().get()[s] +
-	tensors_[ static_cast< int >( Idx2 ) ].get_tensor().get()[s];
+      {
+	// ToDo: Fix the problem
+//	double b = tensors_[ static_cast< int >( Idx2 ) ].get_tensor().get()[s];
+//	double a = 0.;
+//	if ( tensors_[ static_cast< int >( Idx1 ) ].get_tensor() )
+//	  a = tensors_[ static_cast< int >( Idx1 ) ].get_tensor().get()[s];
+//	std::cout
+//	  << "img_size["<<s<<"] / "<<img_size 
+//	  << " tensors_[Idx1] = " << a
+//	  << " tensors_[Idx2] = " << b
+//	  << std::endl;
+	hadamard[s] =
+	  tensors_[ static_cast< int >( Idx1 ) ].get_tensor()[s] +
+	  tensors_[ static_cast< int >( Idx2 ) ].get_tensor()[s];
+      }
       
     //
     //
-    return hadamart;
+    return hadamard;
   }
   //
   //
   // 
   template< typename T,int D > void
-  Alps::LayerTensors< T, D >::replace( const std::vector< std::size_t >        Tensor_size,
-				       std::tuple< std::shared_ptr< double >,
-				                   std::shared_ptr< double >,
-				                   std::shared_ptr< double >,
-					           std::shared_ptr< double > > Tensors )
+  Alps::LayerTensors< T, D >::replace( const std::vector< std::size_t >     Tensor_size,
+				       std::array< std::vector< T >, 4 > Tensors )
   {
     try
       {
 	//
 	// Save the previous set of neurons
-	previous_epoque_tensors_.push_back( tensors_ );
-	//
-	tensors_    = std::array< Alps::Image< T, D >, 4 >();
+	previous_epoque_tensors_.push_back( std::move(tensors_) );
 	// Load new tensors
-	tensors_[0] = Alps::Image< double, D >( Tensor_size, std::get< 0 >( Tensors ) );
-	tensors_[1] = Alps::Image< double, D >( Tensor_size, std::get< 1 >( Tensors ) );
-	tensors_[2] = Alps::Image< double, D >( Tensor_size, std::get< 2 >( Tensors ) );
-	tensors_[3] = Alps::Image< double, D >( Tensor_size, std::get< 3 >( Tensors ) );
+	tensors_[0] = Alps::Image< T, D >( Tensor_size, Tensors[0] );
+	tensors_[1] = Alps::Image< T, D >( Tensor_size, Tensors[1] );
+	tensors_[2] = Alps::Image< T, D >( Tensor_size, Tensors[2] );
+	tensors_[3] = Alps::Image< T, D >( Tensor_size, Tensors[3] );
       }
     catch( itk::ExceptionObject & err )
       {
@@ -315,24 +306,19 @@ namespace Alps
   //
   // 
   template< typename T,int D > void
-  Alps::LayerTensors< T, D >::replace( const std::array< std::size_t, D >      Tensor_size,
-				       std::tuple< std::shared_ptr< double >,
-				                   std::shared_ptr< double >,
-				                   std::shared_ptr< double >,
-					           std::shared_ptr< double > > Tensors )
+  Alps::LayerTensors< T, D >::replace( const std::array< std::size_t, D >   Tensor_size,
+				       std::array< std::vector< T >, 4 > Tensors )
   {
     try
       {
 	//
 	// Save the previous set of neurons
-	previous_epoque_tensors_.push_back( tensors_ );
-	//
-	tensors_    = std::array< Alps::Image< T, D >, 4 >();
+	previous_epoque_tensors_.push_back( std::move(tensors_) );
 	// Load new tensors
-	tensors_[0] = Alps::Image< double, D >( Tensor_size, std::get< 0 >( Tensors ) );
-	tensors_[1] = Alps::Image< double, D >( Tensor_size, std::get< 1 >( Tensors ) );
-	tensors_[2] = Alps::Image< double, D >( Tensor_size, std::get< 2 >( Tensors ) );
-	tensors_[3] = Alps::Image< double, D >( Tensor_size, std::get< 3 >( Tensors ) );
+	tensors_[0] = Alps::Image< double, D >( Tensor_size, Tensors[0] );
+	tensors_[1] = Alps::Image< double, D >( Tensor_size, Tensors[1] );
+	tensors_[2] = Alps::Image< double, D >( Tensor_size, Tensors[2] );
+	tensors_[3] = Alps::Image< double, D >( Tensor_size, Tensors[3] );
       }
     catch( itk::ExceptionObject & err )
       {

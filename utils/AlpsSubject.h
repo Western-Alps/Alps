@@ -91,18 +91,12 @@ namespace Alps
     // Add a dense layer
     void                                              add_layer( const std::string,
 								 const std::vector< std::size_t >,
-								 std::tuple< std::shared_ptr< double >,
-								              std::shared_ptr< double >,
-								              std::shared_ptr< double >,
-								              std::shared_ptr< double > > );
+								 std::array< std::vector< double >, 4 > );
     // Add a convolutional layer
     void                                              add_layer( const std::string,
 								 const int,
 								 const std::array< std::size_t, Dim >,
-								 std::tuple< std::shared_ptr< double >,
-								              std::shared_ptr< double >,
-								              std::shared_ptr< double >,
-								              std::shared_ptr< double > > );
+								 std::array< std::vector< double >, 4 > );
     // Add target in the classification study case
     void                                              add_target( const std::size_t, const std::size_t );
     // Add target using images
@@ -259,12 +253,9 @@ namespace Alps
   //
   // 
   template< int D > void
-  Alps::Subject< D >::add_layer( const std::string                       Layer_name,
-				 const std::vector<std::size_t>          Layer_size,
-				 std::tuple< std::shared_ptr< double >,
-				             std::shared_ptr< double >,
-				             std::shared_ptr< double >,
-				             std::shared_ptr< double > > Tensors_activation )
+  Alps::Subject< D >::add_layer( const std::string                     Layer_name,
+				 const std::vector<std::size_t>         Layer_size,
+				 std::array< std::vector< double >, 4 > Tensors_activation )
   {
     try
       {
@@ -291,13 +282,10 @@ namespace Alps
   //
   // 
   template< int D > void
-  Alps::Subject< D >::add_layer( const std::string                       Layer_name,
-				 const int                               Kernel,
-				 const std::array< std::size_t, D >      Layer_size,
-				 std::tuple< std::shared_ptr< double >,
-				             std::shared_ptr< double >,
-				             std::shared_ptr< double >,
-				             std::shared_ptr< double > > Tensors_activation )
+  Alps::Subject< D >::add_layer( const std::string                      Layer_name,
+				 const int                              Kernel,
+				 const std::array< std::size_t, D >     Layer_size,
+				 std::array< std::vector< double >, 4 > Tensors_activation )
   {
     try
       {
@@ -347,14 +335,11 @@ namespace Alps
       {
 	if ( Label < Universe + 1 )
 	  {
-	    target_ = Alps::Image< double, D >( std::vector< std::size_t >(/*tensor order*/ 1, Universe ),
-						std::shared_ptr< double >(new double[Universe],
-									  std::default_delete< double[] >()) );
 	    // initialize the label to zero
-	    for ( std::size_t i = 0 ; i < Universe ; i++ )
-	      (target_.get_tensor().get())[i] = 0.;
+	    target_ = Alps::Image< double, D >( std::vector< std::size_t >(/*tensor order*/ 1, Universe ),
+						std::vector< double >( Universe, 0. ) );
 	    // Set the label value
-	    (target_.get_tensor().get())[Label] = 1.;
+	    target_.update_tensor()[Label] = 1.;
 	  }
 	else
 	  {
@@ -435,17 +420,13 @@ namespace Alps
 	    //
 	    // go over the images' tensors
 	    // activation function, in this case input
-	    std::shared_ptr< double > z     = std::shared_ptr< double >( new  double[ size ],
-									 std::default_delete< double[] >() );
+	    std::vector< double > z( size, 0. );
 	    // Derivative of the activation function
-	    std::shared_ptr< double > dz    = std::shared_ptr< double >( new  double[ size ],
-									 std::default_delete< double[] >() );
+	    std::vector< double > dz( size, 0. );
 	    // Error back propagated in building the gradient
-	    std::shared_ptr< double > error = std::shared_ptr< double >( new  double[ size ],
-									 std::default_delete< double[] >() );
+	    std::vector< double > error( size, 0. );
 	    // Weighted error back propagated in building the gradient
-	    std::shared_ptr< double > werr  = std::shared_ptr< double >( new  double[ size ],
-									 std::default_delete< double[] >() );
+	    std::vector< double > werr( size, 0. );
 	    //
 	    std::size_t idx = 0;
 	    for ( auto mod = modalities_.begin() ;
@@ -453,12 +434,7 @@ namespace Alps
 	      {
 		std::size_t sub_idx = (*mod).get_tensor_size()[0];
 		for ( std::size_t i = 0 ; i < sub_idx ; i++)
-		  {
-		    z.get()[idx]      = (*mod)[Alps::TensorOrder1::ACTIVATION][i];
-		    dz.get()[idx]     = 0.;
-		    error.get()[idx]  = 0.;
-		    werr.get()[idx++] = 0.;
-		  }
+		  z[idx++] = (*mod)[Alps::TensorOrder1::ACTIVATION][i];
 	      }
 	    //
 	    if ( idx != size )
@@ -478,8 +454,7 @@ namespace Alps
 	    std::string name = "__input_layer__";
 	    layer_size.push_back(size);
 	    layer_modalities_[name].push_back( Alps::LayerTensors< double, D >(layer_size,
-									       std::make_tuple( z, dz,
-												error, werr )) );
+									       {z, dz, error, werr}) );
 	  }
 	else
 	  {

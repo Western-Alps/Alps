@@ -61,7 +61,7 @@ TEST_F(SubjectTest, ByDefaultSubjectAddTarget) {
   Subj.add_target( 5., 10.);
   //
   //
-  EXPECT_EQ( (Subj.get_target().get_tensor().get())[5], 1. ) ;
+  EXPECT_EQ( (Subj.get_target().get_tensor())[5], 1. ) ;
 }
 
 //TEST_F(SubjectTest, ByDefaultBazFalseIsFalse) {
