@@ -238,17 +238,12 @@ namespace Alps
 		
 	      }
 	    //
+	    // Get the activation tuple (<0> - activation; <1> - derivative; <2> - error; <3> - weighted error)
 	    auto tuple   = weights_[k]->activate( attached_layers );
-	    // activation function
-	    // Error back propagated in building the gradient
-	    std::vector< double > error( layer_size, 0. );
-	    // Weighted error back propagated in building the gradient
-	    std::vector< double > werr( layer_size, 0. );
-	    //
-	    // Get the activation tuple (<0> - activation; <1> - derivative; <2> - error)
-	    std::array< std::vector< double >, 4 > current_activation = { tuple[ Act::ACTIVATION ],
-									  tuple[ Act::DERIVATIVE ],
-									  error, werr };
+	    std::array< std::vector< double >, 4 > current_activation = { std::move( tuple[ Act::ACTIVATION ] ),
+									  std::move( tuple[ Act::DERIVATIVE ] ),
+									  std::vector< double >( layer_size, 0. ) /* error */,
+									  std::vector< double >( layer_size, 0. ) /* werr */ };
 	    
 	    
 	    //////////////////////////////////////

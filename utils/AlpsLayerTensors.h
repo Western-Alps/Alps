@@ -283,14 +283,15 @@ namespace Alps
   //
   // 
   template< typename T,int D > void
-  Alps::LayerTensors< T, D >::replace( const std::vector< std::size_t >     Tensor_size,
+  Alps::LayerTensors< T, D >::replace( const std::vector< std::size_t >  Tensor_size,
 				       std::array< std::vector< T >, 4 > Tensors )
   {
     try
       {
 	//
 	// Save the previous set of neurons
-	previous_epoque_tensors_.push_back( std::move(tensors_) );
+	// ToDo: implement de move sementic in AlpsImage
+	previous_epoque_tensors_.push_back( /*std::move(*/tensors_/*)*/ );
 	// Load new tensors
 	tensors_[0] = Alps::Image< T, D >( Tensor_size, Tensors[0] );
 	tensors_[1] = Alps::Image< T, D >( Tensor_size, Tensors[1] );
@@ -306,14 +307,15 @@ namespace Alps
   //
   // 
   template< typename T,int D > void
-  Alps::LayerTensors< T, D >::replace( const std::array< std::size_t, D >   Tensor_size,
-				       std::array< std::vector< T >, 4 > Tensors )
+  Alps::LayerTensors< T, D >::replace( const std::array< std::size_t, D >  Tensor_size,
+				       std::array< std::vector< T >, 4 >   Tensors )
   {
     try
       {
 	//
 	// Save the previous set of neurons
-	previous_epoque_tensors_.push_back( std::move(tensors_) );
+	// ToDo: implement de move sementic in AlpsImage
+	previous_epoque_tensors_.push_back( /*std::move(*/tensors_/*)*/ );
 	// Load new tensors
 	tensors_[0] = Alps::Image< double, D >( Tensor_size, Tensors[0] );
 	tensors_[1] = Alps::Image< double, D >( Tensor_size, Tensors[1] );

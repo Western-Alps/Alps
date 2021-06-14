@@ -89,6 +89,7 @@ namespace Alps
     const bool                                        check_modalities() const 
     { return (number_modalities_ == modalities_.size() ? true : false);};
     // Add a dense layer
+    [[deprecated("This function has been replaced by the overloading.")]]
     void                                              add_layer( const std::string,
 								 const std::vector< std::size_t >,
 								 std::array< std::vector< double >, 4 > );
@@ -253,7 +254,7 @@ namespace Alps
   //
   // 
   template< int D > void
-  Alps::Subject< D >::add_layer( const std::string                     Layer_name,
+  Alps::Subject< D >::add_layer( const std::string                      Layer_name,
 				 const std::vector<std::size_t>         Layer_size,
 				 std::array< std::vector< double >, 4 > Tensors_activation )
   {

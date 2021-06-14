@@ -361,11 +361,10 @@ namespace Alps
 	      throw MAC::MACException( __FILE__, __LINE__,
 				       "Error in the construction of the weight mastrix's dimensions.",
 				       ITK_LOCATION );
-	    //
 	    // 
 	    for (int k = 0 ; k < matrix_weights.outerSize() ; ++k )
 	      for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix_weights, k); it; ++it )
-		a_out[k] += weight_val[ static_cast< int >(it.value()) ]
+		a_out[k] += weight_val[static_cast< int >(it.value())]
 		  * Image_tensors[f][Alps::TensorOrder1::ACTIVATION][it.index()];
 	  }
 

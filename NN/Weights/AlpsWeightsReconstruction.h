@@ -266,7 +266,7 @@ namespace Alps
     //
     int
       features_number = Image_tensors.size(),
-      size_in        = Image_tensors[0].get_tensor_size()[0];
+      size_in         = Image_tensors[0].get_tensor_size()[0];
     //
     std::vector< T > a_out( size_in, 0. );
     std::vector< T > z_out( size_in, 0. );

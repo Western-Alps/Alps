@@ -211,16 +211,13 @@ namespace Alps
 	  {
 	    weights_ = std::make_shared< W >( std::shared_ptr< ReconstructionLayer< AF, W, C, D > >(this) );
 	  }
-	auto tuple   = weights_->activate( attached_layers );
-	// Error back propagated in building the gradient
-	std::vector< double > error( layer_size, 0. );
-	// Weighted error back propagated in building the gradient
-	std::vector< double > werr( layer_size, 0. );
 	//
-	// Get the activation tuple (<0> - activation; <1> - derivative; <2> - error)
+	// Get the activation tuple (<0> - activation; <1> - derivative; <2> - error; <3> - weighted error))
+	auto tuple   = weights_->activate( attached_layers );
 	std::array< std::vector< double >, 4 > current_activation = { tuple[ Act::ACTIVATION ],
 								      tuple[ Act::DERIVATIVE ],
-								      error, werr };
+								      std::vector< double >( layer_size, 0. ) /* error */,
+								      std::vector< double >( layer_size, 0. ) /* werr */ };
 	    
 	
 	//////////////////////////////////////
@@ -265,7 +262,8 @@ namespace Alps
 	//
 	// If the layer does not exist, for the image, it creates it.
 	// Otherwise, it replace the values from the last epoque and save the previouse epoque.
-	subject->add_layer( layer_name_, {layer_size},
+	subject->add_layer( layer_name_, 0 /* there is only one kernel*/,
+			    {layer_size},
 			    current_activation );
       }
     catch( itk::ExceptionObject & err )
