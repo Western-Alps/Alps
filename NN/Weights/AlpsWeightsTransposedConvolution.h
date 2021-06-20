@@ -51,54 +51,54 @@ namespace Alps
     // Accessors
     //
     // Activation tensor from the previous layer
-    virtual void                                set_activations( LayerTensorsVec&,
-								 LayerTensorsVec& )   override{};
+    virtual void                               set_activations( LayerTensorsVec&,
+								LayerTensorsVec& )            override{};
     // Get size of the tensor
-    virtual const std::vector< std::size_t >    get_tensor_size() const               override
+    virtual const std::vector< std::size_t >   get_tensor_size() const                        override
     { return std::vector< std::size_t >(); };						      
     // Get the tensor			     						      
-    virtual const std::vector< Tensor2_Type >&  get_tensor() const                    override
+    virtual const std::vector< Tensor2_Type >& get_tensor() const                             override
     { return weights_;};			     						      
     // Update the tensor
-    virtual std::vector< Tensor2_Type >&        update_tensor()                       override 
+    virtual std::vector< Tensor2_Type >&       update_tensor()                                override 
     { return weights_;};
-//    // Set size of the tensor		     						      
-//    virtual void                               set_tensor_size( std::vector< std::size_t > )  override{};
-//    // Set the tensor			     						      
-//    virtual void                               set_tensor( std::shared_ptr< Tensor2_Type > )  override{};
+    //    // Set size of the tensor		     						      
+    //    virtual void                               set_tensor_size( std::vector< std::size_t > )  override{};
+    //    // Set the tensor			     						      
+    //    virtual void                               set_tensor( std::shared_ptr< Tensor2_Type > )  override{};
 
     												      
     //												      
     // Functions										      
     //												      
     // Save the weights										      
-    virtual void                               save_tensor() const                    override{};
+    virtual void                               save_tensor() const                            override{};
     // Load the weights										      
-    virtual void                               load_tensor( const std::string )       override{};
+    virtual void                               load_tensor( const std::string )               override{};
     //
     //
     // Activate
-    virtual ActivationVec                      activate( LayerTensorsVec& )           override{};
+    virtual ActivationVec                      activate( LayerTensorsVec& )                   override{};
     // Weighted error
     virtual void                               weighted_error( LayerTensorsVec&,
-							       LayerTensorsVec& )     override{};
+							       LayerTensorsVec& )             override{};
     // Update the weights
-    virtual void                               update()                               override{};
+    virtual void                               update()                                       override{};
     // Force the weight update
-    virtual void                               forced_update()                        override{};
+    virtual void                               forced_update()                                override{};
 
 
 
 
   private:
     //! Matrix of weigths.
-    std::vector< Tensor2_Type >       weights_;
+    std::vector< Tensor2_Type >     weights_;
     //! Window for weigths.
-    std::shared_ptr< Tensor2_Type >   window_{nullptr};
+    std::shared_ptr< Tensor2_Type > window_{nullptr};
     //! Weights activation.
-    Activation                        activation_;
+    Activation                      activation_;
     //! The mountain observed: fully connected layer.
-    std::shared_ptr< Alps::Layer >    layer_{nullptr};
+    std::shared_ptr< Alps::Layer >  layer_{nullptr};
   };
   /** \class WeightsTransposedConvolution
    *
@@ -136,40 +136,41 @@ namespace Alps
     // Accessors
     //
     // Activation tensor from the previous layer
-    virtual void                                  set_activations( LayerTensorsVec&,
-								   LayerTensorsVec& )            override;
+    virtual void                                   set_activations( LayerTensorsVec&,
+								    LayerTensorsVec& )           override;
     // Get size of the tensor
-    virtual const std::vector< std::size_t >      get_tensor_size() const                        override
+    virtual const std::vector< std::size_t >       get_tensor_size() const                       override
     { return std::vector< std::size_t >(); };							      
     // Get the tensor										      
-    virtual const std::vector< Kernel >&          get_tensor() const                             override
+    virtual const std::vector< Kernel >&           get_tensor() const                            override
     { return weights_;};										      
     // Update the tensor
-    virtual std::vector< Kernel >&                update_tensor()                                override 
+    virtual std::vector< Kernel >&                 update_tensor()                               override 
     { return weights_;};
-//    // Set size of the tensor									      
-//    virtual void                                  set_tensor_size( std::vector< std::size_t > )  override{};
-//    // Set the tensor										      
-//    virtual void                                  set_tensor( std::shared_ptr< Kernel > )        override{};
+    //    // Set size of the tensor									      
+    //    virtual void                                   set_tensor_size( std::vector< std::size_t > ) override{};
+    //    // Set the tensor										      
+    //    virtual void                                   set_tensor( std::shared_ptr< Kernel > )       override{};
 
     
     //												      
     // Functions										      
     //												      
     // Save the weights										      
-    virtual void                                  save_tensor() const                            override{};
+    virtual void                                   save_tensor() const                           override{};
     // Load the weights										      
-    virtual void                                  load_tensor( const std::string )               override{};
-   //
+    virtual void                                   load_tensor( const std::string )              override{};
+    //
+    //
     // Activate
-    virtual ActivationVec                         activate( LayerTensorsVec& )                   override;
+    virtual ActivationVec                          activate( LayerTensorsVec& )                  override;
     // Weighted error
-    virtual void                                  weighted_error( LayerTensorsVec&,
-								  LayerTensorsVec& )             override;
+    virtual void                                   weighted_error( LayerTensorsVec&,
+								   LayerTensorsVec& )            override;
     // Update the weights
-    virtual void                                  update()                                       override;
+    virtual void                                   update()                                      override;
     // Forced the weight update
-    virtual void                                  forced_update()                                override;
+    virtual void                                   forced_update()                               override;
 
 
 
@@ -189,14 +190,18 @@ namespace Alps
     std::shared_ptr< Alps::Layer >         layer_;
     //
     // Type of gradient descent
-    std::shared_ptr< Alps::Gradient_base > gradient_;
+    //std::shared_ptr< Alps::Gradient_base > gradient_;
+    Alps::StochasticGradientDescent< double,
+									   std::vector< Type >,
+									   std::vector< Type >,
+									   Alps::Arch::CPU > gradient_;
   };
   //
   //
   template< typename T, typename K, typename A, typename S, int D >
   WeightsTransposedConvolution< T, K, Alps::Arch::CPU, A, S, D >::WeightsTransposedConvolution( std::shared_ptr< Alps::Layer > Layer,
-												   std::shared_ptr< K >           Window,
-												   const int                      Feature):
+												std::shared_ptr< K >           Window,
+												const int                      Feature):
     window_{Window}, feature_{Feature}, layer_{Layer}
   {
     try
@@ -207,10 +212,10 @@ namespace Alps
 	switch( gradient.get_optimizer() ) {
 	case Alps::Grad::SGD:
 	  {
-	    gradient_ = std::make_shared< Alps::StochasticGradientDescent< double,
-									   std::vector< T >,
-									   std::vector< T >,
-									   Alps::Arch::CPU > >();
+//	    gradient_ = std::make_shared< Alps::StochasticGradientDescent< double,
+//									   std::vector< T >,
+//									   std::vector< T >,
+//									   Alps::Arch::CPU > >();
 	    //
 	    break;
 	  };
@@ -230,9 +235,10 @@ namespace Alps
 	//
 	//
 	std::size_t weight_number = window_->get_derivated_weight_values().size();
-	std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
-						   std::vector< T > > >(gradient_)->set_parameters( weight_number, 0 );
+//	std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
+//						   std::vector< T > > >(gradient_)->set_parameters( weight_number, 0 );
 	
+	gradient_.set_parameters( weight_number, 0 );
       }
     catch( itk::ExceptionObject & err )
       {
@@ -245,7 +251,7 @@ namespace Alps
   //
   template< typename T, typename K, typename A, typename S, int D > void
   WeightsTransposedConvolution< T, K, Alps::Arch::CPU, A, S, D >::set_activations( std::vector< Alps::LayerTensors< T, D > >& Prev_image_tensors,
-										     std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
+										   std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
   {
     //
     // We use the non-transposed weights
@@ -253,9 +259,9 @@ namespace Alps
 
     //
     // retrieve the weight matrix
-    Eigen::SparseMatrix< int, Eigen::RowMajor > matrix_weights   = window_->get_weights_matrix().transpose();
-    std::vector< double >                       weight_val       = window_->get_convolution_weight_values( feature_ );
-    std::vector< std::vector< double > >        deriv_weight_val = window_->get_derivated_weight_values();
+    const Eigen::SparseMatrix< int, Eigen::RowMajor >& matrix_weights   = window_->get_weights_matrix().transpose();
+    const std::vector< double >&                      weight_val       = window_->get_convolution_weight_values( feature_ );
+    const std::vector< std::vector< double > >&       deriv_weight_val = window_->get_derivated_weight_values();
     //
     int
       prev_features_number = Prev_image_tensors.size(),
@@ -320,8 +326,9 @@ namespace Alps
 
     //
     // process
-    std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
-					       std::vector< T > > >(gradient_)->add_tensors( dE, std::vector<T>() );
+//    std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
+//					       std::vector< T > > >(gradient_)->add_tensors( dE, std::vector<T>() );
+    gradient_.add_tensors( dE, std::vector<T>() );
   };
   //
   //
@@ -335,8 +342,8 @@ namespace Alps
 
     //
     // retrieve the weight matrix
-    Eigen::SparseMatrix< int, Eigen::RowMajor > matrix_weights = window_->get_weights_matrix().transpose();
-    std::vector< double >                       weight_val     = window_->get_convolution_weight_values( feature_ );
+    const Eigen::SparseMatrix< int, Eigen::RowMajor >& matrix_weights = window_->get_weights_matrix().transpose();
+    const std::vector< double >&                       weight_val     = window_->get_convolution_weight_values( feature_ );
     //
     int
       features_number = Image_tensors.size(),
@@ -367,11 +374,10 @@ namespace Alps
 	      throw MAC::MACException( __FILE__, __LINE__,
 				       "Error in the construction of the weight mastrix's dimensions.",
 				       ITK_LOCATION );
-	    //
 	    // 
 	    for (int k = 0 ; k < matrix_weights.outerSize() ; ++k )
 	      for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix_weights, k); it; ++it )
-		a_out[k] += weight_val[ static_cast< int >(it.value()) ]
+		a_out[k] += weight_val[static_cast< int >(it.value())]
 		  * Image_tensors[f][Alps::TensorOrder1::ACTIVATION][it.index()];
 	  }
 
@@ -398,16 +404,16 @@ namespace Alps
   //
   template< typename T, typename K, typename A, typename S, int D > void
   WeightsTransposedConvolution< T, K, Alps::Arch::CPU, A, S, D >::weighted_error( std::vector< Alps::LayerTensors< T, D > >& Prev_image_tensors,
-										    std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
+										  std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
   {
     //
     // We use the non-transposed weights
     window_->set_transpose( true );
 
-   //
+    //
     // retrieve the weight matrix
-    Eigen::SparseMatrix< int, Eigen::RowMajor > matrix_weights = window_->get_weights_matrix();
-    std::vector< double >                       weight_val     = window_->get_convolution_weight_values( feature_ );
+    const Eigen::SparseMatrix< int, Eigen::RowMajor >& matrix_weights = window_->get_weights_matrix();
+    const std::vector< double >&                       weight_val     = window_->get_convolution_weight_values( feature_ );
     //
     int
       prev_features_number = Prev_image_tensors.size(),
@@ -415,7 +421,7 @@ namespace Alps
       size_out             = matrix_weights.cols();
     //
     std::vector< T > we( size_in, 0. );
-
+    std::cout << "Prev_image_tensors.size(): " << Prev_image_tensors.size() << std::endl;
     std::cout
       << "WeightsTransposedConvolution::weighted_error" 
       << " Prev_layer_size[ACTIVATION]: " << Prev_image_tensors[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0]
@@ -432,20 +438,11 @@ namespace Alps
     for (int k = 0 ; k < matrix_weights.outerSize() ; ++k )
       for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix_weights, k); it; ++it )
 	we[k] += weight_val[ static_cast< int >(it.value()) ]
-	  * Image_tensors[feature_][TensorOrder1::ERROR][k];
-
-    //
+	  * Image_tensors[feature_][TensorOrder1::ERROR][it.index()];
     // Replicate to all the previouse connected features' layers
     for ( int f = 0 ; f < prev_features_number ; ++f )
-      {
-	for (int k = 0 ; k < size_in ; ++k )
-	  {
-	    Prev_image_tensors[f][TensorOrder1::WERROR][k] += we[k];
-	    std::cout
-	      << "Prev_tensors["<<f<<"][WERROR]["<<k<<"] = " << Prev_image_tensors[f][TensorOrder1::WERROR][k]
-	      << std::endl;
-	  }
-      }
+      for (int k = 0 ; k < size_in ; ++k )
+    	Prev_image_tensors[f][TensorOrder1::WERROR][k] += we[k];
   };
   //
   //
@@ -453,9 +450,11 @@ namespace Alps
   template< typename T, typename K, typename A, typename S, int D > void
   WeightsTransposedConvolution< T, K, Alps::Arch::CPU, A, S, D >::update()
   {
+//    window_->set_convolution_weight_values( feature_,
+//					    std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
+//					    std::vector< T > > >(gradient_)->solve() );
     window_->set_convolution_weight_values( feature_,
-					     std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
-					                                                std::vector< T > > >(gradient_)->solve() );
+					    gradient_.solve() );
   };
   //
   //
@@ -463,9 +462,11 @@ namespace Alps
   template< typename T, typename K, typename A, typename S, int D > void
   WeightsTransposedConvolution< T, K, Alps::Arch::CPU, A, S, D >::forced_update()
   {
+//    window_->set_convolution_weight_values( feature_,
+//					    std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
+//					    std::vector< T > > >(gradient_)->solve(true) );
     window_->set_convolution_weight_values( feature_,
-					     std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
-					                                                std::vector< T > > >(gradient_)->solve(true) );
+					    gradient_.solve(true) );
   };
   /** \class WeightsTransposedConvolution
    *
@@ -493,9 +494,9 @@ namespace Alps
   public:
     /** Constructor. */
     explicit WeightsTransposedConvolution( std::shared_ptr< Alps::Layer >,
-				 const std::vector< int >,
-				 const std::vector< int >,
-				 const std::vector< int > ){};
+					   const std::vector< int >,
+					   const std::vector< int >,
+					   const std::vector< int > ){};
     
     /** Destructor */
     virtual ~WeightsTransposedConvolution() = default;
@@ -506,7 +507,7 @@ namespace Alps
     //
     // Activation tensor from the previous layer
     virtual void                                  set_activation( LayerTensorsVec&,
-								  LayerTensorsVec&)              override{};
+								  LayerTensorsVec&)               override{};
     // Get size of the tensor
     virtual const std::vector< std::size_t >      get_tensor_size() const                        override
     { return std::vector< std::size_t >(); };							      
@@ -516,10 +517,10 @@ namespace Alps
     // Update the tensor
     virtual std::vector< Type2 >&                 update_tensor()                                override 
     { return weights_;};
-//    // Set size of the tensor									      
-//    virtual void                                  set_tensor_size( std::vector< std::size_t > )  override{};
-//    // Set the tensor										      
-//    virtual void                                  set_tensor( std::shared_ptr< Type2 > )         override{};
+    //    // Set size of the tensor									      
+    //    virtual void                                  set_tensor_size( std::vector< std::size_t > )  override{};
+    //    // Set the tensor										      
+    //    virtual void                                  set_tensor( std::shared_ptr< Type2 > )         override{};
 												      
     												      
     //												      

@@ -33,9 +33,9 @@ namespace Alps
   {
   public:
     /** Costructor */
-    explicit StochasticGradientDescent(){};
+    explicit StochasticGradientDescent() = default;
     /** Destructor */
-    virtual ~StochasticGradientDescent(){};
+    virtual ~StochasticGradientDescent() = default;
     
     
     //
@@ -77,7 +77,7 @@ namespace Alps
     /** Costructor */
     explicit StochasticGradientDescent();
     /** Destructor */
-    virtual ~StochasticGradientDescent(){};
+    virtual ~StochasticGradientDescent() = default;
     
       
     //

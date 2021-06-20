@@ -34,7 +34,7 @@ namespace Alps
   {
   public:
     /** Destructor */
-    virtual ~Gradient_base(){};
+    virtual ~Gradient_base() = default;
 
     //
     // Functions
@@ -53,9 +53,9 @@ namespace Alps
   {
   public:
     /** Constructor */
-    explicit SGD(){};
+    explicit SGD() = default;
     /** Destructor */
-    virtual ~SGD(){};
+    virtual ~SGD() = default;
 
 
     //
@@ -76,9 +76,9 @@ namespace Alps
   {
   public:
     /** Constructor */
-    explicit Momentum(){};
+    explicit Momentum() = default;
     /** Destructor */
-    virtual ~Momentum(){};
+    virtual ~Momentum() = default;
 
 
     //
@@ -99,9 +99,9 @@ namespace Alps
   {
   public:
     /** Constructor */
-    explicit AdaGrad(){};
+    explicit AdaGrad() = default;
     /** Destructor */
-    virtual ~AdaGrad(){};
+    virtual ~AdaGrad() = default;
 
       
     //
@@ -122,9 +122,9 @@ namespace Alps
   {
   public:
     /** Constructor */
-    explicit Adam(){};
+    explicit Adam() = default;
     /** Destructor */
-    virtual ~Adam(){};
+    virtual ~Adam() = default;
 
       
     //
@@ -152,7 +152,7 @@ namespace Alps
   {
   public:
     /** Destructor */
-    virtual ~Gradient(){};
+    virtual ~Gradient() = default;
 
     
     //

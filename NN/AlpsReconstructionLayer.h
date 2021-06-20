@@ -259,6 +259,16 @@ namespace Alps
 	    // record the energy for the image
 	    subject->set_energy( energy );
 	  }
+	else
+	  {
+	    std::string
+	      mess = "Reconstruction Layer has not been thought for another type of application yet. ";
+	    mess  += "It has to be used as a __output_layer__";
+	    throw MAC::MACException( __FILE__, __LINE__,
+				     mess.c_str(),
+				     ITK_LOCATION );
+	  }
+	
 	//
 	// If the layer does not exist, for the image, it creates it.
 	// Otherwise, it replace the values from the last epoque and save the previouse epoque.
@@ -293,33 +303,33 @@ namespace Alps
 	std::cout << "We are in the layer: " << layer_name_ << std::endl;
 
 
-	/////////////////////
-	// Weighted error //
-	////////////////////
-	//
-	// Process the weighted error for the previous layer
-	// The latest layer weighted error should already be processed
-	for ( auto layer_weights : prev_layer_ )
-	  {
-	    std::string name = layer_weights.first;
-	    std::cout << "weights of layer: " << name << std::endl;
-	    weights_->weighted_error( subject->get_layer( name ),
-				      image_tensors );
-
-	  }
+//	/////////////////////
+//	// Weighted error //
+//	////////////////////
+//	//
+//	// Process the weighted error for the previous layer
+//	// The latest layer weighted error should already be processed
+//	for ( auto layer_weights : prev_layer_ )
+//	  {
+//	    std::string name = layer_weights.first;
+//	    std::cout << "weights of layer: " << name << std::endl;
+//	    weights_->weighted_error( subject->get_layer( name ),
+//				      image_tensors );
+//
+//	  }
 
 
 	////////////////////////
 	// Update the weights //
 	////////////////////////
 	//
-	for ( auto layer_weights : prev_layer_ )
-	  {
-	    std::string name = layer_weights.first;
+//	for ( auto layer_weights : prev_layer_ )
+//	  {
+//	    std::string name = layer_weights.first;
 	    weights_->set_activations( image_tensors,
-				       subject->get_layer( name ) );
+				       image_tensors /*Dummy setting*/ );
 	    weights_->update();
-	  }
+//	  }
       }
     catch( itk::ExceptionObject & err )
       {

@@ -182,7 +182,11 @@ namespace Alps
     std::shared_ptr< Alps::Layer >         layer_;
     //
     // Type of gradient descent
-    std::shared_ptr< Alps::Gradient_base > gradient_;
+    //std::shared_ptr< Alps::Gradient_base > gradient_;
+    Alps::StochasticGradientDescent< double,
+									   std::vector< Type >,
+									   std::vector< Type >,
+									   Alps::Arch::CPU > gradient_;
   };
   //
   //
@@ -204,10 +208,10 @@ namespace Alps
 	switch( gradient.get_optimizer() ) {
 	case Alps::Grad::SGD:
 	  {
-	    gradient_ = std::make_shared< Alps::StochasticGradientDescent< double,
-									   std::vector< T >,
-									   std::vector< T >,
-									   Alps::Arch::CPU > >();
+//	    gradient_ = std::make_shared< Alps::StochasticGradientDescent< double,
+//									   std::vector< T >,
+//									   std::vector< T >,
+//									   Alps::Arch::CPU > >();
 	    
 	    break;
 	  };
@@ -226,8 +230,9 @@ namespace Alps
 	}
 	//
 	// There is only one weight for the reconstruction
-	std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
-						   std::vector< T > > >(gradient_)->set_parameters( 1, 0 );
+//	std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
+//						   std::vector< T > > >(gradient_)->set_parameters( 1, 0 );
+	(gradient_).set_parameters( 1, 0 );
       }
     catch( itk::ExceptionObject & err )
       {
@@ -253,8 +258,9 @@ namespace Alps
     std::vector< T > dE(1, de);
     //
     //process
-    std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
-					       std::vector< T > > >(gradient_)->add_tensors( dE, std::vector<T>() );
+//    std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
+//					       std::vector< T > > >(gradient_)->add_tensors( dE, std::vector<T>() );
+    (gradient_).add_tensors( dE, std::vector<T>() );
   };
   //
   //
@@ -316,13 +322,13 @@ namespace Alps
   WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::weighted_error( std::vector< Alps::LayerTensors< T, D > >& Prev_image_tensors,
 									std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
   {
-    int
-      prev_features_number = Prev_image_tensors.size(),
-      size_in              = Image_tensors[0].get_tensor_size()[0];
-    //
-    for ( int k = 0 ; k < prev_features_number ; k++ )
-      for ( long int s = 0 ; s < size_in ; s++ )
-	Prev_image_tensors[k][TensorOrder1::WERROR][s] = Image_tensors[0][TensorOrder1::ERROR][s];
+//    int
+//      prev_features_number = Prev_image_tensors.size(),
+//      size_in              = Image_tensors[0].get_tensor_size()[0];
+//    //
+//    for ( int k = 0 ; k < prev_features_number ; k++ )
+//      for ( long int s = 0 ; s < size_in ; s++ )
+//	Prev_image_tensors[k][TensorOrder1::WERROR][s] = Image_tensors[0][TensorOrder1::ERROR][s];
   };
   //
   //
@@ -330,8 +336,9 @@ namespace Alps
   template< typename T, typename A, typename S, int D > void
   WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::update()
   {
-    weights_[0] += std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
-							      std::vector< T > > >(gradient_)->solve()[0];
+//    weights_[0] += std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
+//							      std::vector< T > > >(gradient_)->solve()[0];
+    weights_[0] += (gradient_).solve()[0];
   };
   //
   //
@@ -339,8 +346,9 @@ namespace Alps
   template< typename T, typename A, typename S, int D > void
   WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::forced_update()
   {
-    weights_[0] += std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
-							      std::vector< T > > >(gradient_)->solve( true )[0];
+//    weights_[0] += std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
+//							      std::vector< T > > >(gradient_)->solve( true )[0];
+    weights_[0] += (gradient_).solve( true )[0];
   };
   /** \class WeightsReconstruction
    *

@@ -113,8 +113,7 @@ namespace Alps
     //
     // Observers
     // Observers containers
-    std::map< int /* kernel number */,
-	      std::shared_ptr< Weights > >              weights_;
+    std::vector< Weights >              weights_;
   };
   //
   //
@@ -137,8 +136,9 @@ namespace Alps
 	//
 	//
 	int kernels = convolution_window_->get_number_kernel();
-	for ( int k = 0 ; k < kernels ; k++ )
-	  weights_[k] = nullptr;
+	
+	//	for ( int k = 0 ; k < kernels ; k++ )
+//	  weights_[k] = nullptr;
       }
     catch( itk::ExceptionObject & err )
       {
@@ -231,15 +231,15 @@ namespace Alps
 	  {
 	    //
 	    // Check the weights were created for the feature k
-	    if ( !weights_[k] )
+	    if ( weights_.size() < kernels )
 	      {
-		weights_[k] = std::make_shared< W >( std::shared_ptr< ConvolutionLayer< AF, W, K, C, D > >( this ),
-						     convolution_window_, k );
+		weights_.push_back( W(std::shared_ptr< ConvolutionLayer< AF, W, K, C, D > >( this ),
+				      convolution_window_, k) );
 		
 	      }
 	    //
 	    // Get the activation tuple (<0> - activation; <1> - derivative; <2> - error; <3> - weighted error)
-	    auto tuple   = weights_[k]->activate( attached_layers );
+	    auto tuple   = weights_[k].activate( attached_layers );
 	    std::array< std::vector< double >, 4 > current_activation = { std::move( tuple[ Act::ACTIVATION ] ),
 									  std::move( tuple[ Act::DERIVATIVE ] ),
 									  std::vector< double >( layer_size, 0. ) /* error */,
@@ -297,7 +297,7 @@ namespace Alps
 	      //
 	      std::string name = layer_weights.first;
 	      std::cout << "weights of layer: " << name << std::endl;
-	      weights_[k]->weighted_error( subject->get_layer( name ),
+	      weights_[k].weighted_error( subject->get_layer( name ),
 					   image_tensors );
 	    }
 
@@ -310,9 +310,9 @@ namespace Alps
 	  for ( auto layer_weights : prev_layer_ )
 	    {
 	      std::string name = layer_weights.first;
-	      weights_[k]->set_activations( subject->get_layer( name ),
+	      weights_[k].set_activations( subject->get_layer( name ),
 					    image_tensors );
-	      weights_[k]->update();
+	      weights_[k].update();
 	    }
       }
     catch( itk::ExceptionObject & err )

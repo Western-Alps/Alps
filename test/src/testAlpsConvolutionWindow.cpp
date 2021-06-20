@@ -92,7 +92,7 @@ TEST_F(ConvolutionWindowTest, ByDefaultConvolutionDeconvolution) {
 	image_out( k, 0 ) += weight_val.get()[ static_cast< int >(it.value()) ] * image_in( it.index() );
 	std::cout
 	  << "value (" << it.value() << ") in ["
-	  << it.row() << "," << it.col() << "] inedx: "
+	  << it.row() << "," << it.col() << "] index: "
 	  << it.index() << " and k: " << k << std::endl; // inner index, here it is equal to it.row()
       }
   //

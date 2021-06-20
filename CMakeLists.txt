@@ -33,8 +33,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-  add_definitions(-std=c++11)
-  set(CMAKE_CXX_FLAGS "-O3 -ffast-math -Wall")
+  add_definitions(-std=c++14)
+  set(CMAKE_CXX_FLAGS "-ffast-math -Wall")
 endif()
 
 #
