@@ -98,7 +98,7 @@ namespace Alps
     //! Weights activation.
     Activation                      activation_;
     //! The mountain observed: fully connected layer.
-    std::shared_ptr< Alps::Layer >  layer_{nullptr};
+    const Alps::Layer&  layer_;
   };
   /** \class WeightsTransposedConvolution
    *
@@ -125,7 +125,7 @@ namespace Alps
 
   public:
     /** Constructor. */
-    explicit WeightsTransposedConvolution( std::shared_ptr< Alps::Layer >,
+    explicit WeightsTransposedConvolution( const Alps::Layer&,
 					   std::shared_ptr< Kernel >, const int );
     
     /** Destructor */
@@ -187,7 +187,7 @@ namespace Alps
     Activation                             activation_;
     //
     // The mountain observed: fully connected layer
-    std::shared_ptr< Alps::Layer >         layer_;
+    const Alps::Layer&         layer_;
     //
     // Type of gradient descent
     //std::shared_ptr< Alps::Gradient_base > gradient_;
@@ -199,7 +199,7 @@ namespace Alps
   //
   //
   template< typename T, typename K, typename A, typename S, int D >
-  WeightsTransposedConvolution< T, K, Alps::Arch::CPU, A, S, D >::WeightsTransposedConvolution( std::shared_ptr< Alps::Layer > Layer,
+  WeightsTransposedConvolution< T, K, Alps::Arch::CPU, A, S, D >::WeightsTransposedConvolution( const Alps::Layer& Layer,
 												std::shared_ptr< K >           Window,
 												const int                      Feature):
     window_{Window}, feature_{Feature}, layer_{Layer}
@@ -420,6 +420,9 @@ namespace Alps
       size_in              = matrix_weights.rows(),
       size_out             = matrix_weights.cols();
     //
+    std::size_t
+      vect_werror = Prev_image_tensors[0].get_image(TensorOrder1::ACTIVATION).get_tensor().size();
+    //
     std::vector< T > we( size_in, 0. );
     std::cout << "Prev_image_tensors.size(): " << Prev_image_tensors.size() << std::endl;
     std::cout
@@ -430,19 +433,19 @@ namespace Alps
       << " layer_size[ACTIVATION]: " << Image_tensors[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0]
       << " layer_size[ERROR]: " << Image_tensors[0].get_image(TensorOrder1::ERROR).get_tensor_size()[0]
       << " layer_size[WERROR]: " << Image_tensors[0].get_image(TensorOrder1::WERROR).get_tensor_size()[0]
-      << " size_in: " << size_in
+      << " size_in == vect_werror: " << size_in << " == " << vect_werror
       << " size_out: " << size_out
       << std::endl;
-    //
-    // compute the activation
-    for (int k = 0 ; k < matrix_weights.outerSize() ; ++k )
-      for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix_weights, k); it; ++it )
-	we[k] += weight_val[ static_cast< int >(it.value()) ]
-	  * Image_tensors[feature_][TensorOrder1::ERROR][it.index()];
-    // Replicate to all the previouse connected features' layers
-    for ( int f = 0 ; f < prev_features_number ; ++f )
-      for (int k = 0 ; k < size_in ; ++k )
-    	Prev_image_tensors[f][TensorOrder1::WERROR][k] += we[k];
+//    //
+//    // compute the activation
+//    for (int k = 0 ; k < matrix_weights.outerSize() ; ++k )
+//      for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix_weights, k); it; ++it )
+//	we[k] += weight_val[ static_cast< int >(it.value()) ]
+//	  * Image_tensors[feature_][TensorOrder1::ERROR][it.index()];
+//    // Replicate to all the previouse connected features' layers
+//    for ( int f = 0 ; f < prev_features_number ; ++f )
+//      for (int k = 0 ; k < size_in ; ++k )
+//    	Prev_image_tensors[f][TensorOrder1::WERROR][k] += we[k];
   };
   //
   //
@@ -555,7 +558,7 @@ namespace Alps
     Activation                      activation_;
     //
     // The mountain observed: fully connected layer
-    std::shared_ptr< Alps::Layer >  layer_;
+    const Alps::Layer&  layer_;
   };
 }
 #endif

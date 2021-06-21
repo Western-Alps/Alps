@@ -35,7 +35,7 @@ namespace Alps
     explicit FullSamples();
       
       /**  Destructor. */
-      virtual ~FullSamples(){};
+      virtual ~FullSamples() = default;
 
       
       //
@@ -146,7 +146,7 @@ namespace Alps
 		    << std::endl;
 		  // Get the observed Mountain from subjects
 		  // Backward process
-		  std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->weight_update( (subjects_[0].get_subjects())[sub] );
+		  //std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->weight_update( (subjects_[0].get_subjects())[sub] );
 		}
 
 

@@ -315,9 +315,9 @@ namespace Alps
 					     ITK_LOCATION );
 		  }
 	      }
-	    else
-	      layer_modalities_[ Layer_name ][Kernel].replace( Layer_size,
-							       Tensors_activation );
+//	    else
+//	      layer_modalities_[ Layer_name ][Kernel].replace( Layer_size,
+//							       Tensors_activation );
 	  }
       }
     catch( itk::ExceptionObject & err )

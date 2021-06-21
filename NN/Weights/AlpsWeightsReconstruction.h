@@ -41,7 +41,7 @@ namespace Alps
     explicit WeightsReconstruction( const std::vector< int > ){};
     
     /** Destructor */
-    virtual ~WeightsReconstruction(){};
+    virtual ~WeightsReconstruction() = default;
 
 
     //
@@ -94,7 +94,7 @@ namespace Alps
     //! Weights activation.
     Activation                      activation_;
     //! The mountain observed: fully connected layer.
-    std::shared_ptr< Alps::Layer >  layer_{nullptr};
+    const Alps::Layer&  layer_;
   };
   /** \class WeightsReconstruction
    *
@@ -120,10 +120,10 @@ namespace Alps
 
   public:
     /** Constructor. */
-    explicit WeightsReconstruction( std::shared_ptr< Alps::Layer > );
+    explicit WeightsReconstruction( const Alps::Layer& );
     
     /** Destructor */
-    virtual ~WeightsReconstruction(){};
+    virtual ~WeightsReconstruction() = default;
 
 
     //
@@ -179,7 +179,7 @@ namespace Alps
     Activation                             activation_;
     //
     // The mountain observed: fully connected layer
-    std::shared_ptr< Alps::Layer >         layer_;
+    const Alps::Layer&         layer_;
     //
     // Type of gradient descent
     //std::shared_ptr< Alps::Gradient_base > gradient_;
@@ -191,7 +191,7 @@ namespace Alps
   //
   //
   template< typename T, typename A, typename S, int D >
-  WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::WeightsReconstruction( std::shared_ptr< Alps::Layer > Layer ):
+  WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::WeightsReconstruction( const Alps::Layer& Layer ):
     layer_{Layer}
   {
     try
@@ -377,7 +377,7 @@ namespace Alps
     explicit WeightsReconstruction( std::shared_ptr< Alps::Layer >  ){};
     
     /** Destructor */
-    virtual ~WeightsReconstruction(){};
+    virtual ~WeightsReconstruction() = default;
 
 
     //
@@ -431,7 +431,7 @@ namespace Alps
     Activation                      activation_;
     //
     // The mountain observed: fully connected layer
-    std::shared_ptr< Alps::Layer >  layer_;
+    const Alps::Layer&  layer_;
   };
 }
 #endif

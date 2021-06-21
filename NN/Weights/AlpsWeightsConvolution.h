@@ -98,7 +98,7 @@ namespace Alps
     //! Weights activation.
     Activation                      activation_;
     //! The mountain observed: fully connected layer.
-    std::shared_ptr< Alps::Layer >  layer_{nullptr};
+    const Alps::Layer&  layer_;
   };
   /** \class WeightsConvolution
    *
@@ -125,7 +125,7 @@ namespace Alps
 
   public:
     /** Constructor. */
-    explicit WeightsConvolution( std::shared_ptr< Alps::Layer >,
+    explicit WeightsConvolution( const Alps::Layer&,
 				 std::shared_ptr< Kernel >, const int );
     
     /** Destructor */
@@ -187,7 +187,7 @@ namespace Alps
     Activation                             activation_;
     //
     // The mountain observed: fully connected layer
-    std::shared_ptr< Alps::Layer >         layer_;
+    const Alps::Layer&         layer_;
     //
     // Type of gradient descent
     //std::shared_ptr< Alps::Gradient_base > gradient_;
@@ -199,7 +199,7 @@ namespace Alps
   //
   //
   template< typename T, typename K, typename A, typename S, int D >
-  WeightsConvolution< T, K, Alps::Arch::CPU, A, S, D >::WeightsConvolution( std::shared_ptr< Alps::Layer > Layer,
+  WeightsConvolution< T, K, Alps::Arch::CPU, A, S, D >::WeightsConvolution( const Alps::Layer& Layer,
 									    std::shared_ptr< K >           Window,
 									    const int                      Feature):
     window_{Window}, feature_{Feature}, layer_{Layer}
@@ -238,7 +238,7 @@ namespace Alps
 //	std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
 //						   std::vector< T > > >(gradient_)->set_parameters( weight_number, 0 );
 	
-	(gradient_).set_parameters( weight_number, 0 );
+	gradient_.set_parameters( weight_number, 0 );
       }
     catch( itk::ExceptionObject & err )
       {
@@ -259,9 +259,9 @@ namespace Alps
 
     //
     // retrieve the weight matrix
-    Eigen::SparseMatrix< int, Eigen::RowMajor > matrix_weights   = window_->get_weights_matrix();
-    std::vector< double >                       weight_val       = window_->get_convolution_weight_values( feature_ );
-    std::vector< std::vector< double > >        deriv_weight_val = window_->get_derivated_weight_values();
+    const Eigen::SparseMatrix< int, Eigen::RowMajor >& matrix_weights   = window_->get_weights_matrix();
+    const std::vector< double >&                       weight_val       = window_->get_convolution_weight_values( feature_ );
+    const std::vector< std::vector< double > >&        deriv_weight_val = window_->get_derivated_weight_values();
     //
     int
       prev_features_number = Prev_image_tensors.size(),
@@ -321,7 +321,7 @@ namespace Alps
     // process
 //    std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
 //					       std::vector< T > > >(gradient_)->add_tensors( dE, std::vector<T>() );
-    (gradient_).add_tensors( dE, std::vector<T>() );
+    gradient_.add_tensors( dE, std::vector<T>() );
   };
   //
   //
@@ -335,8 +335,8 @@ namespace Alps
     
     //
     // retrieve the weight matrix
-    Eigen::SparseMatrix< int, Eigen::RowMajor > matrix_weights = window_->get_weights_matrix();
-    std::vector< double >                       weight_val     = window_->get_convolution_weight_values( feature_ );
+    const Eigen::SparseMatrix< int, Eigen::RowMajor >& matrix_weights = window_->get_weights_matrix();
+    const std::vector< double >&                       weight_val     = window_->get_convolution_weight_values( feature_ );
     //
     int
       features_number = Image_tensors.size(),
@@ -405,8 +405,8 @@ namespace Alps
 
     //
     // retrieve the weight matrix
-    Eigen::SparseMatrix< int, Eigen::RowMajor > matrix_weights = window_->get_weights_matrix().transpose();
-    std::vector< double >                       weight_val     = window_->get_convolution_weight_values( feature_ );
+    const Eigen::SparseMatrix< int, Eigen::RowMajor >& matrix_weights = window_->get_weights_matrix().transpose();
+    const std::vector< double >&                       weight_val     = window_->get_convolution_weight_values( feature_ );
     //
     int
       prev_features_number = Prev_image_tensors.size(),
@@ -443,7 +443,7 @@ namespace Alps
 //					    std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
 //					    std::vector< T > > >(gradient_)->solve() );
     window_->set_convolution_weight_values( feature_,
-					    (gradient_).solve() );
+					    gradient_.solve() );
   };
   //
   //
@@ -455,7 +455,7 @@ namespace Alps
 //					    std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
 //					    std::vector< T > > >(gradient_)->solve(true) );
     window_->set_convolution_weight_values( feature_,
-					    (gradient_).solve(true) );
+					    gradient_.solve(true) );
   };
   /** \class WeightsConvolution
    *
@@ -544,7 +544,7 @@ namespace Alps
     Activation                      activation_;
     //
     // The mountain observed: fully connected layer
-    std::shared_ptr< Alps::Layer >  layer_;
+    const Alps::Layer&  layer_;
   };
 }
 #endif

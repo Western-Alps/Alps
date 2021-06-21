@@ -42,7 +42,7 @@ namespace Alps
     /** Constructor. */
     explicit ReconstructionLayer( const std::string );
     /** Destructor */
-    virtual ~ReconstructionLayer(){};
+    virtual ~ReconstructionLayer() = default;
 
     
     //
@@ -209,7 +209,7 @@ namespace Alps
 	// Check the weights were created
 	if ( !weights_ )
 	  {
-	    weights_ = std::make_shared< W >( std::shared_ptr< ReconstructionLayer< AF, W, C, D > >(this) );
+	    weights_ = std::make_shared< W >( *this );
 	  }
 	//
 	// Get the activation tuple (<0> - activation; <1> - derivative; <2> - error; <3> - weighted error))
@@ -303,20 +303,20 @@ namespace Alps
 	std::cout << "We are in the layer: " << layer_name_ << std::endl;
 
 
-//	/////////////////////
-//	// Weighted error //
-//	////////////////////
-//	//
-//	// Process the weighted error for the previous layer
-//	// The latest layer weighted error should already be processed
-//	for ( auto layer_weights : prev_layer_ )
-//	  {
-//	    std::string name = layer_weights.first;
-//	    std::cout << "weights of layer: " << name << std::endl;
-//	    weights_->weighted_error( subject->get_layer( name ),
-//				      image_tensors );
-//
-//	  }
+	/////////////////////
+	// Weighted error //
+	////////////////////
+	//
+	// Process the weighted error for the previous layer
+	// The latest layer weighted error should already be processed
+	for ( auto layer_weights : prev_layer_ )
+	  {
+	    std::string name = layer_weights.first;
+	    std::cout << "weights of layer: " << name << std::endl;
+	    weights_->weighted_error( subject->get_layer( name ),
+				      image_tensors );
+
+	  }
 
 
 	////////////////////////

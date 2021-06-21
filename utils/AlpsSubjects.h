@@ -40,7 +40,7 @@ namespace Alps
     /** Constructor */
     explicit Subjects( std::shared_ptr< Alps::Mountain > );
     /* Destructor */
-    virtual ~Subjects(){};
+    virtual ~Subjects() = default;
 
     
     //

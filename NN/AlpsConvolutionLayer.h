@@ -43,7 +43,7 @@ namespace Alps
     /** Constructor. */
     explicit ConvolutionLayer( const std::string, std::shared_ptr< Kernel > );
     /** Destructor */
-    virtual ~ConvolutionLayer(){};
+    virtual ~ConvolutionLayer() = default;
 
     
     //
@@ -232,12 +232,7 @@ namespace Alps
 	    //
 	    // Check the weights were created for the feature k
 	    if ( weights_.size() < kernels )
-	      {
-		weights_.push_back( W(std::shared_ptr< ConvolutionLayer< AF, W, K, C, D > >( this ),
-				      convolution_window_, k) );
-		
-	      }
-	    //
+	      weights_.push_back( W(*this, convolution_window_, k) );
 	    // Get the activation tuple (<0> - activation; <1> - derivative; <2> - error; <3> - weighted error)
 	    auto tuple   = weights_[k].activate( attached_layers );
 	    std::array< std::vector< double >, 4 > current_activation = { std::move( tuple[ Act::ACTIVATION ] ),
@@ -283,6 +278,27 @@ namespace Alps
 	// If we don't have any next layer, we are at the last layer
 	std::cout << "We are in the last layer: " << layer_name_ << std::endl;
 
+
+	std::cout << "subject->get_layer(layer_1): "
+		  << "subject->get_layer(\"layer_1\")[0].get_image(TensorOrder1::ACTIVATION)"
+		  <<std::endl;
+	auto test1 = subject->get_layer( "layer_1" );
+	double stop1 = 0.;
+	std::cout << "subject->get_layer(layer_2): "
+		  << "subject->get_layer(\"layer_2\")[0].get_image(TensorOrder1::ACTIVATION)"
+		  <<std::endl;
+	auto test2 = subject->get_layer( "layer_2" );
+	double stop2 = 0.;
+	std::cout << "subject->get_layer(layer_3): "
+		  << "subject->get_layer(\"layer_3\")[0].get_image(TensorOrder1::ACTIVATION)"
+		  <<std::endl;
+	auto test3 = subject->get_layer( "layer_3" );
+	double stop3 = 0.;
+	std::cout << "subject->get_layer(layer_4): "
+		  << "subject->get_layer(\"layer_4\")[0].get_image(TensorOrder1::ACTIVATION)"
+		  <<std::endl;
+	auto test4 = subject->get_layer( "layer_4" );
+	double stop4 = 0.;
 
 	/////////////////////
 	// Weighted error //

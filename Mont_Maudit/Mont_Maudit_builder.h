@@ -40,7 +40,7 @@ namespace Alps
       /** Constructor. */
       explicit Mont_Maudit_builder();
       /** Destructor */
-      virtual ~Mont_Maudit_builder(){};
+      virtual ~Mont_Maudit_builder() = default;
 
       
       //

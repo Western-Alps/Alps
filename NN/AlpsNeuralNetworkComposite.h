@@ -36,7 +36,7 @@ namespace Alps
       /** Constructor. */
       explicit NeuralNetworkComposite(){};
       /** Destructor */
-      virtual ~NeuralNetworkComposite(){};
+      virtual ~NeuralNetworkComposite() = default;
 
       
       //
