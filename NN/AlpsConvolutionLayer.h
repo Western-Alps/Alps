@@ -1,3 +1,20 @@
+/*=========================================================================
+* Alps is a deep learning library approach customized for neuroimaging data 
+* Copyright (C) 2021 Yann Cobigo (yann.cobigo@yahoo.com)
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*=========================================================================*/
 #ifndef ALPSCONVOLUTIONLAYER_H
 #define ALPSCONVOLUTIONLAYER_H
 //
@@ -209,11 +226,11 @@ namespace Alps
 	  convolution_window_->get_image_information( attached_layers[0].get_image(TensorOrder1::ACTIVATION).get_image_region() );
 	//
 	// Every layer attached to this layer should have exactly the same dimensions
-	std::size_t tot_features = attached_layers.size();
-	std::size_t layer_size   = attached_layers[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
+	std::size_t tot_features    = attached_layers.size();
+	std::size_t prev_layer_size = attached_layers[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
 	//
 	for ( std::size_t feature = 1 ; feature < tot_features ; feature++ )
-	  if ( layer_size != attached_layers[feature].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0] )
+	  if ( prev_layer_size != attached_layers[feature].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0] )
 	    throw MAC::MACException( __FILE__, __LINE__,
 				     "All attached layers must have the same output features' dimensions.",
 				     ITK_LOCATION );
@@ -235,6 +252,8 @@ namespace Alps
 	      weights_.push_back( W(*this, convolution_window_, k) );
 	    // Get the activation tuple (<0> - activation; <1> - derivative; <2> - error; <3> - weighted error)
 	    auto tuple   = weights_[k].activate( attached_layers );
+	    // get the layer size to initialize the other tensors
+	    std::size_t layer_size = tuple[ Act::ACTIVATION ].size();
 	    std::array< std::vector< double >, 4 > current_activation = { std::move( tuple[ Act::ACTIVATION ] ),
 									  std::move( tuple[ Act::DERIVATIVE ] ),
 									  std::vector< double >( layer_size, 0. ) /* error */,
@@ -299,6 +318,11 @@ namespace Alps
 		  <<std::endl;
 	auto test4 = subject->get_layer( "layer_4" );
 	double stop4 = 0.;
+	std::cout << "subject->get_layer(layer_5): "
+		  << "subject->get_layer(\"layer_5\")[0].get_image(TensorOrder1::ACTIVATION)"
+		  <<std::endl;
+	auto test5 = subject->get_layer( "layer_5" );
+	double stop5 = 0.;
 
 	/////////////////////
 	// Weighted error //

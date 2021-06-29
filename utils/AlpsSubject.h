@@ -1,3 +1,20 @@
+/*=========================================================================
+* Alps is a deep learning library approach customized for neuroimaging data 
+* Copyright (C) 2021 Yann Cobigo (yann.cobigo@yahoo.com)
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*=========================================================================*/
 #ifndef ALPSSUBJECT_H
 #define ALPSSUBJECT_H
 //
@@ -89,7 +106,6 @@ namespace Alps
     const bool                                        check_modalities() const 
     { return (number_modalities_ == modalities_.size() ? true : false);};
     // Add a dense layer
-    [[deprecated("This function has been replaced by the overloading.")]]
     void                                              add_layer( const std::string,
 								 const std::vector< std::size_t >,
 								 std::array< std::vector< double >, 4 > );
@@ -219,22 +235,22 @@ namespace Alps
     //
     try
       {
-	if ( layer != layer_modalities_.end() )
-	  {
-	    if ( (layer->second).size() == 0 )
-	      {
-		if ( Layer_name == "__input_layer__" )
-		  fcl_conditioning();
-		else
-		  {
-		    std::string mess = "Layer " + Layer_name + " is empty.";
-		    throw MAC::MACException( __FILE__, __LINE__,
-					     mess.c_str(),
-					     ITK_LOCATION );
-		  }
-	      }
-	  }
-	else
+	if ( layer == layer_modalities_.end() )
+//	  {
+//	    if ( (layer->second).size() == 0 )
+//	      {
+//		if ( Layer_name == "__input_layer__" )
+//		  fcl_conditioning();
+//		else
+//		  {
+//		    std::string mess = "Layer " + Layer_name + " is empty.";
+//		    throw MAC::MACException( __FILE__, __LINE__,
+//					     mess.c_str(),
+//					     ITK_LOCATION );
+//		  }
+//	      }
+//	  }
+//	else
 	  {
 	    std::string mess = "Layer " + Layer_name + " is unknown.";
 	    throw MAC::MACException( __FILE__, __LINE__,
@@ -315,9 +331,9 @@ namespace Alps
 					     ITK_LOCATION );
 		  }
 	      }
-//	    else
-//	      layer_modalities_[ Layer_name ][Kernel].replace( Layer_size,
-//							       Tensors_activation );
+	    else
+	      layer_modalities_[ Layer_name ][Kernel].replace( Layer_size,
+							       Tensors_activation );
 	  }
       }
     catch( itk::ExceptionObject & err )

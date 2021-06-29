@@ -1,3 +1,20 @@
+/*=========================================================================
+* Alps is a deep learning library approach customized for neuroimaging data 
+* Copyright (C) 2021 Yann Cobigo (yann.cobigo@yahoo.com)
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*=========================================================================*/
 #ifndef ALPSLAYERTENSORS_H
 #define ALPSLAYERTENSORS_H
 //
@@ -25,23 +42,25 @@
  */
 namespace Alps
 {
+  //! TensorOrder1
+  /*! The N dimensions images are flatten into a 1D tensor. The main tensors used in the application are: */
   enum class TensorOrder1
     { 
      UNKNOWN    = -1,
-     ACTIVATION =  0,
-     DERIVATIVE =  1,
-     ERROR      =  2,
-     WERROR     =  3  // WEIGHTED_ERROR
+     ACTIVATION =  0, /*!< The layer activation. */
+     DERIVATIVE =  1, /*!< The layer activation derivation. */
+     ERROR      =  2, /*!< The layer error calculated from other layers. */
+     WERROR     =  3  /*!< The layer weighted error calculated from other layers. */
     };
 
   /*! \class LayerTensors
    *
    * \brief class LayerTensors records the Layer flatten images
-   * (tensor order 1). It holds for an image m:
-   * [0] Activation
-   * [1] Derivative of the activation
-   * [2] error from the layer
-   * [3] weighted error from the layer
+   * (tensor order 1). It holds for an image i:
+   *  - [0] Activation
+   *  - [1] Derivative of the activation
+   *  - [2] error from the layer
+   *  - [3] weighted error from the layer
    *
    * And memorized the tensors from  previous epoques.
    *
@@ -59,25 +78,25 @@ namespace Alps
     LayerTensors( const std::array< std::size_t, Dim >,
 		  std::array< std::vector< Type >, 4 > );
     /* Destructor */
-    virtual ~LayerTensors(){};
+    virtual ~LayerTensors() = default;
 
     
     //
     // Accessors
     //
-    // Get size of the tensor
-    virtual const std::vector< std::size_t >    get_tensor_size() const                       override
+    // From Alps::Tensor< Type, 1 >
+    //
+    //! Get size of the tensor
+    virtual const std::vector< std::size_t >    get_tensor_size() const noexcept              override
     { return tensors_[0].get_tensor_size();};
-    // Get the tensor
-    virtual const std::vector< Type >&          get_tensor() const                            override
-    { };
-    // Update the tensor
+    //! Get the tensor
+    virtual const std::vector< Type >&          get_tensor() const noexcept                   override
+    { return tensors_[0].get_tensor();};
+    //! Update the tensor
     virtual std::vector< Type >&                update_tensor()                               override 
-    { };
-//    // Set size of the tensor
-//    virtual void                                set_tensor_size( std::vector< std::size_t > ) override{};
-//    // Set the tensor
-//    virtual void                                set_tensor( std::shared_ptr< Type > )         override{};
+    { return tensors_[0].update_tensor();};
+    //
+    // From LayerTensors< typename Type, int Dim >
     //
     // Access the images directly
     const Alps::Image< Type, Dim >&             get_image( Alps::TensorOrder1 ) const;
@@ -86,18 +105,28 @@ namespace Alps
     //
     // Functions
     //
-    // Save the tensor values (e.g. weights)
+    // From Alps::Tensor< Type, 1 >
+    //
+    //! Save the tensor values (e.g. weights)
     virtual void                                save_tensor() const                           override{};
-    // Load the tensor values (e.g. weights)
+    //! Load the tensor values (e.g. weights)
     virtual void                                load_tensor( const std::string )              override{};
     //
+    // From LayerTensors< typename Type, int Dim >
     //
-    // Implementation of [] operator.  This function must return a 
-    // reference as array element can be put on left side 
+    //! Implementation of [] operator.
+    /*!
+      This function retunrs one of the 4 application main tensor's element.
+      \return an element
+    */
     std::vector< Type >&                        operator[]( Alps::TensorOrder1 Idx ); 
-    //
-    // Implementation of () operator.  This function must return a 
-    // reference as array element of the Hadamard product between two tensors
+    //! Implementation of () operator.
+    /*!
+      This function computs the Hamadard production of two 1D tensors.
+      \param First 1D tensor for the Hamadard product
+      \param Second 1D tensor for the Hamadard product
+      \return a 1D tensor
+    */
     std::vector< Type >                         operator()( Alps::TensorOrder1, Alps::TensorOrder1 ); 
     //
     void                                        replace( const std::vector< std::size_t >,
@@ -139,6 +168,11 @@ namespace Alps
 	//
 	// Load the modalities into the container
 	tensors_[0] = Alps::Image< double, D >( img_ptr );
+	// Load the other tensors
+	std::vector< std::size_t > tensor_size = tensors_[0].get_tensor_size();
+	tensors_[1] = Alps::Image< T, D >( tensor_size, std::vector<T>(tensor_size[0], 0.) );
+	tensors_[2] = Alps::Image< T, D >( tensor_size, std::vector<T>(tensor_size[0], 0.) );
+	tensors_[3] = Alps::Image< T, D >( tensor_size, std::vector<T>(tensor_size[0], 0.) );
       }
     catch( itk::ExceptionObject & err )
       {
@@ -149,13 +183,25 @@ namespace Alps
   //
   // Constructor
   template< typename T,int D >
-  Alps::LayerTensors< T, D >::LayerTensors( const std::vector< std::size_t >     Tensor_size,
+  Alps::LayerTensors< T, D >::LayerTensors( const std::vector< std::size_t >  Tensor_size,
 					    std::array< std::vector< T >, 4 > Tensors )
   {
     try
       {
 	//
 	// Load the modalities into the container
+	for ( int t = 0 ; t < 4 ; t++ )
+	  if ( Tensor_size[0] != Tensors[t].size() )
+	    {
+	      std::cout
+		<< "Tensor_size[0] " << Tensor_size[0]
+		<< " Tensors["<<t<<"].size() " << Tensors[t].size()
+		<< std::endl;
+		throw MAC::MACException( __FILE__, __LINE__,
+				       "We can't build a layer with inappropriate size",
+				       ITK_LOCATION );
+	    }
+	//
 	tensors_[0] = Alps::Image< T, D >( Tensor_size, Tensors[0] );
 	tensors_[1] = Alps::Image< T, D >( Tensor_size, Tensors[1] );
 	tensors_[2] = Alps::Image< T, D >( Tensor_size, Tensors[2] );
@@ -171,12 +217,27 @@ namespace Alps
   // Constructor
   template< typename T,int D >
   Alps::LayerTensors< T, D >::LayerTensors( const std::array< std::size_t, D >   Tensor_size,
-					    std::array< std::vector< T >, 4 > Tensors )
+					    std::array< std::vector< T >, 4 >    Tensors )
   {
     try
       {
 	//
 	// Load the modalities into the container
+	std::size_t t_size = 1.;
+	for ( int d = 0 ; d < D ; d++ )
+	  t_size *= Tensor_size[d];
+	for ( int t = 0 ; t < 4 ; t++ )
+	  if ( t_size != Tensors[t].size() )
+	    {
+	      std::cout
+		<< "Tensor size = " << t_size
+		<< " Tensors["<<t<<"].size() " << Tensors[t].size()
+		<< std::endl;
+		throw MAC::MACException( __FILE__, __LINE__,
+					 "We can't build a layer with inappropriate size",
+					 ITK_LOCATION );
+	    }
+	//
 	tensors_[0] = Alps::Image< T, D >( Tensor_size, Tensors[0] );
 	tensors_[1] = Alps::Image< T, D >( Tensor_size, Tensors[1] );
 	tensors_[2] = Alps::Image< T, D >( Tensor_size, Tensors[2] );
@@ -260,18 +321,8 @@ namespace Alps
     //
     for ( std::size_t s = 0 ; s < img_size ; s++ )
       {
-	// ToDo: Fix the problem
-//	double b = tensors_[ static_cast< int >( Idx2 ) ].get_tensor().get()[s];
-//	double a = 0.;
-//	if ( tensors_[ static_cast< int >( Idx1 ) ].get_tensor() )
-//	  a = tensors_[ static_cast< int >( Idx1 ) ].get_tensor().get()[s];
-//	std::cout
-//	  << "img_size["<<s<<"] / "<<img_size 
-//	  << " tensors_[Idx1] = " << a
-//	  << " tensors_[Idx2] = " << b
-//	  << std::endl;
 	hadamard[s] =
-	  tensors_[ static_cast< int >( Idx1 ) ].get_tensor()[s] +
+	  tensors_[ static_cast< int >( Idx1 ) ].get_tensor()[s] *
 	  tensors_[ static_cast< int >( Idx2 ) ].get_tensor()[s];
       }
       
@@ -288,6 +339,13 @@ namespace Alps
   {
     try
       {
+	//
+	//
+	for ( int t = 0 ; t < 4 ; t++ )
+	  if ( Tensor_size[0] != Tensors[t].size() )
+	    throw MAC::MACException( __FILE__, __LINE__,
+				     "Error on the tensor size.",
+				     ITK_LOCATION );
 	//
 	// Save the previous set of neurons
 	// ToDo: implement de move sementic in AlpsImage

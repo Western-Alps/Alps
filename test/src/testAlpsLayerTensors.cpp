@@ -55,8 +55,8 @@ TEST_F(LayerTensorsTest, ByDefaultLayerTensorsImage) {
   //
 	 EXPECT_EQ( Subj[Alps::TensorOrder1::ACTIVATION][206], 253 );
 }
-// operator() -- hadamart
-TEST_F(LayerTensorsTest, ByDefaultLayerTensorsHadamart) {
+// operator() -- hadamard
+TEST_F(LayerTensorsTest, ByDefaultLayerTensorsHadamard) {
   //
   //
   std::vector< std::size_t > size(1);
@@ -71,7 +71,8 @@ TEST_F(LayerTensorsTest, ByDefaultLayerTensorsHadamart) {
     {
       activation[i] = static_cast<double>( i );
       derivative[i] = static_cast<double>( i * 10 );
-      error[i]      = static_cast<double>( i * 100 );
+      error[i]      = static_cast<double>( i * 0.1 );
+      werror[i]     = static_cast<double>( i * 0.01 );
     }
   //
   std::array< std::vector< double >, 4 > current = { activation, derivative, error, werror };
@@ -81,13 +82,13 @@ TEST_F(LayerTensorsTest, ByDefaultLayerTensorsHadamart) {
   // Test the hadamart product
   std::vector< double > hadamart = std::move( Subj(Alps::TensorOrder1::ACTIVATION,
 						   Alps::TensorOrder1::DERIVATIVE) );
-//  //
-//  for ( int i = 0 ; i < 5 ; i++ )
-//    std::cout << "hadamart("<<i<<") = " << hadamart.get()[i] << std::endl;
+  //
+  for ( int i = 0 ; i < 5 ; i++ )
+    std::cout << "hadamart("<<i<<") = " << hadamart[i] << std::endl;
   
   //
   //
-  EXPECT_EQ( hadamart[4], 44 );
+  EXPECT_EQ( hadamart[4], 160 );
 }
 //// Accessors
 //TEST_F(LayerTensorsTest, ByDefaultImageSet) {

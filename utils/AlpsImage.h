@@ -1,3 +1,20 @@
+/*=========================================================================
+* Alps is a deep learning library approach customized for neuroimaging data 
+* Copyright (C) 2021 Yann Cobigo (yann.cobigo@yahoo.com)
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*=========================================================================*/
 #ifndef ALPSIMAGE_H
 #define ALPSIMAGE_H
 //
@@ -23,9 +40,9 @@ namespace Alps
 {
   /*! \class Image
    *
-   * \brief class Image record the information 
-   * of the image through the processing. Images are
-   * tensor 1D. Any dimension of image are going to 
+   * \brief class Image record the information of the image through the processing. 
+   * 
+   * Images are flatten into a 1D tensor. Any dimension of image are going to 
    * be vectorized in an array of 1D.
    *
    */
@@ -44,49 +61,80 @@ namespace Alps
     /* Destructor */
     virtual ~Image() = default;
 
+
     
     //
     // Accessors
     //
-    // Get size of the tensor
-    virtual const std::vector< std::size_t > get_tensor_size() const                         override
-      { return tensor_size_;};
-    // Get the tensor
-    virtual const std::vector< Type >&       get_tensor() const                               override 
+    // From Alps::Tensor< Type, 1 >
+    //
+    //! Get size of the tensor
+    virtual const std::vector< std::size_t > get_tensor_size() const noexcept                 override
+    {
+      if ( tensor_size_[0] != tensor_.size() )
+	{
+	  std::cout
+	    << "tensor_size_[0] " << tensor_size_[0]
+	    << " tensor_.size() " << tensor_.size()
+	    << std::endl;
+	  throw MAC::MACException( __FILE__, __LINE__,
+				   "The tensor size changed for this layer.",
+				   ITK_LOCATION );
+	}
+      //
+      //
+      return tensor_size_;
+    };
+    //! Get the tensor
+    virtual const std::vector< Type >&       get_tensor() const noexcept                      override 
     { return tensor_;};
-    // Update the tensor
+    //! Update the tensor
     virtual std::vector< Type >&             update_tensor()                                  override 
     { return tensor_;};
-//    // Set size of the tensor
-//    virtual void                             set_tensor_size( std::vector< std::size_t > S ) override
-//    { tensor_size_ = S;};
-//    // Set the tensor
-//    virtual void                             set_tensor( std::vector< Type > Z )             override
-//    { tensor_ = Z;};
     //
+    // From Image< typename Type, int Dim >
     //
-    // Get region from the original image
-    virtual const typename ImageType< Dim >::RegionType get_image_region() const
+    //! Get region from the original image
+    /*!
+      \return region descriptor from ITK
+    */
+    virtual const typename ImageType< Dim >::RegionType get_image_region() const noexcept
     { return region_;};
-    // Get start from the original image
-    virtual const typename ImageType< Dim >::IndexType  get_image_start() const
+    //! Get start from the original image
+    /*!
+      \return the starting point from ITK region descriptor
+    */
+    virtual const typename ImageType< Dim >::IndexType  get_image_start() const noexcept
     { return start_;};
-    // Get size of the original image
-    virtual const typename ImageType< Dim >::SizeType   get_image_size() const
+    //! Get size of the original image
+    /*!
+      \return the image size from ITK region descriptor
+    */
+    virtual const typename ImageType< Dim >::SizeType   get_image_size() const noexcept
     { return size_;};
 
 
+    
     //
     // Functions
     //
-    // Save the tensor values (e.g. weights)
+    // From Alps::Tensor< Type, 1 >
+    //
+    //! Save the tensor values (e.g. weights)
     virtual void save_tensor() const{};
-    // Load the tensor values (e.g. weights)
+    //! Load the tensor values (e.g. weights)
     virtual void load_tensor( const std::string ) {};
     //
+    // From Image< typename Type, int Dim >
     //
-    // Implementation of [] operator.  This function must return a 
+    //! Implementation of [] operator.  This function must return a 
     // reference as array element can be put on left side 
+    //! Implementation of [] operator
+    /*!
+      The member returns the array element of the vectorized image.
+      \param Index of the element 
+      \return the iamge value
+    */
     Type         operator[]( const std::size_t Idx ); 
 
 
@@ -110,7 +158,7 @@ namespace Alps
     //
     std::vector< std::size_t > tensor_size_{ std::vector< std::size_t >(/*tensor order*/1,1) };
     // Z
-    std::vector< Type >         tensor_;
+    std::vector< Type >        tensor_;
   };
   //
   //
@@ -147,7 +195,7 @@ namespace Alps
 	// Check the vector has been created correctly
 	if ( position != tensor_size_[0] )
 	  throw MAC::MACException( __FILE__, __LINE__,
-				   "The iamge vector has not been created correctly.",
+				   "The image tensor has not been created correctly.",
 				   ITK_LOCATION );
       }
     catch( itk::ExceptionObject & err )
@@ -193,7 +241,7 @@ namespace Alps
   {
     try
       {
-	if ( Idx < 0 )
+	if ( Idx < 0 || Idx > tensor_size_[0] )
 	  throw MAC::MACException( __FILE__, __LINE__,
 				   "Indexing out of bound.",
 				   ITK_LOCATION );

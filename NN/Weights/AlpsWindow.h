@@ -1,3 +1,20 @@
+/*=========================================================================
+* Alps is a deep learning library approach customized for neuroimaging data 
+* Copyright (C) 2021 Yann Cobigo (yann.cobigo@yahoo.com)
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*=========================================================================*/
 #ifndef ALPSWINDOW_H
 #define ALPSWINDOW_H
 //
@@ -40,22 +57,22 @@ namespace Alps
       //
       // Accessors
       //! get the number of kernel
-      const int                                          get_number_kernel() const
+      const int                                          get_number_kernel() const noexcept
       { return k_;};
       //! get  half convolution window size.
-      const std::vector< long int >                      get_convolution_window_size() const
+      const std::vector< long int >                      get_convolution_window_size() const noexcept
       { return w_;};
       //! get the padding.
-      const std::vector< long int >                      get_convolution_padding() const
+      const std::vector< long int >                      get_convolution_padding() const noexcept
       { return p_;};
       //! get the striding.
-      const std::vector< long int >                      get_convolution_striding() const
+      const std::vector< long int >                      get_convolution_striding() const noexcept
       { return s_;};
       //! get the number of voxel output per dimension
-      const std::array< std::size_t, Dim>                get_output_image_dimensions() const
+      const std::array< std::size_t, Dim>                get_output_image_dimensions() const noexcept
       { return (transposed_ ? n_in_ : n_out_); };
       //! Sparse matrix holding the index od=f the weights
-      const Eigen::SparseMatrix< int, Eigen::RowMajor >& get_weights_matrix() const
+      const Eigen::SparseMatrix< int, Eigen::RowMajor >& get_weights_matrix() const 
       {return weights_matrix_;};
       //! Array with the values of the weights
       const std::vector< Type >&                         get_convolution_weight_values( const int Kernel ) const

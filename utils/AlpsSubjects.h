@@ -1,3 +1,20 @@
+/*=========================================================================
+* Alps is a deep learning library approach customized for neuroimaging data 
+* Copyright (C) 2021 Yann Cobigo (yann.cobigo@yahoo.com)
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*=========================================================================*/
 #ifndef ALPSSUBJECTS_H
 #define ALPSSUBJECTS_H
 //
@@ -75,8 +92,6 @@ namespace Alps
     std::shared_ptr< Alps::Mountain >                      mountain_observed_;
     // 
     std::vector< std::shared_ptr< Alps::Subject< Dim > > > subjects_;
-    // This function is the continuous step function
-    /*Function activation_function_;*/
   };
 
   //

@@ -1,3 +1,20 @@
+/*=========================================================================
+* Alps is a deep learning library approach customized for neuroimaging data 
+* Copyright (C) 2021 Yann Cobigo (yann.cobigo@yahoo.com)
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*=========================================================================*/
 #ifndef ALPSWEIGHTSRECONSTRUCTION_H
 #define ALPSWEIGHTSRECONSTRUCTION_H
 //
@@ -17,8 +34,7 @@ namespace Alps
 {
   /** \class WeightsReconstruction
    *
-   * \brief 
-   * WeightsReconstruction object represents the basic window element of the reconstruction layer.
+   * \brief WeightsReconstruction represents the basic window element of the reconstruction layer.
    * 
    */
   template< typename Tensor1_Type,
@@ -47,41 +63,38 @@ namespace Alps
     //
     // Accessors
     //
-    // Activation tensor from the previous layer
+    //! Activation tensor from the previous layer
     virtual void                                  set_activations( LayerTensorsVec&,
 								LayerTensorsVec& )            override;
-    // Get size of the tensor
-    virtual const std::vector< std::size_t >      get_tensor_size() const                     override
+    //! Get size of the tensor
+    virtual const std::vector< std::size_t >      get_tensor_size() const noexcept            override
     { return std::vector< std::size_t >(); };						      
-    // Get the tensor			     						      
-    virtual const std::vector< Tensor1_Type >&    get_tensor() const                          override
+    //! Get the tensor			     						      
+    virtual const std::vector< Tensor1_Type >&    get_tensor() const noexcept                 override
     { return weights_;};			     						      
-    // Update the tensor
+    //! Update the tensor
     virtual std::vector< Tensor1_Type >&          update_tensor()                             override 
     { return weights_;};
-//    // Set size of the tensor		     						      
-//    virtual void                               set_tensor_size( std::vector< std::size_t > )  override{};
-//    // Set the tensor			     						      
-//    virtual void                               set_tensor( std::shared_ptr< Tensor1_Type > )  override{};
 
+    
     												      
     //												      
     // Functions										      
     //												      
-    // Save the weights										      
+    //! Save the weights										      
     virtual void                               save_tensor() const                            override{};
-    // Load the weights										      
+    //! Load the weights										      
     virtual void                               load_tensor( const std::string )               override{};
     //
     //
-    // Activate
+    //! Activate
     virtual ActivationVec                      activate( LayerTensorsVec& )                   override{};
-    // Weighted error
+    //! Weighted error
     virtual void                               weighted_error( LayerTensorsVec&,
 							       LayerTensorsVec& )             override{};
-    // Update the weights
+    //! Update the weights
     virtual void                               update()                                       override{};
-    // Force the weight update
+    //! Force the weight update
     virtual void                               forced_update()                                override{};
 
 
@@ -94,7 +107,7 @@ namespace Alps
     //! Weights activation.
     Activation                      activation_;
     //! The mountain observed: fully connected layer.
-    const Alps::Layer&  layer_;
+    const Alps::Layer&              layer_;
   };
   /** \class WeightsReconstruction
    *
@@ -131,40 +144,37 @@ namespace Alps
     //
     // Activation tensor from the previous layer
     virtual void                                  set_activations( LayerTensorsVec&,
-								   LayerTensorsVec& )            override;
+								   LayerTensorsVec& )         override;
     // Get size of the tensor
-    virtual const std::vector< std::size_t >      get_tensor_size() const                        override
+    virtual const std::vector< std::size_t >      get_tensor_size() const noexcept            override
     { return std::vector< std::size_t >(); };							      
     // Get the tensor										      
-    virtual const std::vector< Type >&            get_tensor() const                             override
+    virtual const std::vector< Type >&            get_tensor() const noexcept                 override
     { return weights_;};										      
     // Update the tensor
-    virtual std::vector< Type >&                  update_tensor()                                override 
+    virtual std::vector< Type >&                  update_tensor()                             override 
     { return weights_;};
-//    // Set size of the tensor									      
-//    virtual void                                  set_tensor_size( std::vector< std::size_t > )  override{};
-//    // Set the tensor										      
-//    virtual void                                  set_tensor( std::shared_ptr< Type > )          override{};
 
+    
     
     //												      
     // Functions										      
     //												      
     // Save the weights										      
-    virtual void                                  save_tensor() const                            override{};
+    virtual void                                  save_tensor() const                         override{};
     // Load the weights										      
-    virtual void                                  load_tensor( const std::string )               override{};
+    virtual void                                  load_tensor( const std::string )            override{};
     //
     //
     // Activate
-    virtual ActivationVec                         activate( LayerTensorsVec& )                   override;
+    virtual ActivationVec                         activate( LayerTensorsVec& )                override;
     // Weighted error
     virtual void                                  weighted_error( LayerTensorsVec&,
-								  LayerTensorsVec& )             override;
+								  LayerTensorsVec& )          override;
     // Update the weights
-    virtual void                                  update()                                       override;
+    virtual void                                  update()                                    override;
     // Forced the weight update
-    virtual void                                  forced_update()                                override;
+    virtual void                                  forced_update()                             override;
 
 
 
@@ -179,14 +189,10 @@ namespace Alps
     Activation                             activation_;
     //
     // The mountain observed: fully connected layer
-    const Alps::Layer&         layer_;
+    const Alps::Layer&                     layer_;
     //
     // Type of gradient descent
-    //std::shared_ptr< Alps::Gradient_base > gradient_;
-    Alps::StochasticGradientDescent< double,
-									   std::vector< Type >,
-									   std::vector< Type >,
-									   Alps::Arch::CPU > gradient_;
+    std::shared_ptr< Alps::Gradient_base > gradient_;
   };
   //
   //
@@ -208,11 +214,10 @@ namespace Alps
 	switch( gradient.get_optimizer() ) {
 	case Alps::Grad::SGD:
 	  {
-//	    gradient_ = std::make_shared< Alps::StochasticGradientDescent< double,
-//									   std::vector< T >,
-//									   std::vector< T >,
-//									   Alps::Arch::CPU > >();
-	    
+	    gradient_ = std::make_shared< Alps::StochasticGradientDescent< double,
+									   std::vector< T >,
+									   std::vector< T >,
+									   Alps::Arch::CPU > >();
 	    break;
 	  };
 	case Alps::Grad::MOMENTUM:
@@ -230,9 +235,8 @@ namespace Alps
 	}
 	//
 	// There is only one weight for the reconstruction
-//	std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
-//						   std::vector< T > > >(gradient_)->set_parameters( 1, 0 );
-	(gradient_).set_parameters( 1, 0 );
+	std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
+						   std::vector< T > > >(gradient_)->set_parameters( 1, 0 );
       }
     catch( itk::ExceptionObject & err )
       {
@@ -258,9 +262,8 @@ namespace Alps
     std::vector< T > dE(1, de);
     //
     //process
-//    std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
-//					       std::vector< T > > >(gradient_)->add_tensors( dE, std::vector<T>() );
-    (gradient_).add_tensors( dE, std::vector<T>() );
+    std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
+					       std::vector< T > > >(gradient_)->add_tensors( dE, std::vector<T>() );
   };
   //
   //
@@ -274,8 +277,8 @@ namespace Alps
       features_number = Image_tensors.size(),
       size_in         = Image_tensors[0].get_tensor_size()[0];
     //
-    std::vector< T > a_out( size_in, 0. );
-    std::vector< T > z_out( size_in, 0. );
+    std::vector< T > a_out(  size_in, 0. );
+    std::vector< T > z_out(  size_in, 0. );
     std::vector< T > dz_out( size_in, 0. );
     //
     //
@@ -322,13 +325,27 @@ namespace Alps
   WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::weighted_error( std::vector< Alps::LayerTensors< T, D > >& Prev_image_tensors,
 									std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
   {
-//    int
-//      prev_features_number = Prev_image_tensors.size(),
-//      size_in              = Image_tensors[0].get_tensor_size()[0];
-//    //
-//    for ( int k = 0 ; k < prev_features_number ; k++ )
-//      for ( long int s = 0 ; s < size_in ; s++ )
-//	Prev_image_tensors[k][TensorOrder1::WERROR][s] = Image_tensors[0][TensorOrder1::ERROR][s];
+    try
+      {
+	int
+	  prev_features_number = Prev_image_tensors.size(),
+	  size_in              = Prev_image_tensors[0].get_tensor_size()[0],
+	  size_out             = Image_tensors[0].get_tensor_size()[0];
+	//
+	if ( size_in != size_out )
+	  throw MAC::MACException( __FILE__, __LINE__,
+				     "The input size must be the same as the output size.",
+				     ITK_LOCATION );
+	//
+	for ( int k = 0 ; k < prev_features_number ; k++ )
+	  for ( long int s = 0 ; s < size_in ; s++ )
+	    Prev_image_tensors[k][TensorOrder1::WERROR][s] = Image_tensors[0][TensorOrder1::ERROR][s];
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+	exit(-1);
+      }
   };
   //
   //
@@ -336,9 +353,8 @@ namespace Alps
   template< typename T, typename A, typename S, int D > void
   WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::update()
   {
-//    weights_[0] += std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
-//							      std::vector< T > > >(gradient_)->solve()[0];
-    weights_[0] += (gradient_).solve()[0];
+    weights_[0] += std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
+							      std::vector< T > > >(gradient_)->solve()[0];
   };
   //
   //
@@ -346,9 +362,8 @@ namespace Alps
   template< typename T, typename A, typename S, int D > void
   WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::forced_update()
   {
-//    weights_[0] += std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
-//							      std::vector< T > > >(gradient_)->solve( true )[0];
-    weights_[0] += (gradient_).solve( true )[0];
+    weights_[0] += std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
+							      std::vector< T > > >(gradient_)->solve( true )[0];
   };
   /** \class WeightsReconstruction
    *
@@ -383,55 +398,51 @@ namespace Alps
     //
     // Accessors
     //
-    // Activation tensor from the previous layer
+    //! Activation tensor from the previous layer
     virtual void                                  set_activation( LayerTensorsVec&,
-								  LayerTensorsVec&)              override{};
-    // Get size of the tensor
-    virtual const std::vector< std::size_t >      get_tensor_size() const                        override
+								  LayerTensorsVec&)           override{};
+    //! Get size of the tensor
+    virtual const std::vector< std::size_t >      get_tensor_size() const noexcept            override
     { return std::vector< std::size_t >(); };							      
-    // Get the tensor										      
-    virtual const std::vector< Type1 >&           get_tensor() const                             override
+    //! Get the tensor										      
+    virtual const std::vector< Type1 >&           get_tensor() const noexcept                 override
     { return weights_;};										      
-    // Update the tensor
-    virtual std::vector< Type1 >&                 update_tensor()                                override 
+    //! Update the tensor
+    virtual std::vector< Type1 >&                 update_tensor()                             override 
     { return weights_;};
-//    // Set size of the tensor									      
-//    virtual void                                  set_tensor_size( std::vector< std::size_t > )  override{};
-//    // Set the tensor										      
-//    virtual void                                  set_tensor( std::shared_ptr< Type1 > )         override{};
 												      
     												      
     //												      
     // Functions										      
     //												      
-    // Save the weights										      
-    virtual void                                  save_tensor() const                            override{};
-    // Load the weights										      
-    virtual void                                  load_tensor( const std::string )               override{};
+    //! Save the weights										      
+    virtual void                                  save_tensor() const                         override{};
+    //! Load the weights										      
+    virtual void                                  load_tensor( const std::string )            override{};
     //
     //
-    // Activate
-    virtual ActivationVec                         activate( LayerTensorsVec& )                   override{};
-    // Weighted error
+    //! Activate
+    virtual ActivationVec                         activate( LayerTensorsVec& )                override{};
+    //! Weighted error
     virtual void                                  weighted_error( LayerTensorsVec&,
-								  LayerTensorsVec& )             override{};
-    // Update the weights
-    virtual void                                  update()                                       override{};
-    // Force the update of the weights
-    virtual void                                  forced_update()                                override{};
+								  LayerTensorsVec& )          override{};
+    //! Update the weights
+    virtual void                                  update()                                    override{};
+    //! Force the update of the weights
+    virtual void                                  forced_update()                             override{};
 
 
 
 
 
   private:
-    // Matrix of weigths
+    //! Matrix of weigths
     std::vector< Type1 >            weights_;
-    // weights activation
+    //! weights activation
     Activation                      activation_;
     //
-    // The mountain observed: fully connected layer
-    const Alps::Layer&  layer_;
+    //! The mountain observed: fully connected layer
+    const Alps::Layer&              layer_;
   };
 }
 #endif

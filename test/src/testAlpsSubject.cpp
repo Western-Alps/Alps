@@ -37,9 +37,9 @@ TEST_F(SubjectTest, ByDefaultSubjectAddModalitiesTrue) {
 
   //
   //
-  //std::cout << "Size: " << Subj.get_layer_size( "__input_layer__" )[0] << std::endl;
-  //std::cout << "position 547: " << Subj.get_layer( "__input_layer__" )[0][Alps::TensorOrder1::ACTIVATION][547] << std::endl;
-  //std::cout << "position 784+547: " << Subj.get_layer( "__input_layer__" )[0][Alps::TensorOrder1::ACTIVATION][784+547] << std::endl;
+  std::cout << "Size: " << Subj.get_layer_size( "__input_layer__" )[0] << std::endl;
+  std::cout << "position 547: " << Subj.get_layer( "__input_layer__" )[0][Alps::TensorOrder1::ACTIVATION][547] << std::endl;
+  std::cout << "position 784+547: " << Subj.get_layer( "__input_layer__" )[0][Alps::TensorOrder1::ACTIVATION][784+547] << std::endl;
   //
   //  std::size_t size = Subj.get_layer_size( "__input_layer__" )[0];
   //  for (std::size_t i = 0 ; i < size ; i++ )
@@ -48,8 +48,7 @@ TEST_F(SubjectTest, ByDefaultSubjectAddModalitiesTrue) {
   
   //
   //
-  EXPECT_EQ( Subj.get_layer( "__input_layer__" )[0][Alps::TensorOrder1::ACTIVATION][547],
-	     Subj.get_layer( "__input_layer__" )[0][Alps::TensorOrder1::ACTIVATION][784+547] );
+  EXPECT_EQ( Subj.get_layer( "__input_layer__" )[0][Alps::TensorOrder1::ACTIVATION][547], 253 );
 }
 // Add modalities
 TEST_F(SubjectTest, ByDefaultSubjectAddTarget) {
