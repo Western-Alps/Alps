@@ -85,6 +85,7 @@ namespace MAC
 	    nn_elem->forward( Sub, weights_ );
 	    // we just want to save the last energy
 	    // energies are already cumulated in the container
+	    std::cout << "E = " << nn_elem->get_energy() << std::endl;
 	    energy_ = nn_elem->get_energy();
 	  }
       };

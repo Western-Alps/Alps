@@ -149,13 +149,6 @@ namespace Alps
 	std::uniform_int_distribution< int > distribution( 0, 1UL << 16 );
 	//
 	layer_id_ = distribution( generator );
-
-	//
-	//
-	int kernels = convolution_window_->get_number_kernel();
-	
-	//	for ( int k = 0 ; k < kernels ; k++ )
-//	  weights_[k] = nullptr;
       }
     catch( itk::ExceptionObject & err )
       {
@@ -248,7 +241,7 @@ namespace Alps
 	  {
 	    //
 	    // Check the weights were created for the feature k
-	    if ( weights_.size() < kernels )
+	    if ( weights_.size() < static_cast< std::size_t >(kernels) )
 	      weights_.push_back( W(*this, convolution_window_, k) );
 	    // Get the activation tuple (<0> - activation; <1> - derivative; <2> - error; <3> - weighted error)
 	    auto tuple   = weights_[k].activate( attached_layers );
@@ -293,37 +286,6 @@ namespace Alps
 	auto image_tensors = subject->get_layer( layer_name_ );
 	
 
-	//
-	// If we don't have any next layer, we are at the last layer
-	std::cout << "We are in the last layer: " << layer_name_ << std::endl;
-
-
-	std::cout << "subject->get_layer(layer_1): "
-		  << "subject->get_layer(\"layer_1\")[0].get_image(TensorOrder1::ACTIVATION)"
-		  <<std::endl;
-	auto test1 = subject->get_layer( "layer_1" );
-	double stop1 = 0.;
-	std::cout << "subject->get_layer(layer_2): "
-		  << "subject->get_layer(\"layer_2\")[0].get_image(TensorOrder1::ACTIVATION)"
-		  <<std::endl;
-	auto test2 = subject->get_layer( "layer_2" );
-	double stop2 = 0.;
-	std::cout << "subject->get_layer(layer_3): "
-		  << "subject->get_layer(\"layer_3\")[0].get_image(TensorOrder1::ACTIVATION)"
-		  <<std::endl;
-	auto test3 = subject->get_layer( "layer_3" );
-	double stop3 = 0.;
-	std::cout << "subject->get_layer(layer_4): "
-		  << "subject->get_layer(\"layer_4\")[0].get_image(TensorOrder1::ACTIVATION)"
-		  <<std::endl;
-	auto test4 = subject->get_layer( "layer_4" );
-	double stop4 = 0.;
-	std::cout << "subject->get_layer(layer_5): "
-		  << "subject->get_layer(\"layer_5\")[0].get_image(TensorOrder1::ACTIVATION)"
-		  <<std::endl;
-	auto test5 = subject->get_layer( "layer_5" );
-	double stop5 = 0.;
-
 	/////////////////////
 	// Weighted error //
 	////////////////////
@@ -351,7 +313,7 @@ namespace Alps
 	    {
 	      std::string name = layer_weights.first;
 	      weights_[k].set_activations( subject->get_layer( name ),
-					    image_tensors );
+					   image_tensors );
 	      weights_[k].update();
 	    }
       }
@@ -369,16 +331,21 @@ namespace Alps
   {
     try
       {
-//	//
-//	// Down to subject
-//	std::shared_ptr< Alps::Subject< D > > subject = std::dynamic_pointer_cast< Alps::Subject< D > >(Sub);
-//	std::cout
-//	  << "forcing the weight update: " << layer_name_ << std::endl;
-//
-//	////////////////////////
-//	// Update the weights //
-//	////////////////////////
-//	//
+	//
+	// Down to subject
+	std::shared_ptr< Alps::Subject< D > > subject = std::dynamic_pointer_cast< Alps::Subject< D > >(Sub);
+	std::cout
+	  << "forcing the weight update: " << layer_name_ << std::endl;
+
+	////////////////////////
+	// Update the weights //
+	////////////////////////
+	//
+	int kernels = convolution_window_->get_number_kernel();
+	//
+	for ( int k = 0 ; k < kernels ; k++ )
+	  for ( auto layer_weights : prev_layer_ )
+	    weights_[k].update();
 //	for ( auto layer_weights : weights_ )
 //	  {
 //	    std::string name = layer_weights.first;

@@ -169,7 +169,7 @@ namespace Alps
 				   "The number of kernels cannot be negative or null.",
 				   ITK_LOCATION );
 	//
-	// Check the input window dimentions are correct.
+	// Check the input window dimensions are correct.
 	if ( D != Window.size() ||
 	     D != Window.size() ||
 	     D != Window.size() )
@@ -300,13 +300,20 @@ namespace Alps
 	
 	
 	//
+	// This part of the program maps the weights index of each weight in the flatten image.
+	// It should look like the follwing matrix, where 1,2,3, ... are the indexes of the
+	// weight 1, 2, 3, ...
+	// 1 2 3 0 4 5 6 0 7 8 9 0 0 0 0 0 
+	// 0 1 2 3 0 4 5 6 0 7 8 9 0 0 0 0 
+	// 0 0 0 0 1 2 3 0 4 5 6 0 7 8 9 0 
+	// 0 0 0 0 0 1 2 3 0 4 5 6 0 7 8 9 
 	//
 	switch( D )
 	  {
 	  case 0:
 	    {
 	      throw MAC::MACException( __FILE__, __LINE__,
-				       "Building convolution windows with null dimension as not been thought yet.",
+				       "Building convolution windows with null dimension has not been thought yet.",
 				       ITK_LOCATION );
 	      break;
 	    }
@@ -559,7 +566,7 @@ namespace Alps
 	  case 9:
 	  default:
 	    {
-	      std::string mess = "Building convolution windows with high dimensions as not been thought yet, but can be customized.\n";
+	      std::string mess = "Building convolution windows with high dimensions has not been thought yet, but can be customized.\n";
 	      mess += "It is also important to note that ITK might not allowd very high dimensions images.";
 	      throw MAC::MACException( __FILE__, __LINE__,
 				       mess.c_str(),

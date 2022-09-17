@@ -256,6 +256,7 @@ namespace Alps
     std::size_t layer_size = Image_tensors[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
     double de = 0.;
     //
+    // ToDo: What are we doing here??!?!?
     for ( int d = 0 ; d < layer_size ; d++ )
       de += Image_tensors[0].get_image(TensorOrder1::ERROR).get_tensor_size()[0];
     //
@@ -291,7 +292,7 @@ namespace Alps
 	    //
 	    // Check the size between the getting in layer and the number of colums are the same
 	    std::size_t layer_size = Image_tensors[f].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
-	    if ( layer_size != size_in )
+	    if ( layer_size != static_cast< std::size_t >(size_in) )
 	      throw MAC::MACException( __FILE__, __LINE__,
 				       "Error in the construction of the weight mastrix's dimensions.",
 				       ITK_LOCATION );

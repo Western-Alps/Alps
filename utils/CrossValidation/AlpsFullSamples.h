@@ -162,8 +162,8 @@ namespace Alps
 		    << " -- Weight update In subject " << ( subjects_[0].get_subjects() )[ sub ]->get_subject_number()
 		    << std::endl;
 		  // Get the observed Mountain from subjects
-		  // Backward process
-		  //std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->weight_update( (subjects_[0].get_subjects())[sub] );
+		  // Update the weights
+		  std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->weight_update( (subjects_[0].get_subjects())[sub] );
 		}
 
 

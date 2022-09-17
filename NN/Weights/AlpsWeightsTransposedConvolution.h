@@ -266,39 +266,19 @@ namespace Alps
     //
     // retrieve the weight matrix
     const Eigen::SparseMatrix< int, Eigen::RowMajor >& matrix_weights   = window_->get_weights_matrix().transpose();
-    const std::vector< double >&                      weight_val       = window_->get_convolution_weight_values( feature_ );
-    const std::vector< std::vector< double > >&       deriv_weight_val = window_->get_derivated_weight_values();
+    //const std::vector< double >&                       weight_val       = window_->get_convolution_weight_values( feature_ );
+    const std::vector< std::vector< double > >&        deriv_weight_val = window_->get_derivated_weight_values();
     //
     int
       prev_features_number = Prev_image_tensors.size(),
       weight_number        = deriv_weight_val.size(),
-      size_in              = matrix_weights.cols(),
+      //size_in              = matrix_weights.cols(),
       size_out             = matrix_weights.rows();
 
     //
     // Hadamard production between the weighted error and the
     // derivative of the activation
-    for ( int a = 0 ; a < 3 ; a++ )
-      {
-	std::cout
-	  << "Image_tensors["<<feature_<<"][WERROR]["<<a<<"] = " << Image_tensors[feature_][TensorOrder1::WERROR][a]
-	  << std::endl;
-      }
-    
     std::vector< T > hadamard = std::move(Image_tensors[feature_]( TensorOrder1::WERROR, TensorOrder1::DERIVATIVE) );
-
-    
-    std::cout
-      << "WeightsTransposedConvolution::set_activations" 
-      << " layer_size[ACTIVATION]: " << Prev_image_tensors[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0]
-      << " layer_size[ERROR]: " << Prev_image_tensors[0].get_image(TensorOrder1::ERROR).get_tensor_size()[0]
-      << " layer_size[WERROR]: " << Prev_image_tensors[0].get_image(TensorOrder1::WERROR).get_tensor_size()[0]
-      << " layer_size[ACTIVATION]: " << Image_tensors[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0]
-      << " layer_size[ERROR]: " << Image_tensors[0].get_image(TensorOrder1::ERROR).get_tensor_size()[0]
-      << " layer_size[WERROR]: " << Image_tensors[0].get_image(TensorOrder1::WERROR).get_tensor_size()[0]
-      << " size_in: " << size_in
-      << " size_out: " << size_out
-      << std::endl;
     //
     // Replicate to all the previouse connected features' layers
     std::vector< T > dE( weight_number, 0. );
@@ -358,12 +338,6 @@ namespace Alps
     std::vector< T > a_out( size_out, 0. );
     std::vector< T > z_out( size_out, 0. );
     std::vector< T > dz_out( size_out, 0. );
-    std::cout
-      << "WeightsTransposedConvolution::activate" 
-      << " layer_size[ACTIVATION--in]: " << Image_tensors[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0]
-      << " size_in: " << size_in
-      << " size_out (curr): " << size_out
-      << std::endl;
     //
     // compute the activation
     try
@@ -420,21 +394,10 @@ namespace Alps
     //
     int
       prev_features_number = Prev_image_tensors.size(),
-      size_in              = matrix_weights.rows(),
-      size_out             = matrix_weights.cols();
-    //
-    std::size_t
-      vect_werror = Image_tensors[0].get_image(TensorOrder1::ACTIVATION).get_tensor().size();
+      //size_out             = matrix_weights.cols(),
+      size_in              = matrix_weights.rows();
     //
     std::vector< T > we( size_in, 0. );
-    std::cout << "Prev_image_tensors.size(): " << Prev_image_tensors.size() << std::endl;
-    std::cout
-      << "WeightsTransposedConvolution::weighted_error" 
-      << " Prev_layer_size[ACTIVATION]: " << Prev_image_tensors[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0]
-      << " layer_size[ERROR]: " << Image_tensors[0].get_image(TensorOrder1::ERROR).get_tensor_size()[0]
-      << " size_in == vect_werror: " << size_in << " == " << vect_werror
-      << " size_out: " << size_out
-      << std::endl;
     //
     // compute the activation
     for (int k = 0 ; k < matrix_weights.outerSize() ; ++k )
@@ -442,19 +405,9 @@ namespace Alps
 	we[k] += weight_val[ static_cast< int >(it.value()) ]
 	  * Image_tensors[feature_][TensorOrder1::ERROR][it.index()];
     // Replicate to all the previouse connected features' layers
-    // ToDo: fix the BUG!!! 
     for ( int f = 0 ; f < prev_features_number ; ++f )
-      {
-	std::cout
-	  << "WeightsTransposedConvolution::weighted_error" 
-	  << " Prev_layer_size[ACTIVATION]: " << Prev_image_tensors[f].get_image(TensorOrder1::WERROR).get_tensor_size()[0]
-	  << " Prev_layer_size[ACTIVATION]: " << Prev_image_tensors[f].get_image(TensorOrder1::WERROR).get_tensor().size()
-	  << " size_in == vect_werror: " << size_in << " == " << vect_werror
-	  << " size_out: " << size_out
-	  << std::endl;
-	for (int k = 0 ; k < size_in ; ++k )
-	  Prev_image_tensors[f][TensorOrder1::WERROR][k] += we[k];
-      }
+      for (int k = 0 ; k < size_in ; ++k )
+	Prev_image_tensors[f][TensorOrder1::WERROR][k] += we[k];
   };
   //
   //
