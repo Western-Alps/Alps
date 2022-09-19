@@ -17,10 +17,11 @@ Alps::LoadDataSet::LoadDataSet( const std::string JSon_file ):
 
   //
   //
-  mountain_ = data_["network"]["mountain"];
+  //mountain_ = data_["network"]["mountain"];
+  mountain_ = data_["mountain"]["name"];
 }
 //
-// 
+//   
 bool Alps::LoadDataSet::Load_ITK_images()
 {
   try
@@ -30,7 +31,7 @@ bool Alps::LoadDataSet::Load_ITK_images()
       //
       // 
       int number_modalities = data_["inputs"]["images"].size();
-      std::size_t image_dim = data_["network"]["Image_dim"].size();
+      //std::size_t image_dim = data_["network"]["Image_dim"].size();
       return true;
     }
   catch( itk::ExceptionObject & err )

@@ -1,18 +1,31 @@
 {
     "inputs":{
-	"images":[["/home/cobigo/devel/CPP/Alps/data/tempo11.nii.gz",
-		   "/home/cobigo/devel/CPP/Alps/data/tempo12.nii.gz",
-		   "/home/cobigo/devel/CPP/Alps/data/tempo13.nii.gz",
-		   "/home/cobigo/devel/CPP/Alps/data/tempo14.nii.gz"]],
-	"targets":[["/home/cobigo/devel/CPP/Alps/data/tempo11.nii.gz",
-		   "/home/cobigo/devel/CPP/Alps/data/tempo12.nii.gz",
-		   "/home/cobigo/devel/CPP/Alps/data/tempo13.nii.gz",
-		   "/home/cobigo/devel/CPP/Alps/data/tempo14.nii.gz"]]
+	"images_comment": "We can take as many modalities needed for the classification",
+	"images":[["/mnt/production/devel/ana_res-2019-08-12/T1/T1_011_S_0021_2007-11-12.nii",
+		   "/mnt/production/devel/ana_res-2019-08-12/T1/T1_033_S_0741_2010-08-04.nii",
+		   "/mnt/production/devel/ana_res-2019-08-12/T1/T1_072_S_0315_2014-04-21.nii",
+		   "/mnt/production/devel/ana_res-2019-08-12/T1/T1_098_S_0172_2007-04-07.nii"]],
+	"image_targets_comment": "Any target image must match an input image",
+	"image_targets":[["/mnt/production/devel/ana_res-2019-08-12/GM/GM_011_S_0021_2007-11-12.nii",
+			  "/mnt/production/devel/ana_res-2019-08-12/GM/GM_033_S_0741_2010-08-04.nii",
+			  "/mnt/production/devel/ana_res-2019-08-12/GM/GM_072_S_0315_2014-04-21.nii",
+			  "/mnt/production/devel/ana_res-2019-08-12/GM/GM_098_S_0172_2007-04-07.nii"]],
+	"masks":[],
+	"labels_universe":0,
+	"labels": {}
     },
-    "strategy":{
-	"status":"train",
-	"learning_rate":0.01,
-	"weights":"weights_strategy.nii.gz"
+    "mountain":{
+	"name":"Mont_Maudit",
+	"Mont_Maudit_comment":"Mont Maudit is a custumized U-Net type network.",
+	"Mont_Maudit":{
+	    "inputs":["images","masks","image_targets"],
+	    "output":"/path/to/output.csv"
+	},
+	"strategy":{
+	    "status":"train",
+	    "learning_rate":0.01,
+	    "weights":"weights_Mont_Maudit.nii.gz"
+	}
     },
-    "output":{}
+    "GPU":{}
 }

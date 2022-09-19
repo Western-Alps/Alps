@@ -124,8 +124,8 @@ namespace Alps
   template< typename Type >
   Alps::StochasticGradientDescent< Type, std::vector< Type >, std::vector< Type >, Alps::Arch::CPU >::StochasticGradientDescent()
   {
-    mini_batch_    = static_cast< std::size_t >(Alps::LoadDataSet::instance()->get_data()["network"]["gradient"]["SGD"]["mini_batch"]);
-    learning_rate_ = static_cast< double >(Alps::LoadDataSet::instance()->get_data()["network"]["gradient"]["SGD"]["learning_rate"]);
+//    mini_batch_    = static_cast< std::size_t >(Alps::LoadDataSet::instance()->get_data()["network"]["gradient"]["SGD"]["mini_batch"]);
+//    learning_rate_ = static_cast< double >(Alps::LoadDataSet::instance()->get_data()["network"]["gradient"]["SGD"]["learning_rate"]);
   }
   //
   //
@@ -236,8 +236,8 @@ namespace Alps
   template< typename Type >
   Alps::StochasticGradientDescent< Type, Eigen::MatrixXd, Eigen::MatrixXd, Alps::Arch::CPU >::StochasticGradientDescent()
   {
-    mini_batch_    = static_cast< std::size_t >(Alps::LoadDataSet::instance()->get_data()["network"]["gradient"]["SGD"]["mini_batch"]);
-    learning_rate_ = static_cast< double >(Alps::LoadDataSet::instance()->get_data()["network"]["gradient"]["SGD"]["learning_rate"]);
+//    mini_batch_    = static_cast< std::size_t >(Alps::LoadDataSet::instance()->get_data()["network"]["gradient"]["SGD"]["mini_batch"]);
+//    learning_rate_ = static_cast< double >(Alps::LoadDataSet::instance()->get_data()["network"]["gradient"]["SGD"]["learning_rate"]);
   }
   //
   //

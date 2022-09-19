@@ -13,7 +13,7 @@
 		   "/home/cobigo/devel/MNITS/train/000009-num4.png"]],
 	"image_targets_comment": "Any target image must match an input image",
 	"image_targets":[[]],
-	"labels_comment": "Labels are used for the classification training set. AD = 0, bvFTD = 1, CSB = 2, CO = 3, nfvPPA = 4 PSP = 5, svPPA = 6.",
+	"labels_comment": "Labels are used for the classification training set. AD = 0, bvFTD = 1, CBS = 2, CO = 3, nfvPPA = 4 PSP = 5, svPPA = 6.",
 	"labels_universe": 10,
 	"labels": {"label_subject_0": 5,
 		   "label_subject_1": 0,
