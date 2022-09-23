@@ -14,10 +14,8 @@ Alps::LoadDataSet::LoadDataSet( const std::string JSon_file ):
   // load the JSon file
   std::ifstream file_in( JSon_file.c_str() );
   file_in >> data_;
-
   //
   //
-  //mountain_ = data_["network"]["mountain"];
   mountain_ = data_["mountain"]["name"];
 }
 //

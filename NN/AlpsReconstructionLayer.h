@@ -192,7 +192,7 @@ namespace Alps
 	// if the prev layer is nullptr, it represents the input data.
 	// ToDo: check if we can do an alias instead of copying the LayerTensors
 	std::cout << "Layer: " << layer_name_ << std::endl;
-	std::vector< Alps::LayerTensors< double, D > > attached_layers;
+	std::vector< std::reference_wrapper< Alps::LayerTensors< double, D > > > attached_layers;
 	for ( auto layer : prev_layer_ )
 	  {
 	    std::string name = "__input_layer__";
@@ -210,10 +210,10 @@ namespace Alps
 	//
 	// Make sure the features have the same image dimensions.
 	std::size_t tot_features = attached_layers.size();
-	std::size_t layer_size   = attached_layers[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
+	std::size_t layer_size   = (attached_layers[0].get()).get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
 	//
 	for ( std::size_t feature = 1 ; feature < tot_features ; feature++ )
-	  if ( layer_size != attached_layers[feature].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0] )
+	  if ( layer_size != (attached_layers[feature].get()).get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0] )
 	    throw MAC::MACException( __FILE__, __LINE__,
 				     "All attached layers must have the same dimensions for the output features.",
 				     ITK_LOCATION );

@@ -34,7 +34,7 @@ endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)
   add_definitions(-std=c++14)
-  set(CMAKE_CXX_FLAGS "-ffast-math -Wall")
+  set(CMAKE_CXX_FLAGS "-ffast-math -Wall -O3")
 endif()
 
 #

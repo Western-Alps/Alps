@@ -109,15 +109,12 @@ namespace Alps
 	// Create subject and load the images
 	int
 	  subject_number  = 0;
-	std::cout << "Je passe 1" << std::endl;
 	std::size_t
 	  num_modalities  = Alps::LoadDataSet::instance()->get_data()["inputs"]["images"].size(),
 	  num_img_per_mod = Alps::LoadDataSet::instance()->get_data()["inputs"]["images"][0].size(),
 	  num_trg_per_mod = Alps::LoadDataSet::instance()->get_data()["inputs"]["image_targets"][0].size(),
 	  label_universe  = static_cast< std::size_t >(Alps::LoadDataSet::instance()->get_data()["inputs"]["labels_universe"]);
 
-	std::cout << "Je passe 2" << std::endl;
-	
 	//
 	//
 	for ( std::size_t img = 0 ; img < num_img_per_mod ; img++ )
@@ -126,15 +123,13 @@ namespace Alps
 	    subjects_.push_back( std::make_shared< Alps::Subject< D > >(subject_number++, num_modalities) );
 	    //
 	    // If the output is descrete loop over the labels
-	std::cout << "Je passe 3" << std::endl;
 	    if ( label_universe > 0 )
 	      {
-		//std::string subject_label = "label_subject_" + std::to_string(img);
-		std::size_t label = static_cast< std::size_t >( Alps::LoadDataSet::instance()->get_data()["inputs"]["labels"][img] );
+		std::string subject_label = "label_subject_" + std::to_string(img);
+		std::size_t label = static_cast< std::size_t >( Alps::LoadDataSet::instance()->get_data()["inputs"]["labels"][subject_label] );
 		( subjects_[subject_number-1].get() )->add_target( label, label_universe );
 	      }
 	    // record the target images
-	std::cout << "Je passe 4" << std::endl;
 	    if ( num_trg_per_mod != 0)
 	      {
 		if( num_trg_per_mod == num_img_per_mod )
@@ -149,7 +144,6 @@ namespace Alps
 		  }
 	      }
 	    // record the modality for each subject
-	std::cout << "Je passe 5" << std::endl;
 	    for ( std::size_t mod = 0 ; mod < num_modalities ; mod++ )
 	      ( subjects_[subject_number-1].get() )->add_modalities( Alps::LoadDataSet::instance()->get_data()["inputs"]["images"][mod][img] );
 	    // Check everything is fine

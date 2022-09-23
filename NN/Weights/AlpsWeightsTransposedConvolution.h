@@ -47,7 +47,7 @@ namespace Alps
   {
     //
     // Aliases
-    using LayerTensorsVec = std::vector< Alps::LayerTensors< Tensor1_Type, Dim > >;
+    using LayerTensorsVec = std::vector< std::reference_wrapper< Alps::LayerTensors< Tensor1_Type, Dim > > >;
     using ActivationVec   = std::array < std::vector< Tensor1_Type >, 2 >;
 
     
@@ -128,7 +128,7 @@ namespace Alps
   {
     //
     // Aliases
-    using LayerTensorsVec = std::vector< Alps::LayerTensors< Type, Dim > >;
+    using LayerTensorsVec = std::vector< std::reference_wrapper< Alps::LayerTensors< Type, Dim > > >;
     using ActivationVec   = std::array < std::vector< Type >, 2 >;
 
     
@@ -256,8 +256,8 @@ namespace Alps
   //
   //
   template< typename T, typename K, typename A, typename S, int D > void
-  WeightsTransposedConvolution< T, K, Alps::Arch::CPU, A, S, D >::set_activations( std::vector< Alps::LayerTensors< T, D > >& Prev_image_tensors,
-										   std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
+  WeightsTransposedConvolution< T, K, Alps::Arch::CPU, A, S, D >::set_activations( LayerTensorsVec& Prev_image_tensors,
+										   LayerTensorsVec& Image_tensors )
   {
     //
     // We use the non-transposed weights
@@ -278,7 +278,7 @@ namespace Alps
     //
     // Hadamard production between the weighted error and the
     // derivative of the activation
-    std::vector< T > hadamard = std::move(Image_tensors[feature_]( TensorOrder1::WERROR, TensorOrder1::DERIVATIVE) );
+    std::vector< T > hadamard = std::move((Image_tensors[feature_].get())( TensorOrder1::WERROR, TensorOrder1::DERIVATIVE) );
     //
     // Replicate to all the previouse connected features' layers
     std::vector< T > dE( weight_number, 0. );
@@ -296,7 +296,7 @@ namespace Alps
 	      for (int k = 0 ; k < matrix_weights.outerSize() ; ++k )
 		for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix_weights, k); it; ++it )
 		  wz[k] += deriv_weight_val[w][ static_cast< int >(it.value()) ]
-		    * Prev_image_tensors[f][Alps::TensorOrder1::ACTIVATION][it.index()];
+		    * (Prev_image_tensors[f].get())[Alps::TensorOrder1::ACTIVATION][it.index()];
 	    //
 	    for ( int o = 0 ; o < size_out ; o++)
 	      de += hadamard[o] * wz[o];
@@ -319,7 +319,7 @@ namespace Alps
   //
   //
   template< typename T, typename K, typename A, typename S, int D > std::array< std::vector< T >, 2 >
-  WeightsTransposedConvolution< T, K, Alps::Arch::CPU, A, S, D >::activate( std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
+  WeightsTransposedConvolution< T, K, Alps::Arch::CPU, A, S, D >::activate( LayerTensorsVec& Image_tensors )
   {
     //
     // We use the non-transposed weights
@@ -346,7 +346,7 @@ namespace Alps
 	  {
 	    //
 	    // Check the size between the getting in layer and the number of colums are the same
-	    std::size_t layer_size = Image_tensors[f].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
+	    std::size_t layer_size = Image_tensors[f].get().get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
 	    if ( layer_size != static_cast< std::size_t >(size_in) )
 	      throw MAC::MACException( __FILE__, __LINE__,
 				       "Error in the construction of the weight mastrix's dimensions.",
@@ -355,7 +355,7 @@ namespace Alps
 	    for (int k = 0 ; k < matrix_weights.outerSize() ; ++k )
 	      for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix_weights, k); it; ++it )
 		a_out[k] += weight_val[static_cast< int >(it.value())]
-		  * Image_tensors[f][Alps::TensorOrder1::ACTIVATION][it.index()];
+		  * (Image_tensors[f].get())[Alps::TensorOrder1::ACTIVATION][it.index()];
 	  }
 
       }
@@ -380,8 +380,8 @@ namespace Alps
   //
   //
   template< typename T, typename K, typename A, typename S, int D > void
-  WeightsTransposedConvolution< T, K, Alps::Arch::CPU, A, S, D >::weighted_error( std::vector< Alps::LayerTensors< T, D > >& Prev_image_tensors,
-										  std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
+  WeightsTransposedConvolution< T, K, Alps::Arch::CPU, A, S, D >::weighted_error( LayerTensorsVec& Prev_image_tensors,
+										  LayerTensorsVec& Image_tensors )
   {
     //
     // We use the non-transposed weights
@@ -403,11 +403,11 @@ namespace Alps
     for (int k = 0 ; k < matrix_weights.outerSize() ; ++k )
       for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix_weights, k); it; ++it )
 	we[k] += weight_val[ static_cast< int >(it.value()) ]
-	  * Image_tensors[feature_][TensorOrder1::ERROR][it.index()];
+	  * (Image_tensors[feature_].get())[TensorOrder1::ERROR][it.index()];
     // Replicate to all the previouse connected features' layers
     for ( int f = 0 ; f < prev_features_number ; ++f )
       for (int k = 0 ; k < size_in ; ++k )
-	Prev_image_tensors[f][TensorOrder1::WERROR][k] += we[k];
+	(Prev_image_tensors[f].get())[TensorOrder1::WERROR][k] += we[k];
   };
   //
   //
@@ -444,7 +444,7 @@ namespace Alps
   {
     //
     // Aliases
-    using LayerTensorsVec = std::vector< Alps::LayerTensors< Type1, Dim > >;
+    using LayerTensorsVec = std::vector< std::reference_wrapper< Alps::LayerTensors< Type1, Dim > > >;
     using ActivationVec   = std::array < std::vector< Type1 >, 2 >;
 
 

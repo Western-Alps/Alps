@@ -18,6 +18,9 @@ void LoadDataSetTest::TearDown() {};
 
 TEST_F(LoadDataSetTest, ByDefaultGetLoadITKIsTrue) {
   Alps::LoadDataSet::instance("data_set_GP.json");
+
+  //
+  //
   EXPECT_EQ(Alps::LoadDataSet::instance()->Load_ITK_images(), true);
 }
 

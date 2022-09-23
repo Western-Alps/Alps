@@ -87,7 +87,7 @@ namespace Alps
     // Return the size of the layers
     std::vector<std::size_t>                          get_layer_size( const std::string );
     // Get layer modality z
-    std::vector< Alps::LayerTensors< double, Dim > >& get_layer( const std::string );
+    std::vector< std::reference_wrapper< Alps::LayerTensors< double, Dim > > >& get_layer( const std::string );
     // set images energy
     void                                              set_energy( const double E ) 
     { energy_.push_back(E);};
@@ -133,6 +133,9 @@ namespace Alps
     // Vector of modalities 
     std::map< std::string,
 	      std::vector< Alps::LayerTensors< double, Dim > > > layer_modalities_;
+    // Vector of modalities 
+    std::map< std::string,
+	      std::vector< std::reference_wrapper< Alps::LayerTensors< double, Dim > > > > layer_modalities_ref_;
     // Vector of modalities 
     Alps::Image< double, Dim >                                   target_;
     //
@@ -226,7 +229,7 @@ namespace Alps
   //
   //
   //
-  template< int D > std::vector< Alps::LayerTensors< double, D > >&
+  template< int D > std::vector< std::reference_wrapper< Alps::LayerTensors< double, D > > >&
   Alps::Subject< D >::get_layer( const std::string Layer_name ) 
   {
     //
@@ -262,9 +265,35 @@ namespace Alps
       {
 	std::cerr << err << std::endl;
       }
+
+    //
+    // If the map of vector references is empty,
+    // we are going through the map to create reference vectors
+    if ( layer_modalities_ref_.empty() )
+      {
+	//
+	auto iter = layer_modalities_.begin();
+	//
+	while ( iter != layer_modalities_.end() )
+	  {
+	    layer_modalities_ref_[ iter->first ] =
+	      std::vector< std::reference_wrapper< Alps::LayerTensors< double, D > > > ( iter->second.begin(),
+											 iter->second.end() );
+	    ++iter;
+	  }
+      }
+    // Check if it should have the key
+    if ( layer_modalities_.find( Layer_name ) != layer_modalities_.end() &&
+	 layer_modalities_ref_.find( Layer_name ) == layer_modalities_ref_.end() )
+      {
+	layer_modalities_ref_[ Layer_name ] =
+	      std::vector< std::reference_wrapper< Alps::LayerTensors< double, D > > > ( layer_modalities_[ Layer_name ].begin(),
+											 layer_modalities_[ Layer_name ].end() );
+      }
+    
     //
     //
-    return layer_modalities_[Layer_name];
+    return layer_modalities_ref_[Layer_name];
   }
   //
   //

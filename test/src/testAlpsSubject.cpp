@@ -32,14 +32,14 @@ TEST_F(SubjectTest, ByDefaultSubjectAddModalitiesTrue) {
   // Constructor of a subject
   Alps::Subject< 2 > Subj = Alps::Subject< 2 >( 0, 2 );
   // load modalities
-  Subj.add_modalities("../images/MNITS/000000-num5.png");
-  Subj.add_modalities("../images/MNITS/000000-num5.png");
+  Subj.add_modalities("../test/images/MNITS/000000-num5.png");
+  Subj.add_modalities("../test/images/MNITS/000000-num5.png");
 
   //
   //
   std::cout << "Size: " << Subj.get_layer_size( "__input_layer__" )[0] << std::endl;
-  std::cout << "position 547: " << Subj.get_layer( "__input_layer__" )[0][Alps::TensorOrder1::ACTIVATION][547] << std::endl;
-  std::cout << "position 784+547: " << Subj.get_layer( "__input_layer__" )[0][Alps::TensorOrder1::ACTIVATION][784+547] << std::endl;
+  std::cout << "position 547: " << (Subj.get_layer( "__input_layer__" )[0].get())[Alps::TensorOrder1::ACTIVATION][547] << std::endl;
+  std::cout << "position 784+547: " << (Subj.get_layer( "__input_layer__" )[0].get())[Alps::TensorOrder1::ACTIVATION][784+547] << std::endl;
   //
   //  std::size_t size = Subj.get_layer_size( "__input_layer__" )[0];
   //  for (std::size_t i = 0 ; i < size ; i++ )
@@ -48,14 +48,14 @@ TEST_F(SubjectTest, ByDefaultSubjectAddModalitiesTrue) {
   
   //
   //
-  EXPECT_EQ( Subj.get_layer( "__input_layer__" )[0][Alps::TensorOrder1::ACTIVATION][547], 253 );
+  EXPECT_EQ( (Subj.get_layer( "__input_layer__" )[0].get())[Alps::TensorOrder1::ACTIVATION][547], 253 );
 }
 // Add modalities
 TEST_F(SubjectTest, ByDefaultSubjectAddTarget) {
   // Constructor of a subject
   Alps::Subject< 2 > Subj = Alps::Subject< 2 >( 0, 1);
   // load modalities
-  Subj.add_modalities("../images/MNITS/000000-num5.png");
+  Subj.add_modalities("../test/images/MNITS/000000-num5.png");
   // Add targetted value
   Subj.add_target( 5., 10.);
   //

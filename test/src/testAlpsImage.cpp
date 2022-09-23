@@ -27,9 +27,9 @@ void ImageTest::TearDown() {};
 TEST_F(ImageTest, ByDefaultImageZero) {
   //
   // use an image
-  auto image_ptr = itk::ImageIOFactory::CreateImageIO( "../images/MNITS/000000-num5.png",
+  auto image_ptr = itk::ImageIOFactory::CreateImageIO( "../test/images/MNITS/000000-num5.png",
 						       itk::CommonEnums::IOFileMode::ReadMode );
-  image_ptr->SetFileName( "../images/MNITS/000000-num5.png" );
+  image_ptr->SetFileName( "../test/images/MNITS/000000-num5.png" );
   image_ptr->ReadImageInformation();
   //
   // Read the ITK image
@@ -47,9 +47,9 @@ TEST_F(ImageTest, ByDefaultImageZero) {
 TEST_F(ImageTest, ByDefaultImageGetZ) {
   //
   // use an image
-  auto image_ptr = itk::ImageIOFactory::CreateImageIO( "../images/MNITS/000000-num5.png",
+  auto image_ptr = itk::ImageIOFactory::CreateImageIO( "../test/images/MNITS/000000-num5.png",
 						       itk::CommonEnums::IOFileMode::ReadMode );
-  image_ptr->SetFileName( "../images/MNITS/000000-num5.png" );
+  image_ptr->SetFileName( "../test/images/MNITS/000000-num5.png" );
   image_ptr->ReadImageInformation();
   //
   // Read the ITK image

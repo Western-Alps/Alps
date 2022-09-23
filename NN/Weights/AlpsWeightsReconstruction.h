@@ -46,7 +46,7 @@ namespace Alps
   {
     //
     // Aliases
-    using LayerTensorsVec = std::vector< Alps::LayerTensors< Tensor1_Type, Dim > >;
+    using LayerTensorsVec = std::vector< std::reference_wrapper< Alps::LayerTensors< Tensor1_Type, Dim > > >;
     using ActivationVec   = std::array < std::vector< Tensor1_Type >, 2 >;
 
     
@@ -123,7 +123,7 @@ namespace Alps
   {
     //
     // Aliases
-    using LayerTensorsVec = std::vector< Alps::LayerTensors< Type, Dim > >;
+    using LayerTensorsVec = std::vector< std::reference_wrapper< Alps::LayerTensors< Type, Dim > > >;
     using ActivationVec   = std::array < std::vector< Type >, 2 >;
 
     
@@ -248,17 +248,17 @@ namespace Alps
   //
   //
   template< typename T, typename A, typename S, int D > void
-  WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::set_activations( std::vector< Alps::LayerTensors< T, D > >& Image_tensors,
-									 std::vector< Alps::LayerTensors< T, D > >& Prev_image_tensors )
+  WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::set_activations( LayerTensorsVec& Image_tensors,
+									 LayerTensorsVec& Prev_image_tensors )
   {
     //
     //
-    std::size_t layer_size = Image_tensors[0].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
+    std::size_t layer_size = (Image_tensors[0].get()).get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
     double de = 0.;
     //
     // ToDo: What are we doing here??!?!?
     for ( int d = 0 ; d < layer_size ; d++ )
-      de += Image_tensors[0].get_image(TensorOrder1::ERROR).get_tensor_size()[0];
+      de += (Image_tensors[0].get()).get_image(TensorOrder1::ERROR).get_tensor_size()[0];
     //
     std::vector< T > dE(1, de);
     //
@@ -270,13 +270,13 @@ namespace Alps
   //
   //
   template< typename T, typename A, typename S, int D > std::array< std::vector< T >, 2 >
-  WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::activate( std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
+  WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::activate( LayerTensorsVec& Image_tensors )
   {
     //
     //
     int
       features_number = Image_tensors.size(),
-      size_in         = Image_tensors[0].get_tensor_size()[0];
+      size_in         = (Image_tensors[0].get()).get_tensor_size()[0];
     //
     std::vector< T > a_out(  size_in, 0. );
     std::vector< T > z_out(  size_in, 0. );
@@ -291,7 +291,7 @@ namespace Alps
 	  {
 	    //
 	    // Check the size between the getting in layer and the number of colums are the same
-	    std::size_t layer_size = Image_tensors[f].get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
+	    std::size_t layer_size = (Image_tensors[f].get()).get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
 	    if ( layer_size != static_cast< std::size_t >(size_in) )
 	      throw MAC::MACException( __FILE__, __LINE__,
 				       "Error in the construction of the weight mastrix's dimensions.",
@@ -299,7 +299,7 @@ namespace Alps
 	    //
 	    //
 	    for ( int s = 0 ; s < size_in ; s++ )
-	      a_out[s] += Image_tensors[f][Alps::TensorOrder1::ACTIVATION][s];
+	      a_out[s] += (Image_tensors[f].get())[Alps::TensorOrder1::ACTIVATION][s];
 	  }
       }
     catch( itk::ExceptionObject & err )
@@ -323,15 +323,15 @@ namespace Alps
   // The tensors size is the size of the weighted error tensor from the previous layer
   // The second input is the error tensor calculated at the present layer.
   template< typename T, typename A, typename S, int D > void
-  WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::weighted_error( std::vector< Alps::LayerTensors< T, D > >& Prev_image_tensors,
-									std::vector< Alps::LayerTensors< T, D > >& Image_tensors )
+  WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::weighted_error( LayerTensorsVec& Prev_image_tensors,
+									LayerTensorsVec& Image_tensors )
   {
     try
       {
 	int
 	  prev_features_number = Prev_image_tensors.size(),
-	  size_in              = Prev_image_tensors[0].get_tensor_size()[0],
-	  size_out             = Image_tensors[0].get_tensor_size()[0];
+	  size_in              = (Prev_image_tensors[0].get()).get_tensor_size()[0],
+	  size_out             = (Image_tensors[0].get()).get_tensor_size()[0];
 	//
 	if ( size_in != size_out )
 	  throw MAC::MACException( __FILE__, __LINE__,
@@ -340,7 +340,7 @@ namespace Alps
 	//
 	for ( int k = 0 ; k < prev_features_number ; k++ )
 	  for ( long int s = 0 ; s < size_in ; s++ )
-	    Prev_image_tensors[k][TensorOrder1::WERROR][s] = Image_tensors[0][TensorOrder1::ERROR][s];
+	    (Prev_image_tensors[k].get())[TensorOrder1::WERROR][s] = (Image_tensors[0].get())[TensorOrder1::ERROR][s];
       }
     catch( itk::ExceptionObject & err )
       {
@@ -380,7 +380,7 @@ namespace Alps
   {
     //
     // Aliases
-    using LayerTensorsVec = std::vector< Alps::LayerTensors< Type1, Dim > >;
+    using LayerTensorsVec = std::vector< std::reference_wrapper< Alps::LayerTensors< Type1, Dim > > >;
     using ActivationVec   = std::array < std::vector< Type1 >, 2 >;
 
 

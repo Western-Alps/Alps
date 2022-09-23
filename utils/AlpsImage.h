@@ -42,7 +42,7 @@ namespace Alps
    *
    * \brief class Image record the information of the image through the processing. 
    * 
-   * Images are flatten into a 1D tensor. Any dimension of image are going to 
+   * Images are flattened into a 1D tensor. Any dimension of image are going to 
    * be vectorized in an array of 1D.
    *
    */

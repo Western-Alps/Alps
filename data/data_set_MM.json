@@ -23,7 +23,8 @@
 	},
 	"strategy":{
 	    "status":"train",
-	    "learning_rate":0.01,
+	    "learning_rate":0.1,
+	    "mini_batch":0,
 	    "weights":"weights_Mont_Maudit.nii.gz"
 	}
     },
