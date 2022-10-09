@@ -175,8 +175,11 @@ namespace Alps
   template< /*class F,*/ int D > Alps::Subjects< D >&
   Alps::Subjects< D >::operator++()
   {
+    //
+    // increment the epoque, then update
     epoque_++;
     update();
+
     //
     //
     return *this; 

@@ -194,7 +194,6 @@ namespace Alps
 	//
 	// We get features or inputs from previous layers attached to this layer. 
 	// if the prev layer is nullptr, it represents the input data.
-	// ToDo: check if we can do an alias instead of copying the LayerTensors
 	std::cout << "Layer: " << layer_name_ << std::endl;
 	std::vector< std::reference_wrapper< Alps::LayerTensors< double, D > > > attached_layers;
 	for ( auto layer : prev_layer_ )
@@ -300,7 +299,7 @@ namespace Alps
 	      std::string name = layer_weights.first;
 	      std::cout << "weights of layer: " << name << std::endl;
 	      weights_[k].weighted_error( subject->get_layer( name ),
-					   image_tensors );
+					  image_tensors );
 	    }
 
 

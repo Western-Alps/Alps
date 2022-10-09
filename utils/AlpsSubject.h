@@ -88,7 +88,7 @@ namespace Alps
     std::vector<std::size_t>                          get_layer_size( const std::string );
     // Get layer modality z
     std::vector< std::reference_wrapper< Alps::LayerTensors< double, Dim > > >& get_layer( const std::string );
-    // set images energy
+    // set images energy for the epoque
     void                                              set_energy( const double E ) 
     { energy_.push_back(E);};
 

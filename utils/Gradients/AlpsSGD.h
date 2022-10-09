@@ -42,7 +42,7 @@ namespace Alps
     // Accessors
     //
     // Set the layer sizes
-    virtual void            set_parameters( const std::size_t, const std::size_t )      override{};
+    virtual void            set_parameters( const std::size_t, const std::size_t )    override{};
     
     
     //
@@ -52,9 +52,9 @@ namespace Alps
     virtual const Alps::Grad get_optimizer() const
     { return Alps::Grad::SGD;};
     // Add tensor elements
-    virtual void         add_tensors( const Tensor1_Type&, const Tensor1_Type& ) override {};
+    virtual void             add_tensors( const Tensor1_Type&, const Tensor1_Type& ) override {};
     // Backward propagation
-    virtual Tensor2_Type solve( const bool = false )                           override
+    virtual Tensor2_Type     solve( const bool = false )                             override
     { return Tensor2_Type();};
   };
   /** \class StochasticGradientDescent
@@ -166,7 +166,7 @@ namespace Alps
   template< typename Type > std::vector< Type >
   Alps::StochasticGradientDescent< Type, std::vector< Type >, std::vector< Type >, Alps::Arch::CPU >::solve( const bool Forced )
   {
-    if ( batch_ > mini_batch_ - 1 || Forced )
+    if ( static_cast<int>(batch_) > static_cast<int>(mini_batch_) - 1 || Forced )
       {
 	batch_ = 1;
 	return delta_;

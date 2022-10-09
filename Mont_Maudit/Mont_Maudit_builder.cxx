@@ -14,6 +14,8 @@
 #include "AlpsConvolutionLayer.h"
 #include "AlpsReconstructionLayer.h"
 //
+const int Dim = 2;
+//
 //
 //
 Alps::Mont_Maudit_builder::Mont_Maudit_builder()
@@ -34,7 +36,7 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   ////////////////////////////
   // Neural network anatomy //
   ////////////////////////////
-  const int Dim          = 2;
+  //const int Dim          = 2;
   using Sigmoid          = Alps::Activation_sigmoid< double >;
   using Tanh             = Alps::Activation_tanh< double >;
   using Kernel           = Alps::Window< double, Dim >;
@@ -53,7 +55,7 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   // layer 1
   // Window definition for the kernels
   std::vector< long int > h_window_1 = {2,2}; // size of the 1/2 window
-  std::vector< long int > padding_1  = {0,0}; // padding
+  std::vector< long int > padding_1  = {2,2}; // padding
   std::vector< long int > striding_1 = {1,1}; // striding
   //
   std::shared_ptr< Kernel > window_1 = std::make_shared< Kernel >( 1, // number of kernels
@@ -68,7 +70,7 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   // Window definition for the kernels. This window is centered on one voxel.
   // If the padding and stridding is the same as the window 1, the output image
   // will have exactly the same dimension.
-  std::vector< long int > h_window_2 = {2,2}; // size of the 1/2 window, when the value is 0, the kernel is the size of a pixel
+  std::vector< long int > h_window_2 = {0,0}; // size of the 1/2 window, when the value is 0, the kernel is the size of a pixel
   std::vector< long int > padding_2  = {0,0}; // padding
   std::vector< long int > striding_2 = {1,1}; // striding
   //
@@ -180,6 +182,9 @@ void
 Alps::Mont_Maudit_builder::forward( std::shared_ptr< Alps::Climber > Sub )
 {
   mr_nn_.forward( Sub );
+  // Down to subject
+  std::shared_ptr< Alps::Subject< Dim > > subject = std::dynamic_pointer_cast< Alps::Subject< Dim > >(Sub);
+  energy_subject_.push_back( subject->get_energy() );
 };
 //
 //

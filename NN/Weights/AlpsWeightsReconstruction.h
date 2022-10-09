@@ -65,7 +65,7 @@ namespace Alps
     //
     //! Activation tensor from the previous layer
     virtual void                                  set_activations( LayerTensorsVec&,
-								LayerTensorsVec& )            override;
+								   LayerTensorsVec& )         override;
     //! Get size of the tensor
     virtual const std::vector< std::size_t >      get_tensor_size() const noexcept            override
     { return std::vector< std::size_t >(); };						      
@@ -256,15 +256,16 @@ namespace Alps
     std::size_t layer_size = (Image_tensors[0].get()).get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
     double de = 0.;
     //
-    // ToDo: What are we doing here??!?!?
-    for ( int d = 0 ; d < layer_size ; d++ )
-      de += (Image_tensors[0].get()).get_image(TensorOrder1::ERROR).get_tensor_size()[0];
+    //
+    for ( std::size_t d = 0 ; d < layer_size ; d++ )
+      de += (Image_tensors[0].get())[TensorOrder1::ERROR][d];
     //
     std::vector< T > dE(1, de);
     //
     //process
     std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
-					       std::vector< T > > >(gradient_)->add_tensors( dE, std::vector<T>() );
+					       std::vector< T > > >(gradient_)->add_tensors( dE,
+											     std::vector<T>() );
   };
   //
   //

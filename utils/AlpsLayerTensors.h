@@ -349,7 +349,7 @@ namespace Alps
 	//
 	// Save the previous set of neurons
 	// ToDo: implement de move sementic in AlpsImage
-	previous_epoque_tensors_.push_back( /*std::move(*/tensors_/*)*/ );
+	// ToDo: it cost a lot of memory: previous_epoque_tensors_.push_back( /*std::move(*/tensors_/*)*/ );
 	// Load new tensors
 	tensors_[0] = Alps::Image< T, D >( Tensor_size, Tensors[0] );
 	tensors_[1] = Alps::Image< T, D >( Tensor_size, Tensors[1] );
@@ -373,7 +373,7 @@ namespace Alps
 	//
 	// Save the previous set of neurons
 	// ToDo: implement de move sementic in AlpsImage
-	previous_epoque_tensors_.push_back( /*std::move(*/tensors_/*)*/ );
+	// ToDo: it cost a lot of memory previous_epoque_tensors_.push_back( /*std::move(*/tensors_/*)*/ );
 	// Load new tensors
 	tensors_[0] = Alps::Image< double, D >( Tensor_size, Tensors[0] );
 	tensors_[1] = Alps::Image< double, D >( Tensor_size, Tensors[1] );

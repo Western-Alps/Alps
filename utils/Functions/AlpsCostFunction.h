@@ -94,6 +94,12 @@ namespace Alps
 				const std::vector< T >& Target,
 				const std::size_t       N )
   {
+    //
+    // In this function the cost is calculated at the level of the image
+    // I number of images 
+    // E = (1/2I) Sum_{i} || z - t ||^{2} = (1/2I) Sum_{i} E_{i}
+    // cost = E_{i}
+    //
     T cost = 0;
     for ( std::size_t i = 0 ; i < N ; i++ )
       cost += (Optimum[i] - Target[i]) * (Optimum[i] - Target[i]);

@@ -110,7 +110,7 @@ namespace Alps
       std::vector< double >                energy_;
       //
       //
-      NeuralNetworkComposite mr_nn_;
+      NeuralNetworkComposite               mr_nn_;
     };
 }
 #endif

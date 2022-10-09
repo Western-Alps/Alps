@@ -70,9 +70,6 @@ namespace Alps
     //! Activation tensor from the previous layer
     virtual void                               set_activations( LayerTensorsVec&,
 								LayerTensorsVec& )            override{};
-    //
-    // From Alps::Tensor< T, 2 >
-    // 
     //! Get size of the tensor
     virtual const std::vector< std::size_t >   get_tensor_size() const noexcept               override
     { return std::vector< std::size_t >(); };						      
@@ -114,7 +111,7 @@ namespace Alps
     //! Weights activation.
     Activation                      activation_;
     //! The mountain observed: fully connected layer.
-    const Alps::Layer&  layer_;
+    const Alps::Layer&              layer_;
   };
   /** \class WeightsConvolution
    *
@@ -137,6 +134,7 @@ namespace Alps
     
 
 
+
   public:
     /** Constructor. */
     explicit WeightsConvolution( const Alps::Layer&,
@@ -152,10 +150,7 @@ namespace Alps
     //! Activation tensor from the previous layer
     virtual void                                   set_activations( LayerTensorsVec&,
 								    LayerTensorsVec& )        override;
-    //
-    // From Alps::Tensor< T, 2 >
-    // 
-    //! Get size of the tensor
+    // Get size of the tensor
     virtual const std::vector< std::size_t >       get_tensor_size() const noexcept           override
     { return std::vector< std::size_t >(); };							      
     //! Get the tensor										      
@@ -165,7 +160,7 @@ namespace Alps
     virtual std::vector< Kernel >&                 update_tensor()                            override 
     { return weights_;};
 
-    
+
     
     //												      
     // Functions										      
@@ -268,21 +263,18 @@ namespace Alps
     //
     // retrieve the weight matrix
     const Eigen::SparseMatrix< int, Eigen::RowMajor >& matrix_weights   = window_->get_weights_matrix();
-    //const std::vector< double >&                       weight_val       = window_->get_convolution_weight_values( feature_ );
     const std::vector< std::vector< double > >&        deriv_weight_val = window_->get_derivated_weight_values();
     //
     int
       prev_features_number = Prev_image_tensors.size(),
       weight_number        = deriv_weight_val.size(),
-      //size_in              = matrix_weights.cols(),
       size_out             = matrix_weights.rows();
 
     //
     // Hadamard production between the weighted error and the
     // derivative of the activation
-    std::vector< T > hadamard = std::move( (Image_tensors[feature_].get())(TensorOrder1::WERROR, TensorOrder1::DERIVATIVE) );
-
-    
+    std::vector< T > hadamard = std::move( (Image_tensors[feature_].get())( TensorOrder1::WERROR,
+									    TensorOrder1::DERIVATIVE) );
     //
     // Replicate to all the previouse connected features' layers
     std::vector< T > dE( weight_number, 0. );
@@ -298,17 +290,20 @@ namespace Alps
 	    std::vector< T > wz( size_out, 0. );
 	    for ( int f = 0 ; f < prev_features_number ; f++ )
 	      for (int k = 0 ; k < matrix_weights.outerSize() ; ++k )
-		for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix_weights, k); it; ++it )
+		for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix_weights, k);
+		      it; ++it )
 		  wz[k] += deriv_weight_val[w][ static_cast< int >(it.value()) ]
 		    * (Prev_image_tensors[f].get())[Alps::TensorOrder1::ACTIVATION][it.index()];
 	    //
 	    for ( int o = 0 ; o < size_out ; o++)
-	      de += hadamard[o] * wz[o];
+	      //de += hadamard[o] * wz[o];
+	      de += (Image_tensors[feature_].get())[TensorOrder1::ERROR][o] * wz[o];
 	  }
 	else
 	  // Case for the bias
 	  for ( int o = 0 ; o < size_out ; o++)
-	    de += hadamard[o];
+	    //de += hadamard[o];
+	    de += (Image_tensors[feature_].get())[TensorOrder1::ERROR][o];
 	//
 	//
 	dE[w] = de; 
@@ -317,7 +312,8 @@ namespace Alps
     //
     // process
     std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
-					       std::vector< T > > >(gradient_)->add_tensors( dE, std::vector<T>() );
+					       std::vector< T > > >(gradient_)->add_tensors( dE,
+											     std::vector<T>() );
   };
   //
   //
@@ -361,7 +357,6 @@ namespace Alps
 		a_out[k] += weight_val[static_cast< int >(it.value())]
 		  * (Image_tensors[f].get())[Alps::TensorOrder1::ACTIVATION][it.index()];
 	  }
-
       }
     catch( itk::ExceptionObject & err )
       {
@@ -398,8 +393,15 @@ namespace Alps
     //
     int
       prev_features_number = Prev_image_tensors.size(),
-      //size_out             = matrix_weights.cols(),
-      size_in              = matrix_weights.rows();
+      size_in              = matrix_weights.rows(),
+      size_out             = matrix_weights.cols();
+    // ToDo TEMPO: hadamard -> ERROR ...
+    for ( int o = 0 ; o < size_out ; o++ )
+      { 
+	(Image_tensors[feature_].get())[TensorOrder1::ERROR][o] = (Image_tensors[feature_].get())[TensorOrder1::WERROR][o] * (Image_tensors[feature_].get())[TensorOrder1::DERIVATIVE][o];
+	std::cout << " (Image_tensors["<<feature_<<"].get())[TensorOrder1::ERROR!!]["<<o<<"] = " << (Image_tensors[feature_].get())[TensorOrder1::ERROR][o]
+		  << std::endl;
+      }
     //
     std::vector< T > we( size_in, 0. );
     //
@@ -518,7 +520,7 @@ namespace Alps
     Activation                      activation_;
     //
     //! The mountain observed: fully connected layer
-    const Alps::Layer&  layer_;
+    const Alps::Layer&              layer_;
   };
 }
 #endif

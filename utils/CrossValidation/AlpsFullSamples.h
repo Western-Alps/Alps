@@ -141,30 +141,30 @@ namespace Alps
 	      // Backward process //
 	      //////////////////////
 	      //
-	      for ( int sub : fold_subjects )
-		{
+//	      for ( int sub : fold_subjects )
+//		{
 		  std::cout
-		    << " Subject " << sub
-		    << " -- bwd: In subject " << ( subjects_[0].get_subjects() )[ sub ]->get_subject_number()
+		    << " Subject " << 0
+		    << " -- bwd: In subject " << ( subjects_[0].get_subjects() )[ 0 ]->get_subject_number()
 		    << std::endl;
 		  // Get the observed Mountain from subjects
 		  // Backward process
-		  std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->backward( (subjects_[0].get_subjects())[sub] );
-		}
-
-	      //
-	      // The updates of the weights can be done at the end of a batch of images.
-	      // In case the size of the batch and the epoque does not coincide, we force the update.
-	      for ( int sub : fold_subjects )
-		{
-		  std::cout
-		    << " Subject " << sub
-		    << " -- Weight update In subject " << ( subjects_[0].get_subjects() )[ sub ]->get_subject_number()
-		    << std::endl;
-		  // Get the observed Mountain from subjects
-		  // Update the weights
-		  std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->weight_update( (subjects_[0].get_subjects())[sub] );
-		}
+		  std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->backward( (subjects_[0].get_subjects())[0] );
+//		}
+//
+//	      //
+//	      // The updates of the weights can be done at the end of a batch of images.
+//	      // In case the size of the batch and the epoque does not coincide, we force the update.
+//	      for ( int sub : fold_subjects )
+//		{
+//		  std::cout
+//		    << " Subject " << sub
+//		    << " -- Weight update In subject " << ( subjects_[0].get_subjects() )[ sub ]->get_subject_number()
+//		    << std::endl;
+//		  // Get the observed Mountain from subjects
+//		  // Update the weights
+//		  std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->weight_update( (subjects_[0].get_subjects())[sub] );
+//		}
 
 
 	      //
