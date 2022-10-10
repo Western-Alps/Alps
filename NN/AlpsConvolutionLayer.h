@@ -212,11 +212,8 @@ namespace Alps
 	  }
 	//
 	// Initialize the weights matrix if not yet done
-	//if ( convolution_window_->get_weights_matrix().nonZeros() == 0 )
 	if ( !convolution_window_->initialized() )
-	  // If the weights were not initialized yet
 	  convolution_window_->get_image_information( attached_layers[0].get().get_image(TensorOrder1::ACTIVATION).get_image_region() );
-	//
 	// Every layer attached to this layer should have exactly the same dimensions
 	std::size_t tot_features    = attached_layers.size();
 	std::size_t prev_layer_size = attached_layers[0].get().get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
@@ -242,7 +239,11 @@ namespace Alps
 	    // Check the weights were created for the feature k
 	    if ( weights_.size() < static_cast< std::size_t >(kernels) )
 	      weights_.push_back( W(*this, convolution_window_, k) );
-	    // Get the activation tuple (<0> - activation; <1> - derivative; <2> - error; <3> - weighted error)
+	    // Get the activation tuple:
+	    // <0> - activation;
+	    // <1> - derivative;
+	    // <2> - error;
+	    // <3> - weighted error
 	    auto tuple   = weights_[k].activate( attached_layers );
 	    // get the layer size to initialize the other tensors
 	    std::size_t layer_size = tuple[ Act::ACTIVATION ].size();

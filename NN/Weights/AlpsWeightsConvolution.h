@@ -171,9 +171,33 @@ namespace Alps
     virtual void                                   load_tensor( const std::string )           override{};
     //
     //
-    //! Activate
+    /** @brief Activation calculation from the previous layers' attached to the current layer.
+     *
+     * The forward propagation is a matrix multiplication process of the weight tensor 
+     * $W_{\nu n}^{\mu m}$ of the layer $\mu$, associated with the kernel $m$, with the flatten 
+     * activation vector $z^{\nu n}$ of a connected layers $\nu$ to the layer $\mu$. 
+     *
+     * $$
+     * a_{i}^{\mu m} = W_{\nu n}^{\mu m} z_{i}^{\nu n} + b^{\mu m}
+     * $$
+     *
+     *  @param attached_layers: LayerTensorsVec& The reference to the previous layers
+     *  @return ActivationVec. The two first elements: function activation <0> and 
+     *                         derivative <1> are processed.
+     */
     virtual ActivationVec                          activate( LayerTensorsVec& )               override;
-    //! Weighted error
+    
+    /** @brief Calculate the weight error.
+     *
+     * The weighted error from the next layer back propagated, and $f'$ has a dimension 
+     * is the derivative of the activation function at the current layer:
+     *
+     * \varepsilon_{\mu m}^{(i)} = \left[ \varepsilon_{\delta d}^{(i)} W_{\mu m}^{\delta d} \right] \odot f'^{\mu m}
+     *
+     *  @param attached_layers: LayerTensorsVec& The reference to the previous layers
+     *  @param attached_layers: LayerTensorsVec& The reference to the current layers
+     *  @return void.
+     */
     virtual void                                   weighted_error( LayerTensorsVec&,
 								   LayerTensorsVec& )         override;
     //! Update the weights
@@ -270,11 +294,11 @@ namespace Alps
       weight_number        = deriv_weight_val.size(),
       size_out             = matrix_weights.rows();
 
-    //
-    // Hadamard production between the weighted error and the
-    // derivative of the activation
-    std::vector< T > hadamard = std::move( (Image_tensors[feature_].get())( TensorOrder1::WERROR,
-									    TensorOrder1::DERIVATIVE) );
+//    //
+//    // Hadamard production between the weighted error and the
+//    // derivative of the activation
+//    std::vector< T > hadamard = std::move( (Image_tensors[feature_].get())( TensorOrder1::WERROR,
+//									    TensorOrder1::DERIVATIVE) );
     //
     // Replicate to all the previouse connected features' layers
     std::vector< T > dE( weight_number, 0. );
@@ -329,14 +353,16 @@ namespace Alps
     // retrieve the weight matrix
     const Eigen::SparseMatrix< int, Eigen::RowMajor >& matrix_weights = window_->get_weights_matrix();
     const std::vector< double >&                       weight_val     = window_->get_convolution_weight_values( feature_ );
+    
     //
+    // features_number represents the number of layers attached to the current layer
     int
       features_number = Image_tensors.size(),
       size_in         = matrix_weights.cols(),
       size_out        = matrix_weights.rows();
     //
-    std::vector< T > a_out( size_out, 0. );
-    std::vector< T > z_out( size_out, 0. );
+    std::vector< T > a_out(  size_out, 0. );
+    std::vector< T > z_out(  size_out, 0. );
     std::vector< T > dz_out( size_out, 0. );
     //
     // compute the activation
@@ -395,17 +421,16 @@ namespace Alps
       prev_features_number = Prev_image_tensors.size(),
       size_in              = matrix_weights.rows(),
       size_out             = matrix_weights.cols();
-    // ToDo TEMPO: hadamard -> ERROR ...
-    for ( int o = 0 ; o < size_out ; o++ )
-      { 
-	(Image_tensors[feature_].get())[TensorOrder1::ERROR][o] = (Image_tensors[feature_].get())[TensorOrder1::WERROR][o] * (Image_tensors[feature_].get())[TensorOrder1::DERIVATIVE][o];
-	std::cout << " (Image_tensors["<<feature_<<"].get())[TensorOrder1::ERROR!!]["<<o<<"] = " << (Image_tensors[feature_].get())[TensorOrder1::ERROR][o]
-		  << std::endl;
-      }
+
     //
+    // Compute the error at the current layer using the weighted error computed at the next layer
+    for ( int o = 0 ; o < size_out ; o++ )
+      (Image_tensors[feature_].get())[TensorOrder1::ERROR][o] = (Image_tensors[feature_].get())[TensorOrder1::WERROR][o] * (Image_tensors[feature_].get())[TensorOrder1::DERIVATIVE][o];
+
+    //
+    // Compute the weighted error that will be used in the previous layer
     std::vector< T > we( size_in, 0. );
     //
-    // compute the activation
     for (int k = 0 ; k < matrix_weights.outerSize() ; ++k )
       for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix_weights, k); it; ++it )
 	we[k] += weight_val[ static_cast< int >(it.value()) ]

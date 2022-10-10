@@ -329,7 +329,6 @@ namespace Alps
 	    std::cout << "weights of layer: " << name << std::endl;
 	    weights_->weighted_error( subject->get_layer( name ),
 				      image_tensors );
-
 	  }
 
 

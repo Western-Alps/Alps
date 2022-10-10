@@ -142,7 +142,15 @@ namespace Alps
     //
     // Accessors
     //
-    // Activation tensor from the previous layer
+    
+    /** @brief Set activation computes the gradient of the cost function.
+     *
+     * The gradient of the cost function is processed and will be used in the update of the weights.
+     * 
+     *  @param attached_layers: LayerTensorsVec& The reference to the current layer
+     *  @param attached_layers: LayerTensorsVec& The reference to the previous layers
+     *  @return void.
+     */
     virtual void                                  set_activations( LayerTensorsVec&,
 								   LayerTensorsVec& )         override;
     // Get size of the tensor
@@ -164,11 +172,32 @@ namespace Alps
     virtual void                                  save_tensor() const                         override{};
     // Load the weights										      
     virtual void                                  load_tensor( const std::string )            override{};
-    //
-    //
-    // Activate
+    
+     /** @brief Activation calculation from the previous layers' attached to the current layer at the last layer.
+     *
+     * The forward propagation is a matrix multiplication process of the weight tensor 
+     * $W_{\nu n}^{\mu m}$ of the layer $\mu$, associated with the kernel $m$, with the flatten 
+     * activation vector $z^{\nu n}$ of a connected layers $\nu$ to the layer $\mu$. 
+     *
+     * $$
+     * a_{i}^{\mu m} = W_{\nu n}^{\mu m} z_{i}^{\nu n} + b^{\mu m}
+     * $$
+     *
+     *  @param attached_layers: LayerTensorsVec& The reference to the previous layers
+     *  @return ActivationVec. The two first elements: function activation <0> and 
+     *                         derivative <1> are processed.
+     */
     virtual ActivationVec                         activate( LayerTensorsVec& )                override;
-    // Weighted error
+    
+    /** @brief Calculate the weight error.
+     *
+     * In the reconstruction layer, the weighted error is summarized by the error at the last layer 
+     * (the current layer).
+     *
+     *  @param attached_layers: LayerTensorsVec& The reference to the current layers
+     *  @param attached_layers: LayerTensorsVec& The reference to the previous layers
+     *  @return void.
+     */
     virtual void                                  weighted_error( LayerTensorsVec&,
 								  LayerTensorsVec& )          override;
     // Update the weights
@@ -262,10 +291,14 @@ namespace Alps
     //
     std::vector< T > dE(1, de);
     //
-    //process
+    // process the weights
+    // All the images from the batch (1 image, mini-batch or full batch) should have been processed
+    std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
+					       std::vector< T > > >(gradient_)->reset_parameters();
+    // We pass the gradient of the cost function
     std::dynamic_pointer_cast< Alps::Gradient< std::vector< T >,
 					       std::vector< T > > >(gradient_)->add_tensors( dE,
-											     std::vector<T>() );
+											     std::vector<T>(1,1) );
   };
   //
   //
@@ -274,7 +307,7 @@ namespace Alps
   WeightsReconstruction< T, Alps::Arch::CPU, A, S, D >::activate( LayerTensorsVec& Image_tensors )
   {
     //
-    //
+    // features_number represents the number of layers attached to the current layer
     int
       features_number = Image_tensors.size(),
       size_in         = (Image_tensors[0].get()).get_tensor_size()[0];

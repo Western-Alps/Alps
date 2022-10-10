@@ -160,6 +160,9 @@ namespace Alps
     //
     // Set the layer sizes
     virtual void            set_parameters( const std::size_t, const std::size_t )   = 0;
+    //
+    // Reset the layer sizes
+    virtual void            reset_parameters()                                       = 0;
       
  
     //

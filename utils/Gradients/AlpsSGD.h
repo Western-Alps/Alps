@@ -43,6 +43,8 @@ namespace Alps
     //
     // Set the layer sizes
     virtual void            set_parameters( const std::size_t, const std::size_t )    override{};
+    // Set the layer sizes
+    virtual void            reset_parameters()                                        override{};
     
     
     //
@@ -86,6 +88,8 @@ namespace Alps
     // Set the layer sizes
     virtual void                set_parameters( const std::size_t,
 						const std::size_t )        override;
+    // Reset the layer sizes
+    virtual void                reset_parameters()                         override;
       
       
     //
@@ -113,6 +117,8 @@ namespace Alps
     // Update of the weights
     // number of weights
     std::size_t             delta_size_{0};
+    // number of previous weights
+    std::size_t             prev_size_{0};
     // delta_ = [W epsilon] * ...
     std::vector< Type >     delta_;
     // activation from the previous layer
@@ -131,19 +137,35 @@ namespace Alps
   //
   //
   template< typename Type > void
-  Alps::StochasticGradientDescent< Type, std::vector< Type >, std::vector< Type >, Alps::Arch::CPU >::set_parameters( const std::size_t Current_size,
-														      const std::size_t Prev_size )
+  Alps::StochasticGradientDescent< Type,
+				   std::vector< Type >,
+				   std::vector< Type >,
+				   Alps::Arch::CPU >::set_parameters( const std::size_t Current_size,
+								      const std::size_t Prev_size )
   {
     delta_size_          = Current_size;
+    prev_size_           = Prev_size;
     delta_               = std::vector< Type >( Current_size, 0. );
-    //previous_activation_ = nullptr;
+    previous_activation_ = std::vector< Type >( Prev_size, 0. );
   }
   //
   //
   //
   template< typename Type > void
-  Alps::StochasticGradientDescent< Type, std::vector< Type >, std::vector< Type >, Alps::Arch::CPU >::add_tensors( const std::vector< Type >& Delta,
-														   const std::vector< Type >& Z )
+  Alps::StochasticGradientDescent< Type, std::vector< Type >, std::vector< Type >, Alps::Arch::CPU >::reset_parameters()
+  {
+    delta_               = std::vector< Type >( delta_size_, 0. );
+    previous_activation_ = std::vector< Type >( prev_size_, 0. );
+  }
+  //
+  //
+  //
+  template< typename Type > void
+  Alps::StochasticGradientDescent< Type,
+				   std::vector< Type >,
+				   std::vector< Type >,
+				   Alps::Arch::CPU >::add_tensors( const std::vector< Type >& Delta,
+								   const std::vector< Type >& Z )
   {
     try
       {
@@ -164,15 +186,20 @@ namespace Alps
   //
   //
   template< typename Type > std::vector< Type >
-  Alps::StochasticGradientDescent< Type, std::vector< Type >, std::vector< Type >, Alps::Arch::CPU >::solve( const bool Forced )
+  Alps::StochasticGradientDescent< Type,
+				   std::vector< Type >,
+				   std::vector< Type >,
+				   Alps::Arch::CPU >::solve( const bool Forced )
   {
-    if ( static_cast<int>(batch_) > static_cast<int>(mini_batch_) - 1 || Forced )
-      {
-	batch_ = 1;
-	return delta_;
-      }
-    else
-      return std::vector< Type >( delta_size_, 0. );
+//    if ( static_cast<int>(batch_) > static_cast<int>(mini_batch_) - 1 || Forced )
+//      {
+//	batch_ = 1;
+    //
+    //
+    return  delta_;
+//      }
+//    else
+//      return std::vector< Type >( delta_size_, 0. );
   }
   /** \class StochasticGradientDescent
    *
@@ -187,7 +214,11 @@ namespace Alps
    * 
    */
   template< typename Type >
-  class StochasticGradientDescent< Type, Eigen::MatrixXd, Eigen::MatrixXd, Alps::Arch::CPU > : public Alps::Gradient< Eigen::MatrixXd, Eigen::MatrixXd >
+  class StochasticGradientDescent< Type,
+				   Eigen::MatrixXd,
+				   Eigen::MatrixXd,
+				   Alps::Arch::CPU > : public Alps::Gradient< Eigen::MatrixXd,
+									      Eigen::MatrixXd >
   {
   public:
     /** Costructor */
@@ -200,7 +231,9 @@ namespace Alps
     // Accessors
     //
     // Set the layer sizes
-    virtual void            set_parameters( const std::size_t, const std::size_t )      override;
+    virtual void            set_parameters( const std::size_t, const std::size_t )        override;
+    // Reset the layer sizes
+    virtual void            reset_parameters()                                            override;
       
       
     //
@@ -212,7 +245,7 @@ namespace Alps
     // Add tensor elements
     virtual void            add_tensors( const Eigen::MatrixXd&, const Eigen::MatrixXd& ) override;
     // Backward propagation
-    virtual Eigen::MatrixXd solve( const bool = false)                                  override;
+    virtual Eigen::MatrixXd solve( const bool = false)                                    override;
 
   private:
     //
@@ -225,6 +258,10 @@ namespace Alps
     double          learning_rate_{0.00001};
     //
     // Update of the weights
+    // number of weights
+    std::size_t     delta_size_{0};
+    // number of previous weights
+    std::size_t     prev_size_{0};
     // delta_ = [W epsilon] * ...
     Eigen::MatrixXd delta_;
     // activation from the previous layer
@@ -234,7 +271,10 @@ namespace Alps
   //
   //
   template< typename Type >
-  Alps::StochasticGradientDescent< Type, Eigen::MatrixXd, Eigen::MatrixXd, Alps::Arch::CPU >::StochasticGradientDescent()
+  Alps::StochasticGradientDescent< Type,
+				   Eigen::MatrixXd,
+				   Eigen::MatrixXd,
+				   Alps::Arch::CPU >::StochasticGradientDescent()
   {
     //mini_batch_    = static_cast< std::size_t >(Alps::LoadDataSet::instance()->get_data()["mountain"]["strategy"]["mini_batch"]);
     learning_rate_ = static_cast< double >(Alps::LoadDataSet::instance()->get_data()["mountain"]["strategy"]["learning_rate"]);
@@ -243,9 +283,14 @@ namespace Alps
   //
   //
   template< typename Type > void
-  Alps::StochasticGradientDescent< Type, Eigen::MatrixXd, Eigen::MatrixXd, Alps::Arch::CPU >::set_parameters( const std::size_t Current_size,
-													      const std::size_t Prev_size )
+  Alps::StochasticGradientDescent< Type,
+				   Eigen::MatrixXd,
+				   Eigen::MatrixXd,
+				   Alps::Arch::CPU >::set_parameters( const std::size_t Current_size,
+								      const std::size_t Prev_size )
   {
+    delta_size_          = Current_size;
+    prev_size_           = Prev_size;
     delta_               = Eigen::MatrixXd::Zero( Current_size, 1 );
     previous_activation_ = Eigen::MatrixXd::Zero( Prev_size, 1 );
   }
@@ -253,8 +298,22 @@ namespace Alps
   //
   //
   template< typename Type > void
-  Alps::StochasticGradientDescent< Type, Eigen::MatrixXd, Eigen::MatrixXd, Alps::Arch::CPU >::add_tensors( const Eigen::MatrixXd& Delta,
-													   const Eigen::MatrixXd& Z )
+  Alps::StochasticGradientDescent< Type,
+				   Eigen::MatrixXd,
+				   Eigen::MatrixXd,
+				   Alps::Arch::CPU >::reset_parameters()
+  {
+    delta_               = Eigen::MatrixXd::Zero( delta_size_, 1 );
+    previous_activation_ = Eigen::MatrixXd::Zero( prev_size_, 1 );
+  }
+  //
+  //
+  //
+  template< typename Type > void
+  Alps::StochasticGradientDescent< Type, Eigen::MatrixXd,
+				   Eigen::MatrixXd,
+				   Alps::Arch::CPU >::add_tensors( const Eigen::MatrixXd& Delta,
+								   const Eigen::MatrixXd& Z )
   {
     try
       {
@@ -286,15 +345,18 @@ namespace Alps
   //
   //
   template< typename Type > Eigen::MatrixXd
-  Alps::StochasticGradientDescent< Type, Eigen::MatrixXd, Eigen::MatrixXd, Alps::Arch::CPU >::solve( const bool Forced )
+  Alps::StochasticGradientDescent< Type,
+				   Eigen::MatrixXd,
+				   Eigen::MatrixXd,
+				   Alps::Arch::CPU >::solve( const bool Forced )
   {
-    if ( batch_ > mini_batch_  )
-      {
-	batch_ = 1;
+//    if ( batch_ > mini_batch_  )
+//      {
+//	batch_ = 1;
 	return - learning_rate_ * delta_ * previous_activation_.transpose();
-      }
-    else
-      return Eigen::MatrixXd::Zero( delta_.rows(), previous_activation_.rows() );
+//      }
+//    else
+//      return Eigen::MatrixXd::Zero( delta_.rows(), previous_activation_.rows() );
   }
   /** \class StochasticGradientDescent
    *
@@ -323,6 +385,8 @@ namespace Alps
     //
     // Set the layer sizes
     virtual void            set_parameters( const std::size_t, const std::size_t )      override{};
+    // Reset the layer sizes
+    virtual void            reset_parameters()                                          override{};
 
       
     //
