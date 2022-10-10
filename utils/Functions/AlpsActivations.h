@@ -120,5 +120,81 @@ namespace Alps
       //
       Func name_{Alps::Func::F_SIGMOID};
     };
+  /** \class Activation_ReLU
+   *
+   * \brief 
+   * This class is Rectified Linear Unit 
+   * f(x) = x if x > 0 otherwise 0
+   * 
+   */
+  template< typename Type >
+  class Activation_ReLU : public Alps::Function<Type>
+    {
+    public:
+      /** Constructor. */
+      explicit Activation_ReLU(){};
+      
+      /** Destructor */
+      virtual ~Activation_ReLU(){};
+
+
+      //
+      // Accessors
+      //
+      // get function name 
+      virtual Func get_function_name() const {return name_;};
+
+
+      //
+      // Functions
+      //
+      // activation function
+      virtual Type f( const Type X ){return ( X > 0 ? X : 0.);};
+      // activation function derivative
+      virtual Type df( const Type X ){return 1.;};
+
+      
+    private:
+      //
+      Func name_{Alps::Func::F_RELU};
+    };
+  /** \class Activation_linear
+   *
+   * \brief 
+   * This class is linear Unit 
+   * f(x) = x 
+   * 
+   */
+  template< typename Type >
+  class Activation_linear : public Alps::Function<Type>
+    {
+    public:
+      /** Constructor. */
+      explicit Activation_linear(){};
+      
+      /** Destructor */
+      virtual ~Activation_linear(){};
+
+
+      //
+      // Accessors
+      //
+      // get function name 
+      virtual Func get_function_name() const {return name_;};
+
+
+      //
+      // Functions
+      //
+      // activation function
+      virtual Type f( const Type X ){return X;};
+      // activation function derivative
+      virtual Type df( const Type X ){return 1.;};
+
+      
+    private:
+      //
+      Func name_{Alps::Func::F_LINEAR};
+    };
 }
 #endif
