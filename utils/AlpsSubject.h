@@ -70,6 +70,9 @@ namespace Alps
     // get images energy
     virtual const double                              get_energy() const                   override
     { return energy_.back();};
+    // Get epoque
+    virtual const std::size_t                         get_epoque() const                   override
+    { return epoque_;};
     //
     //
     // Subject information
@@ -97,7 +100,10 @@ namespace Alps
     // functions
     //
     // Update the subject information
-    virtual void                                      update()                             override{};
+    virtual void                                      update()                             override
+    {epoque_++;};
+    // Visualization of the processed image
+    virtual void                                      visualization() const                override;
     //
     //
     // Add a modality
@@ -126,6 +132,8 @@ namespace Alps
     
   private:
     //
+    // Number of epoques
+    std::size_t                                                  epoque_{0};
     // energy for the set of input images for each epoque
     std::vector< double >                                        energy_;
     // Vector of modalities 
@@ -153,6 +161,20 @@ namespace Alps
     subject_number_{SubNumber}, number_modalities_{NumModalities}
   {
     layer_modalities_["__input_layer__"] = std::vector< Alps::LayerTensors< double, D > >();
+  }
+  //
+  //
+  // 
+  template< int D > void
+  Alps::Subject< D >::visualization() const
+  {
+    try
+      {
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+      }
   }
   //
   //

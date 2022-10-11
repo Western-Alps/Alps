@@ -135,7 +135,9 @@ namespace Alps
       \param Index of the element 
       \return the iamge value
     */
-    Type         operator[]( const std::size_t Idx ); 
+    Type         operator[]( const std::size_t Idx );
+    // Visualization of the image
+    void         visualization( const std::string ) const;
 
 
 
@@ -253,6 +255,32 @@ namespace Alps
     //
     //
     return tensor_[Idx]; 
+  }
+  //
+  //
+  // 
+  template< typename T,int D > void
+  Alps::Image< T, D >::visualization( const std::string Name ) const
+  {
+    using ImageType = itk::Image< T, D >;
+    typename ImageType::Pointer image = ImageType::New();
+    //
+    image->SetRegions(region_);
+    image->Allocate();
+    //
+    using WriterType = itk::ImageFileWriter< ImageType >;
+    typename WriterType::Pointer writer = WriterType::New();
+    writer->SetFileName( Name );
+    writer->SetInput( image );
+    //
+    try
+      {
+	writer->update();
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+      }
   }
 }
 #endif

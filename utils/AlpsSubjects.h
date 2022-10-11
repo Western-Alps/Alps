@@ -69,6 +69,9 @@ namespace Alps
     // get images energy
     virtual const double                                           get_energy() const   override
     { return /*ToDo*/-1.;};
+    // Get epoque
+    virtual const std::size_t                                      get_epoque() const   override
+    { return epoque_;};
     //
     //
     const   std::vector< std::shared_ptr< Alps::Subject< Dim > > > get_subjects() const 
@@ -78,7 +81,9 @@ namespace Alps
     //
     // functions
     //
-    virtual void                                                   update()             override;
+    virtual void                                                   update()              override;
+    // Visualization of the processed image
+    virtual void                                                   visualization() const override;
     //
     //
     // prefix increment
@@ -167,7 +172,21 @@ namespace Alps
   template< /*class F,*/ int D > void
   Alps::Subjects< D >::update()
   {
+    //
+    //
+    for ( auto subject : subjects_ )
+      subject->update();
+    //
     mountain_observed_->notify();
+  }
+  //
+  //
+  // 
+  template< int D > void
+  Alps::Subjects< D >::visualization() const
+  {
+    for ( auto subject : subjects_ )
+      subject->visualization();
   }
   //
   //

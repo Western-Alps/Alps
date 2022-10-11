@@ -112,12 +112,24 @@ namespace Alps
 	  //
 	  //
 	  std::list< int > fold_subjects =  training_set_[0];
+	  double
+	    energy_previous_epoque = 1.e+06;
 	  while ( std::dynamic_pointer_cast<M>(subjects_[0].get_mountain())->get_energy() > 1.e-06 )
 	    {
+	      //
+	      //
 	      std::cout
 		<< "Epoque cost function: "
 		<< std::dynamic_pointer_cast<M>(subjects_[0].get_mountain())->get_energy()
 		<< std::endl;
+	      //
+	      double relat = 100. * std::fabs(energy_previous_epoque - std::dynamic_pointer_cast<M>(subjects_[0].get_mountain())->get_energy()) / energy_previous_epoque;
+	      std::cout
+		<< "Relative difference in cost function: "
+		<< relat
+		<< std::endl;
+	      // Reset the current epoque to the previous epoque
+	      energy_previous_epoque = std::dynamic_pointer_cast<M>(subjects_[0].get_mountain())->get_energy();
 		
 	      /////////////////////
 	      // Forward process //
@@ -171,6 +183,7 @@ namespace Alps
 	      // update the epoques
 	      // By updating the epoque the calculation of the cost function 
 	      ++subjects_[0];
+	      subjects_[0].visualization();
 	    }
 	}
       catch( itk::ExceptionObject & err )

@@ -46,13 +46,17 @@ namespace Alps
     virtual std::shared_ptr< Alps::Mountain > get_mountain()     = 0;
     // Get energy
     virtual const double                      get_energy() const = 0;
+    // Get epoque
+    virtual const std::size_t                 get_epoque() const = 0;
 
     
     //
     // functions
     //
     // Update the information
-    virtual void                              update()       = 0;
+    virtual void                              update()              = 0;
+    // Visualization of the processed image
+    virtual void                              visualization() const = 0;
   };
 }
 #endif

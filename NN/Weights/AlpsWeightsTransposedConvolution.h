@@ -294,11 +294,11 @@ namespace Alps
       weight_number        = deriv_weight_val.size(),
       size_out             = matrix_weights.rows();
 
-    //
-    // Hadamard production between the weighted error and the
-    // derivative of the activation
-    std::vector< T > hadamard = std::move( (Image_tensors[feature_].get())( TensorOrder1::WERROR,
-									    TensorOrder1::DERIVATIVE) );
+//    //
+//    // Hadamard production between the weighted error and the
+//    // derivative of the activation
+//    std::vector< T > hadamard = std::move( (Image_tensors[feature_].get())( TensorOrder1::WERROR,
+//									    TensorOrder1::DERIVATIVE) );
     //
     // Replicate to all the previouse connected features' layers
     std::vector< T > dE( weight_number, 0. );

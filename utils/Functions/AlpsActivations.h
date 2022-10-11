@@ -151,7 +151,7 @@ namespace Alps
       // activation function
       virtual Type f( const Type X ){return ( X > 0 ? X : 0.);};
       // activation function derivative
-      virtual Type df( const Type X ){return 1.;};
+      virtual Type df( const Type X ){return ( X > 0 ? 1. : 0.);};
 
       
     private:

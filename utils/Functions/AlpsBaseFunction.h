@@ -11,7 +11,9 @@ namespace Alps
      // Activation functions
      F_TANH    = 1,
      F_SIGMOID = 2,
-     // Cost functions
+     F_RELU    = 3,
+     F_LINEAR  = 4,
+    // Cost functions
      L_LSE     = 100
     };
   /** \class BaseFunction
