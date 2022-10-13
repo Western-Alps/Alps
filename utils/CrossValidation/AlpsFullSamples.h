@@ -73,6 +73,8 @@ namespace Alps
       // training size
       int training_size_{0};
       std::vector< std::list<int> >                       training_set_;
+      // training frequency to dump the reusults
+      std::size_t training_dump_{0};
     };
 
   //
@@ -86,6 +88,8 @@ namespace Alps
 	  // folds construction
 	  std::size_t
 	    number_of_subjects = Alps::LoadDataSet::instance()->get_data()["inputs"]["images"][0].size();
+	  //
+	  training_dump_     = Alps::LoadDataSet::instance()->get_data()["mountain"]["strategy"]["dump_results"];
 	  //
 	  testing_size_  = 0;
 	  training_size_ = number_of_subjects;
@@ -183,7 +187,8 @@ namespace Alps
 	      // update the epoques
 	      // By updating the epoque the calculation of the cost function 
 	      ++subjects_[0];
-	      subjects_[0].visualization();
+	      if ( subjects_[0].get_epoque() % training_dump_ == 0 )
+		subjects_[0].visualization();
 	    }
 	}
       catch( itk::ExceptionObject & err )

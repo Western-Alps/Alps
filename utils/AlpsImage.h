@@ -49,6 +49,7 @@ namespace Alps
   template< typename Type, int Dim >
   class Image : public Alps::Tensor< Type, 1 >
   {
+    
   public:
     /** Constructor */
     Image() = default;
@@ -137,7 +138,7 @@ namespace Alps
     */
     Type         operator[]( const std::size_t Idx );
     // Visualization of the image
-    void         visualization( const std::string ) const;
+    void         visualization( const std::string );
 
 
 
@@ -161,6 +162,10 @@ namespace Alps
     std::vector< std::size_t > tensor_size_{ std::vector< std::size_t >(/*tensor order*/1,1) };
     // Z
     std::vector< Type >        tensor_;
+
+    //
+    // Output image
+    FilterType< Dim >::Pointer output_image_;
   };
   //
   //
@@ -185,6 +190,23 @@ namespace Alps
 	region_.SetIndex( start_ );
 	//
 	tensor_ = std::vector< T >( tensor_size_[0], 0. );
+	//
+	// Create the output image
+	// Orientation
+	// Origin - Spacing - Direction
+	typename itk::Image< T, D >::PointType orig          = Image_reader->GetOutput()->GetOrigin();
+	typename itk::Image< T, D >::SpacingType spacing     = Image_reader->GetOutput()->GetSpacing();
+	typename itk::Image< T, D >::DirectionType direction = Image_reader->GetOutput()->GetDirection();
+	//
+	output_image_ = FilterType< D >::New();
+	output_image_->SetOutputSpacing( spacing );
+	output_image_->ChangeSpacingOn();
+	output_image_->SetOutputOrigin( orig );
+	output_image_->ChangeOriginOn();
+	output_image_->SetOutputDirection( direction );
+	output_image_->ChangeDirectionOn();
+	
+	//
 	//
 	ImageRegionIterator< ImageType< D > > imageIterator( Image_reader->GetOutput(),
 							     region_ );
@@ -260,18 +282,43 @@ namespace Alps
   //
   // 
   template< typename T,int D > void
-  Alps::Image< T, D >::visualization( const std::string Name ) const
+  Alps::Image< T, D >::visualization( const std::string Name )
   {
-    using ImageType = itk::Image< T, D >;
-    typename ImageType::Pointer image = ImageType::New();
+    //using ImageType = itk::Image< T, D >;
+    using WriterType = itk::ImageFileWriter< ImageType<D> >;
+
+    //
+    //
+    typename ImageType<D>::Pointer image = ImageType<D>::New();
     //
     image->SetRegions(region_);
     image->Allocate();
+
     //
-    using WriterType = itk::ImageFileWriter< ImageType >;
+    //
+    ImageRegionIterator< ImageType<D> > imageIterator( image,
+						       region_ );
+    std::size_t position = 0;
+    while( !imageIterator.IsAtEnd() )
+      {
+	imageIterator.Set( tensor_[ position++ ] );
+	++imageIterator;
+      }
+    // Check the vector has been created correctly
+    if ( position != tensor_size_[0] )
+      throw MAC::MACException( __FILE__, __LINE__,
+			       "The image tensor has not been created correctly.",
+			       ITK_LOCATION );
+    //
+    output_image_->SetInput( image );
+    
+    //
+    //
+    itk::NiftiImageIO::Pointer   nifti_io_cortex = itk::NiftiImageIO::New();
     typename WriterType::Pointer writer = WriterType::New();
     writer->SetFileName( Name );
-    writer->SetInput( image );
+    writer->SetInput( output_image_->GetOutput() );
+    writer->SetImageIO( nifti_io_cortex );
     //
     try
       {

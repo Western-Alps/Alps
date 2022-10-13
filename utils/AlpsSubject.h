@@ -22,6 +22,7 @@
 //
 #include <iostream> 
 #include <memory>
+#include <filesystem>
 //
 // ITK
 //
@@ -33,6 +34,7 @@
 #include "AlpsClimber.h"
 #include "AlpsLayerTensors.h"
 #include "AlpsTools.h"
+#include "AlpsLoadDataSet.h"
 //
 //
 //
@@ -141,9 +143,12 @@ namespace Alps
     // Vector of modalities 
     std::map< std::string,
 	      std::vector< Alps::LayerTensors< double, Dim > > > layer_modalities_;
-    // Vector of modalities 
+    // Vector of modalities references
     std::map< std::string,
 	      std::vector< std::reference_wrapper< Alps::LayerTensors< double, Dim > > > > layer_modalities_ref_;
+    // Vector of output names
+    std::map< std::string,
+	      std::vector< std::string > >                       layer_outputs_;
     // Vector of modalities 
     Alps::Image< double, Dim >                                   target_;
     //
@@ -151,6 +156,9 @@ namespace Alps
     int                                                          subject_number_{0};
     // number of modalities
     std::size_t                                                  number_modalities_{0};
+    //
+    // Output directory
+    std::string                                                  output_directory_{""};
   };
   //
   //
@@ -161,6 +169,8 @@ namespace Alps
     subject_number_{SubNumber}, number_modalities_{NumModalities}
   {
     layer_modalities_["__input_layer__"] = std::vector< Alps::LayerTensors< double, D > >();
+    //
+    output_directory_ = Alps::LoadDataSet::instance()->get_data()["mountain"]["IO"]["output_dir"];
   }
   //
   //
@@ -170,6 +180,12 @@ namespace Alps
   {
     try
       {
+	for ( std::size_t m = 0 ; m < number_modalities_ ; m++ )
+	  {
+	    //layer_outputs_["__output__"][m];
+	    std::string name = "";//layer_outputs_["__output__"][m] + std::to_string( epoque_ ) + ".nii.gz";
+	    //layer_modalities_["__output_layer__"][m].get_image( Alps::TensorOrder1::ACTIVATION ).visualization( "test.nii.gz" );
+	  }
       }
     catch( itk::ExceptionObject & err )
       {
@@ -190,6 +206,12 @@ namespace Alps
 	    // Load the modalities into the container
 	    layer_modalities_["__input_layer__"].push_back( Alps::LayerTensors< double, D >(Modality) );
 	    modalities_.push_back( Alps::LayerTensors< double, D >(Modality) );
+	    // Create the output modality
+	    std::string output_modality = std::filesystem::path( Modality ).stem();
+	    if ( output_modality.ends_with(".nii") )
+	      output_modality = output_modality.replace( output_modality.end() - 4,
+							 output_modality.end(), "" );
+	    layer_outputs_["__output__"].push_back( std::filesystem::path(output_directory_) / output_modality );
 	  }
 	else
 	  {

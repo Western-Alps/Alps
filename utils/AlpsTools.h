@@ -10,11 +10,11 @@
 #include <Eigen/Eigen>
 #include <Eigen/Sparse>
 //
-#define ln_2    0.69314718055994529L
-#define ln_2_pi 1.8378770664093453L
-#define ln_pi   1.1447298858494002L
-#define pi_2    6.28318530718L
-#define pi      3.14159265359L
+//#define ln_2    0.69314718055994529L
+//#define ln_2_pi 1.8378770664093453L
+//#define ln_pi   1.1447298858494002L
+//#define pi_2    6.28318530718L
+//#define pi      3.14159265359L
 
 //
 //
