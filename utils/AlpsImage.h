@@ -138,7 +138,8 @@ namespace Alps
     */
     Type         operator[]( const std::size_t Idx );
     // Visualization of the image
-    void         visualization( const std::string );
+    void         visualization( const std::string,
+				const typename Reader< Dim >::Pointer );
 
 
 
@@ -165,7 +166,7 @@ namespace Alps
 
     //
     // Output image
-    FilterType< Dim >::Pointer output_image_;
+    ImageType< Dim >::Pointer output_image_;
   };
   //
   //
@@ -192,19 +193,11 @@ namespace Alps
 	tensor_ = std::vector< T >( tensor_size_[0], 0. );
 	//
 	// Create the output image
-	// Orientation
-	// Origin - Spacing - Direction
-	typename itk::Image< T, D >::PointType orig          = Image_reader->GetOutput()->GetOrigin();
-	typename itk::Image< T, D >::SpacingType spacing     = Image_reader->GetOutput()->GetSpacing();
-	typename itk::Image< T, D >::DirectionType direction = Image_reader->GetOutput()->GetDirection();
+	typename DuplicatorType< D >::Pointer input_to_output = DuplicatorType< D >::New();
+	input_to_output->SetInputImage( Image_reader->GetOutput() );
+	input_to_output->Update();
 	//
-	output_image_ = FilterType< D >::New();
-	output_image_->SetOutputSpacing( spacing );
-	output_image_->ChangeSpacingOn();
-	output_image_->SetOutputOrigin( orig );
-	output_image_->ChangeOriginOn();
-	output_image_->SetOutputDirection( direction );
-	output_image_->ChangeDirectionOn();
+	output_image_ = input_to_output->GetOutput();
 	
 	//
 	//
@@ -282,22 +275,30 @@ namespace Alps
   //
   // 
   template< typename T,int D > void
-  Alps::Image< T, D >::visualization( const std::string Name )
+  Alps::Image< T, D >::visualization( const std::string Name,
+				       const typename Reader< D >::Pointer Image_reader )
   {
-    //using ImageType = itk::Image< T, D >;
-    using WriterType = itk::ImageFileWriter< ImageType<D> >;
+   //using ImageType = itk::Image< T, D >;
+   using WriterType = itk::ImageFileWriter< ImageType<D> >;
 
-    //
-    //
-    typename ImageType<D>::Pointer image = ImageType<D>::New();
-    //
-    image->SetRegions(region_);
-    image->Allocate();
+   //
+   // Create the output image
+   typename DuplicatorType< D >::Pointer input_to_output = DuplicatorType< D >::New();
+   input_to_output->SetInputImage( Image_reader->GetOutput() );
+   input_to_output->Update();
+   //
+   output_image_ = input_to_output->GetOutput();
+   //
+   size_ = Image_reader->GetOutput()->GetLargestPossibleRegion().GetSize();
+   for ( int d = 0 ; d < D ; d++ )
+     start_[d]        = 0;
+   // Resize elements
+   region_.SetSize( size_ );
+   region_.SetIndex( start_ );
 
-    //
-    //
-    ImageRegionIterator< ImageType<D> > imageIterator( image,
-						       region_ );
+   //
+   //
+    ImageRegionIterator< ImageType<D> > imageIterator( output_image_, region_ );
     std::size_t position = 0;
     while( !imageIterator.IsAtEnd() )
       {
@@ -305,29 +306,29 @@ namespace Alps
 	++imageIterator;
       }
     // Check the vector has been created correctly
+    std::cout << "position " << position<< std::endl;
+    std::cout << "tensor_size_[0] " << tensor_size_[0]<< std::endl;
     if ( position != tensor_size_[0] )
       throw MAC::MACException( __FILE__, __LINE__,
 			       "The image tensor has not been created correctly.",
 			       ITK_LOCATION );
-    //
-    output_image_->SetInput( image );
-    
-    //
-    //
-    itk::NiftiImageIO::Pointer   nifti_io_cortex = itk::NiftiImageIO::New();
-    typename WriterType::Pointer writer = WriterType::New();
-    writer->SetFileName( Name );
-    writer->SetInput( output_image_->GetOutput() );
-    writer->SetImageIO( nifti_io_cortex );
-    //
-    try
-      {
-	writer->update();
-      }
-    catch( itk::ExceptionObject & err )
-      {
+   
+   //
+   //
+   itk::NiftiImageIO::Pointer   nifti_io_cortex = itk::NiftiImageIO::New();
+   typename WriterType::Pointer writer = WriterType::New();
+   writer->SetFileName( Name );
+   writer->SetInput( output_image_ );
+   writer->SetImageIO( nifti_io_cortex );
+   //
+   try
+     {
+	writer->Update();
+     }
+   catch( itk::ExceptionObject & err )
+     {
 	std::cerr << err << std::endl;
-      }
+     }
   }
 }
 #endif

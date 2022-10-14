@@ -99,7 +99,7 @@ namespace Alps
     // From LayerTensors< typename Type, int Dim >
     //
     // Access the images directly
-    const Alps::Image< Type, Dim >&             get_image( Alps::TensorOrder1 ) const;
+    Alps::Image< Type, Dim >&                   get_image( Alps::TensorOrder1 );
 
     
     //
@@ -251,8 +251,8 @@ namespace Alps
   //
   //
   //
-  template< typename T,int D > const Alps::Image< T, D >&
-  Alps::LayerTensors< T, D >::get_image( Alps::TensorOrder1 Idx ) const 
+  template< typename T,int D > Alps::Image< T, D >&
+  Alps::LayerTensors< T, D >::get_image( Alps::TensorOrder1 Idx )
   {
     try
       {

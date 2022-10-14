@@ -83,7 +83,7 @@ namespace Alps
     //
     virtual void                                                   update()              override;
     // Visualization of the processed image
-    virtual void                                                   visualization() const override;
+    virtual void                                                   visualization()       override;
     //
     //
     // prefix increment
@@ -183,7 +183,7 @@ namespace Alps
   //
   // 
   template< int D > void
-  Alps::Subjects< D >::visualization() const
+  Alps::Subjects< D >::visualization()
   {
     for ( auto subject : subjects_ )
       subject->visualization();

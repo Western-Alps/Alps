@@ -54,9 +54,9 @@ namespace Alps
     // functions
     //
     // Update the information
-    virtual void                              update()              = 0;
+    virtual void                              update()           = 0;
     // Visualization of the processed image
-    virtual void                              visualization() const = 0;
+    virtual void                              visualization()    = 0;
   };
 }
 #endif

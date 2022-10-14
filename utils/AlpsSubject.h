@@ -105,7 +105,7 @@ namespace Alps
     virtual void                                      update()                             override
     {epoque_++;};
     // Visualization of the processed image
-    virtual void                                      visualization() const                override;
+    virtual void                                      visualization()                      override;
     //
     //
     // Add a modality
@@ -148,7 +148,7 @@ namespace Alps
 	      std::vector< std::reference_wrapper< Alps::LayerTensors< double, Dim > > > > layer_modalities_ref_;
     // Vector of output names
     std::map< std::string,
-	      std::vector< std::string > >                       layer_outputs_;
+	      std::vector< std::string > >                       layer_IO_;
     // Vector of modalities 
     Alps::Image< double, Dim >                                   target_;
     //
@@ -176,15 +176,35 @@ namespace Alps
   //
   // 
   template< int D > void
-  Alps::Subject< D >::visualization() const
+  Alps::Subject< D >::visualization()
   {
     try
       {
 	for ( std::size_t m = 0 ; m < number_modalities_ ; m++ )
 	  {
-	    //layer_outputs_["__output__"][m];
-	    std::string name = "";//layer_outputs_["__output__"][m] + std::to_string( epoque_ ) + ".nii.gz";
-	    //layer_modalities_["__output_layer__"][m].get_image( Alps::TensorOrder1::ACTIVATION ).visualization( "test.nii.gz" );
+	    //
+	    // Input characteristics
+	    // load the image ITK pointer
+	    auto image_ptr = itk::ImageIOFactory::CreateImageIO( layer_IO_["__input__"][m].c_str(),
+								 itk::CommonEnums::IOFileMode::ReadMode );
+	    image_ptr->SetFileName( layer_IO_["__input__"][m] );
+	    image_ptr->ReadImageInformation();
+	    // Check the dimensions complies
+	    if ( image_ptr->GetNumberOfDimensions() != D )
+	      throw MAC::MACException( __FILE__, __LINE__,
+				       "The dimensions of the image and instanciation are different.",
+				       ITK_LOCATION );
+	    // Read the ITK image
+	    typename Reader< D >::Pointer img_ptr = Reader< D >::New();
+	    img_ptr->SetFileName( image_ptr->GetFileName() );
+	    img_ptr->Update();
+	    //
+	    // Output characteristics
+	    std::string out_name = layer_IO_["__output__"][m] + "_" + std::to_string( epoque_ ) + ".nii.gz";
+	    //
+	    //
+	    layer_modalities_["__output_layer__"][m].get_image( Alps::TensorOrder1::ACTIVATION ).visualization( out_name,
+														img_ptr );
 	  }
       }
     catch( itk::ExceptionObject & err )
@@ -206,12 +226,15 @@ namespace Alps
 	    // Load the modalities into the container
 	    layer_modalities_["__input_layer__"].push_back( Alps::LayerTensors< double, D >(Modality) );
 	    modalities_.push_back( Alps::LayerTensors< double, D >(Modality) );
+	    //
 	    // Create the output modality
 	    std::string output_modality = std::filesystem::path( Modality ).stem();
 	    if ( output_modality.ends_with(".nii") )
 	      output_modality = output_modality.replace( output_modality.end() - 4,
 							 output_modality.end(), "" );
-	    layer_outputs_["__output__"].push_back( std::filesystem::path(output_directory_) / output_modality );
+	    layer_IO_["__output__"].push_back( std::filesystem::path(output_directory_) / output_modality );
+	    //
+	    layer_IO_["__input__"].push_back( Modality );
 	  }
 	else
 	  {
