@@ -392,9 +392,19 @@ namespace Alps
     //
     // Compute the feature activation
     for ( int s = 0 ; s < size_out ; s++ )
+      a_out[s] +=  weight_val[0];  // add the bias
+    //
+    std::vector< T > a_out_scaled = std::move( Alps::feature_scaling< T >(a_out, Alps::Scaling::NONE) );
+    //
+    for ( int s = 0 ; s < size_out ; s++ )
       {
-	z_out[s]  = activation_.f( a_out[s] + weight_val[0] );  // add the bias
-	dz_out[s] = activation_.df( a_out[s] + weight_val[0] ); // add the bias
+	z_out[s]  = activation_.f( a_out_scaled[s] ); 
+	dz_out[s] = activation_.df( a_out_scaled[s] ); 
+//	std::cout
+//	  << "Transosed a_out["<<s<<"] " << a_out_scaled[s]
+//	  << " weight_val[0] " << weight_val[0]
+//	  << " z_out[s] " << z_out[s]
+//	  << std::endl;
       }
     
     //
@@ -414,25 +424,31 @@ namespace Alps
 
     //
     // retrieve the weight matrix
-    const Eigen::SparseMatrix< int, Eigen::RowMajor >& matrix_weights = window_->get_weights_matrix();
-    const std::vector< double >&                       weight_val     = window_->get_convolution_weight_values( feature_ );
+    const Eigen::SparseMatrix< int, Eigen::RowMajor >& matrix_weightsT = window_->get_weights_matrix();
+    const std::vector< double >&                       weight_val      = window_->get_convolution_weight_values( feature_ );
     //
     int
       prev_features_number = Prev_image_tensors.size(),
-      size_in              = matrix_weights.rows(),
-      size_out             = matrix_weights.rows();
+      size_in              = matrix_weightsT.rows(),
+      size_out             = matrix_weightsT.cols();
 
     //
     // Compute the error at the current layer using the weighted error computed at the next layer
     for ( int o = 0 ; o < size_out ; o++ )
-      (Image_tensors[feature_].get())[TensorOrder1::ERROR][o] = (Image_tensors[feature_].get())[TensorOrder1::WERROR][o] * (Image_tensors[feature_].get())[TensorOrder1::DERIVATIVE][o];
+      {
+	(Image_tensors[feature_].get())[TensorOrder1::ERROR][o] = (Image_tensors[feature_].get())[TensorOrder1::WERROR][o] * (Image_tensors[feature_].get())[TensorOrder1::DERIVATIVE][o];
+//	std::cout
+//	  << "(Image_tensors[feature_].get())[TensorOrder1::WERROR]["<<o<<"] " << (Image_tensors[feature_].get())[TensorOrder1::WERROR][o]
+//	  << "(Image_tensors[feature_].get())[TensorOrder1::DERIVATIVE][o] "   << (Image_tensors[feature_].get())[TensorOrder1::DERIVATIVE][o]
+//	  << std::endl;
+      }
 
     //
     // Compute the weighted error that will be used in the previous layer
     std::vector< T > we( size_in, 0. );
     //
-    for (int k = 0 ; k < matrix_weights.outerSize() ; ++k )
-      for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix_weights, k); it; ++it )
+    for (int k = 0 ; k < matrix_weightsT.outerSize() ; ++k )
+      for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix_weightsT, k); it; ++it )
 	we[k] += weight_val[ static_cast< int >(it.value()) ]
 	  * (Image_tensors[feature_].get())[TensorOrder1::ERROR][it.index()];
     // Replicate to all the previouse connected features' layers

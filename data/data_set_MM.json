@@ -15,18 +15,20 @@
 	"labels": {}
     },
     "mountain":{
-	"name":"Mont_Maudit",
-	"Mont_Maudit_comment":"Mont Maudit is a custumized U-Net type network.",
-	"Mont_Maudit":{
-	    "inputs":["images","masks","image_targets"],
-	    "output":"/path/to/output.csv"
-	},
-	"strategy":{
-	    "status":"train",
-	    "learning_rate":0.1,
-	    "mini_batch":0,
-	    "weights":"weights_Mont_Maudit.nii.gz"
-	}
-    },
-    "GPU":{}
+        "name":"Mont_Maudit",
+        "Mont_Maudit_comment":"Mont Maudit is a custumized U-Net type network.",
+        "IO":{
+            "inputs":["images","masks","image_targets"],
+            "output":"/path/to/output.csv",
+            "output_dir":"/mnt/production/devel/CPP/Alps/build/output/",
+            "weights":"weights_Mont_Maudit.nii.gz"
+        },
+        "strategy":{
+            "status":"train",
+            "learning_rate":0.00001,
+            "mini_batch":0,
+            "Comment":"During the training phase, every 10 epoques we want images to be dump.",
+            "dump_results":1
+        }
+    },                                                                                                                                                                                                                                                                               "GPU":{}
 }

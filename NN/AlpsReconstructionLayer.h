@@ -128,6 +128,10 @@ namespace Alps
     // Observers
     // Observers containers
     std::shared_ptr< Weights >                          weights_{nullptr};
+    //
+    // Cumulated error. Error cumulated for each image
+    std::vector< double >                               cumulated_error_;
+    std::size_t                                         number_images_{0};
   };
   //
   //
@@ -190,7 +194,7 @@ namespace Alps
 	//
 	// We get features or inputs from previous layers attached to this layer. 
 	// if the prev layer is nullptr, it represents the input data.
-	std::cout << "Layer: " << layer_name_ << std::endl;
+	//std::cout << "Layer: " << layer_name_ << std::endl;
 	std::vector< std::reference_wrapper< Alps::LayerTensors< double, D > > > attached_layers;
 	for ( auto layer : prev_layer_ )
 	  {
@@ -198,7 +202,7 @@ namespace Alps
 	    if ( layer.second )
 	      {
 		name = layer.first;
-		std::cout << "Connected to: " << name << std::endl;
+		//std::cout << "Connected to: " << name << std::endl;
 	      }
 	    else
 	      std::cout << "Connected to: " << name << std::endl;
@@ -227,7 +231,7 @@ namespace Alps
 	  weights_ = std::make_shared< W >( *this );
 	//
 	// Get the activation tuple (<0> - activation; <1> - derivative; <2> - error; <3> - weighted error))
-	auto tuple   = weights_->activate( attached_layers );
+	auto tuple = weights_->activate( attached_layers );
 	std::array< std::vector< double >, 4 > current_activation = { tuple[ Act::ACTIVATION ],
 								      tuple[ Act::DERIVATIVE ],
 								      std::vector< double >( layer_size, 0. ) /* error */,
@@ -266,6 +270,21 @@ namespace Alps
 								target.get_tensor(),
 								current_activation[Act::DERIVATIVE],
 								layer_size) );
+	    //
+	    // Cumulate the error through all images
+	    if ( cumulated_error_.empty() )
+	      cumulated_error_.resize( layer_size, 0. );
+	    // Account for this specific subject
+	    std::transform( cumulated_error_.begin(), cumulated_error_.end(),
+			    current_activation[Act::ERROR].begin(), cumulated_error_.begin(),
+			    std::plus< double >() );
+	    number_images_++;
+//	    for ( std::size_t i = 0 ; i < layer_size ; i++ )
+//	      std::cout
+//		<< "cumulated_error_["<<i<<"] = " << cumulated_error_[i] 
+//		<< " for image " << number_images_
+//		<< std::endl;
+	    //
 	    // Save the energy for this image
 	    double energy = cost.L( current_activation[Act::ACTIVATION],
 				    target.get_tensor(),
@@ -307,14 +326,24 @@ namespace Alps
 	//
 	// Down to subject
 	std::shared_ptr< Alps::Subject< D > > subject = std::dynamic_pointer_cast< Alps::Subject< D > >(Sub);
-	std::cout << "Layer backwards: " << layer_name_ << std::endl;
+	//std::cout << "Layer backwards: " << layer_name_ << std::endl;
 	// get the activation tuple
 	auto image_tensors = subject->get_layer( layer_name_ );
-	
+
+	//
+	// Average the cumulated error and replace with the one from the subject
+	for( double& cumul : cumulated_error_ ) 
+	  cumul /= static_cast< double >( number_images_ );
+	// Attached the averaged errors to the last subject
+	(image_tensors[0].get())[TensorOrder1::ERROR] = std::move( cumulated_error_ );
+	// Then reset the layer elements
+	cumulated_error_.clear();
+	number_images_ = 0;
+
 
 	//
 	// If we don't have any next layer, we are at the last layer
-	std::cout << "We are in the layer: " << layer_name_ << std::endl;
+	//std::cout << "We are in the layer: " << layer_name_ << std::endl;
 
 
 	/////////////////////
@@ -326,7 +355,7 @@ namespace Alps
 	for ( auto layer_weights : prev_layer_ )
 	  {
 	    std::string name = layer_weights.first;
-	    std::cout << "weights of layer: " << name << std::endl;
+	    //std::cout << "weights of layer: " << name << std::endl;
 	    weights_->weighted_error( subject->get_layer( name ),
 				      image_tensors );
 	  }

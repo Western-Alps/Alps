@@ -41,12 +41,12 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   using Tanh             = Alps::Activation_tanh< double >;
   using ReLU             = Alps::Activation_ReLU< double >;
   using Kernel           = Alps::Window< double, Dim >;
-  using Weights          = Alps::WeightsConvolution< double, Kernel, Alps::Arch::CPU, ReLU, Alps::SGD, Dim >;
-  using Weights_T        = Alps::WeightsTransposedConvolution< double, Kernel, Alps::Arch::CPU, ReLU, Alps::SGD, Dim >;
+  using Weights          = Alps::WeightsConvolution< double, Kernel, Alps::Arch::CPU, Tanh, Alps::SGD, Dim >;
+  using Weights_T        = Alps::WeightsTransposedConvolution< double, Kernel, Alps::Arch::CPU, Tanh, Alps::SGD, Dim >;
   using ReconWeights     = Alps::WeightsReconstruction< double, Alps::Arch::CPU, Sigmoid, Alps::SGD, Dim >;
   using LossFunction     = Alps::LeastSquarreEstimate< double >;
-  using Convolutional    = Alps::ConvolutionLayer< ReLU, Weights, Kernel, LossFunction, Dim >;
-  using Deconvolutional  = Alps::ConvolutionLayer< ReLU, Weights_T, Kernel, LossFunction, Dim >;
+  using Convolutional    = Alps::ConvolutionLayer< Tanh, Weights, Kernel, LossFunction, Dim >;
+  using Deconvolutional  = Alps::ConvolutionLayer< Tanh, Weights_T, Kernel, LossFunction, Dim >;
   using Reconstruction   = Alps::ReconstructionLayer< Sigmoid, ReconWeights, LossFunction, Dim >;
 
   //////////////////////////
@@ -55,56 +55,56 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   //
   // layer 1
   // Window definition for the kernels
-  std::vector< long int > h_window_1 = {2,2}; // size of the 1/2 window
-  std::vector< long int > padding_1  = {2,2}; // padding
+  std::vector< long int > h_window_1 = {1,1}; // size of the 1/2 window
+  std::vector< long int > padding_1  = {1,1}; // padding
   std::vector< long int > striding_1 = {1,1}; // striding
   //
-  std::shared_ptr< Kernel > window_1 = std::make_shared< Kernel >( 100, // number of kernels
+  std::shared_ptr< Kernel > window_1 = std::make_shared< Kernel >( 32, // number of kernels
 								   h_window_1, padding_1, striding_1 );
   //
   std::shared_ptr< Alps::Layer > nn_1 =
     std::make_shared< Convolutional >( "layer_1",
 				       window_1 );
   nn_1->add_layer( nullptr );   // connection with the previous layer. (nullptr) means input layer
-  //
-  // layer 2
-  // Window definition for the kernels. This window is centered on one voxel.
-  // If the padding and stridding is the same as the window 1, the output image
-  // will have exactly the same dimension.
-  std::vector< long int > h_window_2 = {0,0}; // size of the 1/2 window, when the value is 0, the kernel is the size of a pixel
-  std::vector< long int > padding_2  = {0,0}; // padding
-  std::vector< long int > striding_2 = {1,1}; // striding
-  //
-  std::shared_ptr< Kernel > window_2 = std::make_shared< Kernel >( 100, // number of kernels
-								   h_window_2, padding_2, striding_2 );
-  //
-  std::shared_ptr< Alps::Layer > nn_2 =
-    std::make_shared< Convolutional >( "layer_2",
-				       window_2 );
-  nn_2->add_layer( nullptr ); // connection with the previous layer. (nullptr) means input layer
+//  //
+//  // layer 2
+//  // Window definition for the kernels. This window is centered on one voxel.
+//  // If the padding and stridding is the same as the window 1, the output image
+//  // will have exactly the same dimension.
+//  std::vector< long int > h_window_2 = {3,3}; // size of the 1/2 window, when the value is 0, the kernel is the size of a pixel
+//  std::vector< long int > padding_2  = {3,3}; // padding
+//  std::vector< long int > striding_2 = {1,1}; // striding
+//  //
+//  std::shared_ptr< Kernel > window_2 = std::make_shared< Kernel >( 32, // number of kernels
+//								   h_window_2, padding_2, striding_2 );
+//  //
+//  std::shared_ptr< Alps::Layer > nn_2 =
+//    std::make_shared< Convolutional >( "layer_2",
+//				       window_2 );
+//  nn_2->add_layer( nullptr ); // connection with the previous layer. (nullptr) means input layer
   //
   // layer 3
   // Window definition for the kernels. This window is centered on one voxel.
-  std::vector< long int > h_window_3 = {4,4}; // size of the 1/2 window
-  std::vector< long int > padding_3  = {0,0}; // padding
-  std::vector< long int > striding_3 = {1,1}; // striding
+  std::vector< long int > h_window_3 = {2,2}; // size of the 1/2 window
+  std::vector< long int > padding_3  = {2,2}; // padding
+  std::vector< long int > striding_3 = {2,2}; // striding
   //
-  std::shared_ptr< Kernel > window_3 = std::make_shared< Kernel >( 50, // number of kernels
+  std::shared_ptr< Kernel > window_3 = std::make_shared< Kernel >( 64, // number of kernels
 								   h_window_3, padding_3, striding_3 );
   //
   std::shared_ptr< Alps::Layer > nn_3 =
     std::make_shared< Convolutional >( "layer_3",
 				       window_3 );
   nn_3->add_layer( nn_1 ); 
-  nn_3->add_layer( nn_2 );
+  //nn_3->add_layer( nn_2 );
   //
   // layer 4
   // Window definition for the kernels
-  std::vector< long int > h_window_4 = {4,4}; // size of the 1/2 window
-  std::vector< long int > padding_4  = {0,0}; // padding
+  std::vector< long int > h_window_4 = {2,2}; // size of the 1/2 window
+  std::vector< long int > padding_4  = {2,2}; // padding
   std::vector< long int > striding_4 = {2,2}; // striding
   //
-  std::shared_ptr< Kernel > window_4 = std::make_shared< Kernel >( 40, // number of kernels
+  std::shared_ptr< Kernel > window_4 = std::make_shared< Kernel >( 128, // number of kernels
 								   h_window_4, padding_4, striding_4 );
   //
   std::shared_ptr< Alps::Layer > nn_4 =
@@ -131,13 +131,13 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
     std::make_shared< Deconvolutional >( "layer_6",
 					 window_3 );
   nn_6->add_layer( nn_5 );   
-  //
-  // layer 7
-  //
-  std::shared_ptr< Alps::Layer > nn_7 =
-    std::make_shared< Deconvolutional >( "layer_7",
-					 window_2 );
-  nn_7->add_layer( nn_6 ); 
+//  //
+//  // layer 7
+//  //
+//  std::shared_ptr< Alps::Layer > nn_7 =
+//    std::make_shared< Deconvolutional >( "layer_7",
+//					 window_2 );
+//  nn_7->add_layer( nn_6 ); 
   //
   // layer 8
   //
@@ -157,7 +157,7 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   // the target in the cost function.
   std::shared_ptr< Alps::Layer > nn_9 =
     std::make_shared< Reconstruction >( "__output_layer__" );
-  nn_9->add_layer( nn_7 );   // nn_7 are inputs of nn_8
+  //  nn_9->add_layer( nn_7 );   // nn_7 are inputs of nn_8
   nn_9->add_layer( nn_8 );   // nn_8 are inputs of nn_8
 
 
@@ -167,12 +167,12 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   // Anatomy //
   /////////////
   mr_nn_.add( nn_1 );
-  mr_nn_.add( nn_2 );
+  //  mr_nn_.add( nn_2 );
   mr_nn_.add( nn_3 );
   mr_nn_.add( nn_4 );
   mr_nn_.add( nn_5 );
   mr_nn_.add( nn_6 );
-  mr_nn_.add( nn_7 );
+  //  mr_nn_.add( nn_7 );
   mr_nn_.add( nn_8 );
   mr_nn_.add( nn_9 );
 };

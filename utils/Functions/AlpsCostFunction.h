@@ -102,8 +102,13 @@ namespace Alps
     //
     T cost = 0;
     for ( std::size_t i = 0 ; i < N ; i++ )
-      cost += (Optimum[i] - Target[i]) * (Optimum[i] - Target[i]);
-
+      {
+	cost += (Optimum[i] - Target[i]) * (Optimum[i] - Target[i]);
+//	std::cout
+//	  << "Optimum["<<i<<"] " <<Optimum[i]
+//	  << "  Target[i] " <<Target[i]
+//	  << std::endl;
+      }
     //
     //
     return cost;

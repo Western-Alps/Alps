@@ -43,6 +43,118 @@ namespace Alps
     return f.good();
   }
 
+  //
+  /*! Represents the type of device architecture processing the weights. */
+  enum class Scaling
+  {
+    UNKNOWN   = -1,
+    // 
+    NONE        = 1, /*!< No scaling. */
+    DEMEAN      = 2, /*!< Shift with the mean value.*/
+    NORMALIZE   = 3, /*!< Between [0,1].*/
+    STANDARDIZE = 4  /*!< Standardizarion.*/
+      };
+  //
+  //
+  template< class T > std::vector< T >
+    feature_scaling( const std::vector< T >& Vector,
+		     Scaling                 Scale )
+    {
+      //
+      //
+      std::size_t vector_size = Vector.size();
+      std::vector<T> scaled( vector_size, 0. );
+      //
+      //
+      switch ( Scale )
+	{
+	  //
+	  // u = x
+	case Scaling::NONE:
+	  {
+	    //
+	    // no treatment
+	    scaled = Vector;
+	    //
+	    //
+	    break;
+	  }
+	  //
+	  // u = (x-min)/(max-min)
+	case Scaling::NORMALIZE:
+	  {
+	    //
+	    // find the min and max
+	    auto min_max = std::minmax_element( Vector.begin(), Vector.end() );
+	    T delta      = *min_max.second - *min_max.first;
+	    T min        = *min_max.first;
+	    //
+	    // result
+	    std::transform( Vector.begin(), Vector.end(),
+			    scaled.begin(),
+			    [min,delta](double x) { return (x - min) / delta; });
+	    //
+	    //
+	    break;
+	  }
+	  //
+	  // u = (x - mu)/sigma
+	case Scaling::STANDARDIZE:
+	  {
+	    //
+	    // mean
+	    T sum  = std::accumulate( Vector.begin(), Vector.end(), 0.0 );
+	    T mean = static_cast< double >( sum ) / static_cast< double >( vector_size );
+	    //
+	    // Variance
+	    std::vector< T > diff( vector_size );
+	    //
+	    std::transform( Vector.begin(), Vector.end(),
+			    diff.begin(),
+			    [mean](double x) { return x - mean; });
+	    //
+	    double sq_sum = std::inner_product( diff.begin(), diff.end(), diff.begin(), 0.0 );
+	    double stdev  = std::sqrt( sq_sum / static_cast< double >( vector_size ) );
+
+	    //
+	    // result
+	    std::transform( Vector.begin(), Vector.end(),
+			    scaled.begin(),
+			    [mean,stdev](double x) { return (x - mean) / stdev; });
+	    //
+	    //
+	    break;
+	  }
+	  //
+	  // u = (x - mu)
+	case Scaling::DEMEAN:
+	  {
+	    //
+	    // mean
+	    T sum  = std::accumulate( Vector.begin(), Vector.end(), 0.0 );
+	    T mean = static_cast< double >( sum ) / static_cast< double >( vector_size );
+	    //
+	    // result
+	    std::transform( Vector.begin(), Vector.end(),
+			    scaled.begin(),
+			    [mean](double x) { return x - mean; });
+	    //
+	    //
+	    break;
+	  }
+	  //
+	  //
+	default:
+	  {
+	    std::cerr << "Invalide scaling statement." << std::endl;
+	    exit(-1);
+	  }
+	}
+
+      //
+      //
+      return scaled;
+    };
 
 //  //
 //  // Linear Algebra

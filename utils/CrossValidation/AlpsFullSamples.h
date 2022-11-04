@@ -122,14 +122,12 @@ namespace Alps
 	    {
 	      //
 	      //
-	      std::cout
-		<< "Epoque cost function: "
-		<< std::dynamic_pointer_cast<M>(subjects_[0].get_mountain())->get_energy()
-		<< std::endl;
-	      //
 	      double relat = 100. * std::fabs(energy_previous_epoque - std::dynamic_pointer_cast<M>(subjects_[0].get_mountain())->get_energy()) / energy_previous_epoque;
+	      //
 	      std::cout
-		<< "Relative difference in cost function: "
+		<< "Epoque " << subjects_[0].get_epoque() << " cost function: "
+		<< std::dynamic_pointer_cast<M>(subjects_[0].get_mountain())->get_energy()
+		<< " Relative difference in cost function: "
 		<< relat
 		<< std::endl;
 	      // Reset the current epoque to the previous epoque

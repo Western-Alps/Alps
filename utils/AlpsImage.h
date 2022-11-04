@@ -177,6 +177,28 @@ namespace Alps
     try
       {
 	//
+	// Normalization indexes
+	// We want the input images between [0,1]
+	typename ImageCalculatorFilterType< D >::Pointer imageCalculatorFilter = ImageCalculatorFilterType< D >::New();
+	imageCalculatorFilter->SetImage( Image_reader->GetOutput() );
+	imageCalculatorFilter->Compute();
+	//
+	typename ImageType< D >::IndexType minLocation = imageCalculatorFilter->GetIndexOfMinimum();
+	typename ImageType< D >::IndexType maxLocation = imageCalculatorFilter->GetIndexOfMaximum();
+	//
+	double
+	  max = static_cast<double>( Image_reader->GetOutput()->GetPixel(maxLocation) ),
+	  min = static_cast<double>( Image_reader->GetOutput()->GetPixel(minLocation) );
+	double delta = max - min;
+	// Check the image is not empty
+	if ( delta == 0. )
+	  throw MAC::MACException( __FILE__, __LINE__,
+				   "The image holds the same value all over.",
+				   ITK_LOCATION );
+
+
+ 
+	//
 	// Create the region
 	//
 	size_ = Image_reader->GetOutput()->GetLargestPossibleRegion().GetSize();
@@ -206,7 +228,7 @@ namespace Alps
 	std::size_t position = 0;
 	while( !imageIterator.IsAtEnd() )
 	  {
-	    tensor_[ position++ ] = imageIterator.Value();
+	    tensor_[ position++ ] = (imageIterator.Value() - min) / delta;
 	    ++imageIterator;
 	  }
 	// Check the vector has been created correctly
@@ -306,8 +328,6 @@ namespace Alps
 	++imageIterator;
       }
     // Check the vector has been created correctly
-    std::cout << "position " << position<< std::endl;
-    std::cout << "tensor_size_[0] " << tensor_size_[0]<< std::endl;
     if ( position != tensor_size_[0] )
       throw MAC::MACException( __FILE__, __LINE__,
 			       "The image tensor has not been created correctly.",

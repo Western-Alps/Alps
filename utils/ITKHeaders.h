@@ -6,6 +6,7 @@
 #include <itkBSplineInterpolateImageFunction.h>
 #include <itkChangeInformationImageFilter.h>
 #include <itkConstNeighborhoodIterator.h>
+#include "itkMinimumMaximumImageCalculator.h"
 #include <itkIdentityTransform.h>
 #include <itkImageDuplicator.h>
 #include <itkImageFileReader.h>
@@ -31,8 +32,9 @@ template< int Dim > using MaskType  = itk::Image< unsigned char, Dim >;
 template< int Dim > using ConvolutionWindowType = itk::Size< Dim >;
 template< int Dim > using DuplicatorType        = itk::ImageDuplicator< ImageType< Dim > > ;
 template< int Dim > using FilterType            = itk::ChangeInformationImageFilter< ImageType< Dim > >;
-template< int Dim > using ShrinkImageFilterType = itk::ShrinkImageFilter < ImageType< Dim >, ImageType< Dim > >;
-template< int Dim > using ShrinkImageFilterType = itk::ShrinkImageFilter < ImageType< Dim >, ImageType< Dim > >;
+template< int Dim > using ShrinkImageFilterType = itk::ShrinkImageFilter < ImageType< Dim >,
+									   ImageType< Dim > >;
+template< int Dim > using ImageCalculatorFilterType = itk::MinimumMaximumImageCalculator < ImageType< Dim > >;
 //
 template< typename ImgType > using ImageRegionIterator =  itk::ImageRegionIterator< ImgType >;
 //

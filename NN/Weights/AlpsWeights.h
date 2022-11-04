@@ -44,11 +44,11 @@ namespace Alps
   /*! Represents the type of device architecture processing the weights. */
   enum class Arch
     {
-     UNKNOWN   = -1,
-     // 
-     CPU       = 1, /*!< Central Processing Unit. */
-     CUDA      = 2, /*!< CUDA on NVIDIA Graphical Processing Unit.*/
-     CL        = 3  /*!< OpenCL on Graphical Processing Unit.*/
+      UNKNOWN   = -1,
+      // 
+      CPU       = 1, /*!< Central Processing Unit. */
+      CUDA      = 2, /*!< CUDA on NVIDIA Graphical Processing Unit.*/
+      CL        = 3  /*!< OpenCL on Graphical Processing Unit.*/
     }; 
   /*! \class Weights
    * \brief class representing the weights container used by all the 

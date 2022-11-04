@@ -172,7 +172,7 @@ namespace Alps
 	//
 	//
 	for ( std::size_t d = 0 ; d < delta_size_ ; d++ )
-	  delta_[d] -= learning_rate_ * Delta[d];
+	  delta_[d] += Delta[d];
 	// An additional image, we increase the batch size
 	batch_++;
       }
@@ -191,15 +191,16 @@ namespace Alps
 				   std::vector< Type >,
 				   Alps::Arch::CPU >::solve( const bool Forced )
   {
-//    if ( static_cast<int>(batch_) > static_cast<int>(mini_batch_) - 1 || Forced )
-//      {
-//	batch_ = 1;
+    //
+    // multiply all the elements with the learning rate
+    double learn = learning_rate_;
+    //
+    std::transform( delta_.begin(), delta_.end(),
+		    delta_.begin(), [&learn](auto& c){ return - learn * c; } );
+
     //
     //
-    return  delta_;
-//      }
-//    else
-//      return std::vector< Type >( delta_size_, 0. );
+    return delta_;
   }
   /** \class StochasticGradientDescent
    *

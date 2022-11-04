@@ -235,8 +235,8 @@ namespace Alps
 	// Create a unique id for the layer
 	std::random_device                   rd;
 	std::mt19937                         generator( rd() );
-	std::normal_distribution< T >        distribution(0.0,1.0);
-	weights_.push_back(  distribution(generator) );
+	std::uniform_real_distribution< T >  distribution(-0.005,0.005);
+	weights_.push_back( 0. /*distribution(generator)*/ );
 	//
 	// Select the optimizer strategy
 	S gradient;
@@ -315,6 +315,9 @@ namespace Alps
     std::vector< T > a_out(  size_in, 0. );
     std::vector< T > z_out(  size_in, 0. );
     std::vector< T > dz_out( size_in, 0. );
+
+//    std::cout << "Reconstruction weights_[0]: "
+//	      << weights_[0] << std::endl;
     //
     //
     try
@@ -334,6 +337,7 @@ namespace Alps
 	    //
 	    for ( int s = 0 ; s < size_in ; s++ )
 	      a_out[s] += (Image_tensors[f].get())[Alps::TensorOrder1::ACTIVATION][s];
+	    
 	  }
       }
     catch( itk::ExceptionObject & err )
@@ -344,9 +348,15 @@ namespace Alps
     //
     // Compute the feature activation
     for ( int s = 0 ; s < size_in ; s++ )
+      a_out[s] +=  weights_[0];
+    //
+    std::vector< T > a_out_scaled = std::move( Alps::feature_scaling< T >(a_out, Alps::Scaling::NONE) );
+    //
+    for ( int s = 0 ; s < size_in ; s++ )
       {
-	z_out[s]  = activation_.f(  a_out[s] + weights_[0] );
-	dz_out[s] = activation_.df( a_out[s] + weights_[0] );
+	z_out[s]  = activation_.f(  a_out_scaled[s] );
+	dz_out[s] = activation_.df( a_out_scaled[s] );
+	//std::cout << "Recon: a_out["<<s<<"] = " << a_out[s] << " z_out["<<s<<"] = " << z_out[s] << std::endl;
       }
 
     //

@@ -194,7 +194,7 @@ namespace Alps
 	//
 	// We get features or inputs from previous layers attached to this layer. 
 	// if the prev layer is nullptr, it represents the input data.
-	std::cout << "Layer: " << layer_name_ << std::endl;
+	//std::cout << "Layer: " << layer_name_ << std::endl;
 	std::vector< std::reference_wrapper< Alps::LayerTensors< double, D > > > attached_layers;
 	for ( auto layer : prev_layer_ )
 	  {
@@ -202,7 +202,7 @@ namespace Alps
 	    if ( layer.second )
 	      {
 		name = layer.first;
-		std::cout << "Connected to: " << name << std::endl;
+		//std::cout << "Connected to: " << name << std::endl;
 	      }
 	    else
 	      std::cout << "Connected to: " << name << std::endl;
@@ -281,7 +281,7 @@ namespace Alps
 	//
 	// Down to subject
 	std::shared_ptr< Alps::Subject< D > > subject = std::dynamic_pointer_cast< Alps::Subject< D > >(Sub);
-	std::cout << "Layer backwards: " << layer_name_ << std::endl;
+	//std::cout << "Layer backwards: " << layer_name_ << std::endl;
 	// get the activation tuple
 	auto image_tensors = subject->get_layer( layer_name_ );
 	
@@ -298,7 +298,7 @@ namespace Alps
 	    {
 	      //
 	      std::string name = layer_weights.first;
-	      std::cout << "weights of layer: " << name << std::endl;
+	      //std::cout << "weights of layer: " << name << std::endl;
 	      weights_[k].weighted_error( subject->get_layer( name ),
 					  image_tensors );
 	    }
@@ -334,8 +334,7 @@ namespace Alps
 	//
 	// Down to subject
 	std::shared_ptr< Alps::Subject< D > > subject = std::dynamic_pointer_cast< Alps::Subject< D > >(Sub);
-	std::cout
-	  << "forcing the weight update: " << layer_name_ << std::endl;
+	//std::cout << "forcing the weight update: " << layer_name_ << std::endl;
 
 	////////////////////////
 	// Update the weights //

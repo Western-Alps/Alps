@@ -111,7 +111,7 @@ namespace Alps
       // Functions
       //
       // activation function
-      virtual Type f( const Type X ){return 1. / (1. + exp(-X) );};
+      virtual Type f( const Type X ){return 1. / (1. + exp(-X) ) + 1.e-10;};
       // activation function derivative
       virtual Type df( const Type X ){return f(X) * (1. - f(X));};
 
@@ -149,7 +149,7 @@ namespace Alps
       // Functions
       //
       // activation function
-      virtual Type f( const Type X ){return ( X > 0 ? X : 0.);};
+      virtual Type f( const Type X ){return ( X > 0 ? X : 0.) + 1.e-10;};
       // activation function derivative
       virtual Type df( const Type X ){return ( X > 0 ? 1. : 0.);};
 

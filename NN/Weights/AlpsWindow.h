@@ -22,6 +22,8 @@
 //
 #include <iostream>
 #include <bits/stdc++.h>
+#include <algorithm>    // std::transform
+#include <functional>   // std::plus
 // Eigen
 #include <Eigen/Core>
 #include <Eigen/Eigen>
@@ -87,7 +89,8 @@ namespace Alps
       //! Set array with the values of the weights
       void                                                set_convolution_weight_values( const int Kernel,
 											 std::vector< Type > W )
-      { weight_values_[Kernel] = W;};
+      { std::transform( weight_values_[Kernel].begin(), weight_values_[Kernel].end(),
+			W.begin(), weight_values_[Kernel].begin(), std::plus< Type >());};
       //! Set if the window is used as transposed of not
       void                                                set_transpose( const bool Transpose )
       { transposed_ = Transpose;};
@@ -130,6 +133,8 @@ namespace Alps
 
       //! Member representing the number of kernel
       int                                          k_;
+      //! Member representing the number or weights and the bias in one window
+      int                                          number_weights_{1};
       //! Member representing half convolution window size.
       std::vector< long int >                      w_;
       //! Member for the padding.
@@ -206,46 +211,26 @@ namespace Alps
 	//
 	// resize to the number of kernel requiered
 	weight_values_.resize( Num_kernel );
-	long int number_weights = 1;
 	// size of the kernel
 	for ( int d = 0 ; d < D ; d++ )
-	  number_weights *= 2 * Window[d] + 1;
+	  number_weights_ *= 2 * Window[d] + 1;
 	// add the bias
-	number_weights += 1;
-	//
-	// set the kernel values 
-	std::default_random_engine          generator;
-	std::uniform_real_distribution< T > distribution( -1.0, 1.0 );
-	// feel up the arrays
-	for ( int k = 0 ; k < Num_kernel ; k++ )
-	  {
-	    weight_values_[k] = std::vector< T >( number_weights, 0. );
-	    //
-	    for ( int w = 0 ; w < number_weights ; w++ )
-	      {
-		weight_values_[k][w] = distribution( generator );
-//		//
-//		std::cout << "weight_values_[kernel: "
-//			  <<k<< "].get()[weight: "
-//			  <<w<<"] = "
-//			  << weight_values_[k][w]
-//			  << std::endl;
-	      }
-	  }
+	number_weights_ += 1;
+
 
 	////////////////////////////////
 	// Build the derivated values //
 	////////////////////////////////
 	//
-	derivated_weight_values_.resize( number_weights );
-	for ( int w = 1 ; w < number_weights ; w++ )
+	derivated_weight_values_.resize( number_weights_ );
+	for ( int w = 1 ; w < number_weights_ ; w++ )
 	  {
-	    derivated_weight_values_[w] = std::vector< T >( number_weights, 0. );
+	    derivated_weight_values_[w] = std::vector< T >( number_weights_, 0. );
 	    // ToDo: there is something weird here!
 	    derivated_weight_values_[w][w] = 1.;
 	  }
 	// The bias
-	derivated_weight_values_[0] = std::vector< T >( number_weights, 0. );
+	derivated_weight_values_[0] = std::vector< T >( number_weights_, 0. );
       }
     catch( itk::ExceptionObject & err )
       {
@@ -292,6 +277,31 @@ namespace Alps
 	weights_matrix_.resize( rows, cols );
 
 	
+	///////////////////////
+	// Build the kernels //
+	///////////////////////
+	//
+	// set the kernel values
+	double                              limit = std::sqrt( 6. / (rows+cols) );
+	std::default_random_engine          generator;
+	std::uniform_real_distribution< T > distribution( -limit, limit );
+	// feel up the arrays
+	for ( int k = 0 ; k < k_ ; k++ )
+	  {
+	    weight_values_[k] = std::vector< T >( number_weights_, 0. );
+	    // we live the bias at zero
+	    for ( int w = 1 ; w < number_weights_ ; w++ )
+	      {
+		weight_values_[k][w] = distribution( generator );
+//		//
+//		std::cout << "weight_values_[kernel: "
+//			  <<k<< "].get()[weight: "
+//			  <<w<<"] = "
+//			  << weight_values_[k][w]
+//			  << std::endl;
+	      }
+	  }
+
 	////////////////////////////////
 	//                            //
 	// Mapping of the input image //
