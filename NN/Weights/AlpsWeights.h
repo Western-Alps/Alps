@@ -60,7 +60,7 @@ namespace Alps
   {
     //
     // Aliases
-    using LayerTensorsVec = std::vector< std::reference_wrapper< Alps::LayerTensors< Tensor1_Type, Dim > > >;
+    using LayerTensorsVec = std::vector< std::shared_ptr< Alps::LayerTensors< Tensor1_Type, Dim > > >;
     using ActivationVec   = std::array < std::vector< Tensor1_Type >, 2 >;
 
     

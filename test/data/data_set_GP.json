@@ -28,29 +28,22 @@
 	"masks_comment": "Do we want 1 mask in MNI, or one mask per subject in the native space.",
 	"masks": []
     },
-    "mountains":{
+    "mountain":{
+	"name":"Gran Paradiso",
 	"Gran_Paradiso_comment":"Gran Paradiso is a custumized classification algorithm.",
-	"Gran_Paradiso":{
-	    "inputs":["images","masks","labels"],
-	    "weights":"weights_Gran_Paradiso",
-	    "output":"/path/to/output.csv"
-	}
-    },
-    "network":{
-	"Information comment": "Global information of image dimension, ...",
-	"Image_dim" : 2,
-	"mountain": "Gran_Paradiso",
-	"layer_comment": "How many layers has the neural network?",
-	"layers": 3,
-	"neurons_per_layer_comment": "For each layer, how many neurons do we want?",
-	"neurons_per_layer":[-1,10,2],
-	"gradient":{
-	    "SGD":{
-		"Comment":"mini-batch = -1 (full batch), 1 (online)",
-		"mini_batch": 3,
-		"learning_rate": 0.1
-	    }
-	}
+	"IO":{
+            "inputs":["images","masks","image_targets"],
+            "output":"/path/to/output.csv",
+            "output_dir":"/mnt/production/devel/CPP/Alps/build/output/",
+            "weights":"weights_Mont_Maudit.nii.gz"
+	},
+        "strategy":{
+            "status":"train",
+            "learning_rate":0.00001,
+            "mini_batch":0,
+            "Comment":"During the training phase, every 10 epoques we want images to be dump.",
+            "dump_results":1
+        }
     },
     "GPU":{}
 }

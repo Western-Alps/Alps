@@ -122,21 +122,32 @@ target_link_libraries(testAlpsConvolutionWindow  ${gtest_LIB_DEPENDS}
   ${gmock_BINARY_DIR}/libgmock.a
   ${gmock_BINARY_DIR}/libgmock_main.a
   _Alps_utils ${ITK_LIBRARIES} )
+#
+# Deconvolution
+file( GLOB SRCS main.cxx testAlpsDeconvolutionWindow.h testAlpsDeconvolutionWindow.cpp )
+add_executable(testAlpsDeconvolutionWindow ${SRCS})
+target_link_libraries(testAlpsDeconvolutionWindow  ${gtest_LIB_DEPENDS}  
+  ${gmock_BINARY_DIR}/gtest/libgtest.a
+  ${gmock_BINARY_DIR}/gtest/libgtest_main.a
+  ${gmock_BINARY_DIR}/libgmock.a
+  ${gmock_BINARY_DIR}/libgmock_main.a
+  _Alps_utils ${ITK_LIBRARIES} )
 
 
 #
 # Tests
-add_test( NAME testITKFunctions          COMMAND testITKFunctions           WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testITKFunctions            COMMAND testITKFunctions             WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
 #								            
-add_test( NAME testAlpsActivation        COMMAND testAlpsActivation         WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsCostFunction      COMMAND testAlpsCostFunction       WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsSGD               COMMAND testAlpsSGD                WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsCVKFolds          COMMAND testAlpsCVKFolds           WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsFullSamples       COMMAND testAlpsFullSamples        WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsLoadDataSet       COMMAND testAlpsLoadDataSet        WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsSubject           COMMAND testAlpsSubject            WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsSubjects          COMMAND testAlpsSubjects           WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsImage             COMMAND testAlpsImage              WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsLayerTensors      COMMAND testAlpsLayerTensors       WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-#add_test( NAME testAlpsWeightsFclCPU     COMMAND testAlpsWeightsFclCPU      WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
-add_test( NAME testAlpsConvolutionWindow COMMAND testAlpsConvolutionWindow  WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsActivation          COMMAND testAlpsActivation           WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsCostFunction        COMMAND testAlpsCostFunction         WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsSGD                 COMMAND testAlpsSGD                  WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsCVKFolds            COMMAND testAlpsCVKFolds             WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsFullSamples         COMMAND testAlpsFullSamples          WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsLoadDataSet         COMMAND testAlpsLoadDataSet          WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsSubject             COMMAND testAlpsSubject              WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsSubjects            COMMAND testAlpsSubjects             WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsImage               COMMAND testAlpsImage                WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsLayerTensors        COMMAND testAlpsLayerTensors         WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+#add_test( NAME testAlpsWeightsFclCPU      COMMAND testAlpsWeightsFclCPU        WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsConvolutionWindow   COMMAND testAlpsConvolutionWindow    WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )
+add_test( NAME testAlpsDeconvolutionWindow COMMAND testAlpsDeconvolutionWindow  WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test/data )

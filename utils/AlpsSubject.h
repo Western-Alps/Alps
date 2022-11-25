@@ -92,7 +92,7 @@ namespace Alps
     // Return the size of the layers
     std::vector<std::size_t>                          get_layer_size( const std::string );
     // Get layer modality z
-    std::vector< std::reference_wrapper< Alps::LayerTensors< double, Dim > > >& get_layer( const std::string );
+    std::vector< std::shared_ptr< Alps::LayerTensors< double, Dim > > >& get_layer( const std::string );
     // set images energy for the epoque
     void                                              set_energy( const double E ) 
     { energy_.push_back(E);};
@@ -143,6 +143,9 @@ namespace Alps
     // Vector of modalities 
     std::map< std::string,
 	      std::vector< Alps::LayerTensors< double, Dim > > > layer_modalities_;
+    // Vector of modalities 
+    std::map< std::string,
+	      std::vector< std::shared_ptr< Alps::LayerTensors< double, Dim > > > > layer_modalities_ptr_;
     // Vector of modalities references
     std::map< std::string,
 	      std::vector< std::reference_wrapper< Alps::LayerTensors< double, Dim > > > > layer_modalities_ref_;
@@ -169,6 +172,7 @@ namespace Alps
     subject_number_{SubNumber}, number_modalities_{NumModalities}
   {
     layer_modalities_["__input_layer__"] = std::vector< Alps::LayerTensors< double, D > >();
+    layer_modalities_ptr_["__input_layer__"] = std::vector< std::shared_ptr< Alps::LayerTensors< double, D > > >();
     //
     output_directory_ = Alps::LoadDataSet::instance()->get_data()["mountain"]["IO"]["output_dir"];
   }
@@ -205,6 +209,8 @@ namespace Alps
 	    //
 	    layer_modalities_["__output_layer__"][m].get_image( Alps::TensorOrder1::ACTIVATION ).visualization( out_name,
 														img_ptr );
+	    layer_modalities_ptr_["__output_layer__"][m]->get_image( Alps::TensorOrder1::ACTIVATION ).visualization( out_name,
+														     img_ptr );
 	  }
       }
     catch( itk::ExceptionObject & err )
@@ -225,6 +231,7 @@ namespace Alps
 	    //
 	    // Load the modalities into the container
 	    layer_modalities_["__input_layer__"].push_back( Alps::LayerTensors< double, D >(Modality) );
+	    layer_modalities_ptr_["__input_layer__"].push_back( std::make_shared< Alps::LayerTensors< double, D > >(Modality) );
 	    modalities_.push_back( Alps::LayerTensors< double, D >(Modality) );
 	    //
 	    // Create the output modality
@@ -296,7 +303,7 @@ namespace Alps
   //
   //
   //
-  template< int D > std::vector< std::reference_wrapper< Alps::LayerTensors< double, D > > >&
+  template< int D > std::vector< std::shared_ptr< Alps::LayerTensors< double, D > > >&
   Alps::Subject< D >::get_layer( const std::string Layer_name ) 
   {
     //
@@ -360,7 +367,7 @@ namespace Alps
     
     //
     //
-    return layer_modalities_ref_[Layer_name];
+    return layer_modalities_ptr_[Layer_name];
   }
   //
   //
@@ -381,10 +388,17 @@ namespace Alps
 	    layer_modalities_[ Layer_name ] = std::vector< Alps::LayerTensors< double, D > >();
 	    layer_modalities_[ Layer_name ].push_back( Alps::LayerTensors< double, D >(Layer_size,
 										       Tensors_activation) );
+	    layer_modalities_ptr_[ Layer_name ] = std::vector< std::shared_ptr< Alps::LayerTensors< double, D > > >();
+	    layer_modalities_ptr_[ Layer_name ].push_back( std::make_shared< Alps::LayerTensors< double, D > >(Layer_size,
+													       Tensors_activation) );
 	  }
 	else
-	  layer_modalities_[ Layer_name ][0].replace( Layer_size,
-						      Tensors_activation );
+	  {
+	    layer_modalities_[ Layer_name ][0].replace( Layer_size,
+							Tensors_activation );
+	    layer_modalities_ptr_[ Layer_name ][0]->replace( Layer_size,
+							     Tensors_activation );
+	  }
       }
     catch( itk::ExceptionObject & err )
       {
@@ -411,6 +425,9 @@ namespace Alps
 	    layer_modalities_[ Layer_name ] = std::vector< Alps::LayerTensors< double, D > >();
 	    layer_modalities_[ Layer_name ].push_back( Alps::LayerTensors< double, D >(Layer_size,
 										       Tensors_activation) );
+	    layer_modalities_ptr_[ Layer_name ] = std::vector< std::shared_ptr< Alps::LayerTensors< double, D > > >();
+	    layer_modalities_ptr_[ Layer_name ].push_back( std::make_shared< Alps::LayerTensors< double, D > >(Layer_size,
+													   Tensors_activation) );
 	  }
 	else
 	  {
@@ -418,6 +435,8 @@ namespace Alps
 	      {
 		layer_modalities_[ Layer_name ].push_back( Alps::LayerTensors< double, D >(Layer_size,
 											   Tensors_activation) );
+		layer_modalities_ptr_[ Layer_name ].push_back( std::make_shared< Alps::LayerTensors< double, D > >(Layer_size,
+														   Tensors_activation) );
 		//
 		if ( layer_modalities_[ Layer_name ].size() != static_cast< std::size_t >(Kernel + 1) )
 		  {
@@ -428,8 +447,12 @@ namespace Alps
 		  }
 	      }
 	    else
-	      layer_modalities_[ Layer_name ][Kernel].replace( Layer_size,
-							       Tensors_activation );
+	      {
+		layer_modalities_[ Layer_name ][Kernel].replace( Layer_size,
+								 Tensors_activation );
+		layer_modalities_ptr_[ Layer_name ][Kernel]->replace( Layer_size,
+								      Tensors_activation );
+	      }
 	  }
       }
     catch( itk::ExceptionObject & err )
@@ -568,6 +591,8 @@ namespace Alps
 	    layer_size.push_back(size);
 	    layer_modalities_[name].push_back( Alps::LayerTensors< double, D >(layer_size,
 									       {z, dz, error, werr}) );
+	    layer_modalities_ptr_[name].push_back( std::make_shared< Alps::LayerTensors< double, D > >(layer_size,
+												       {z, dz, error, werr}) );
 	  }
 	else
 	  {

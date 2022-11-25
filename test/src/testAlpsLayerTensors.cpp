@@ -27,7 +27,7 @@ void LayerTensorsTest::TearDown() {};
 TEST_F(LayerTensorsTest, ByDefaultLayerTensorsZero) {
   //
   // Constructor of a subject
-  Alps::LayerTensors< double, 2 > Subj("../test/images/MNITS/000000-num5.png");
+  Alps::LayerTensors< double, 2 > Subj("../images/MNITS/000000-num5.png");
   //
   //
   EXPECT_EQ( 0, 0) ;
@@ -36,16 +36,17 @@ TEST_F(LayerTensorsTest, ByDefaultLayerTensorsZero) {
 TEST_F(LayerTensorsTest, ByDefaultLayerTensorsOperator) {
   //
   //
-  Alps::LayerTensors< double, 2 > Subj("../test/images/MNITS/000000-num5.png");
+  Alps::LayerTensors< double, 2 > Subj("../images/MNITS/000000-num5.png");
   //
   //
-	 EXPECT_EQ( Subj[Alps::TensorOrder1::ACTIVATION][206], 253 );
+  //std::cout << "Subj[Alps::TensorOrder1::ACTIVATION][206] " << Subj[Alps::TensorOrder1::ACTIVATION][206] << std::endl;
+  EXPECT_NEAR( Subj[Alps::TensorOrder1::ACTIVATION][206], 0.992, 1.e-3 );
 }
 // operator[]
 TEST_F(LayerTensorsTest, ByDefaultLayerTensorsImage) {
   //
   //
-  Alps::LayerTensors< double, 2 > Subj("../test/images/MNITS/000000-num5.png");
+  Alps::LayerTensors< double, 2 > Subj("../images/MNITS/000000-num5.png");
   //
   std::cout << "Region: \n" << Subj.get_image( Alps::TensorOrder1::ACTIVATION ).get_image_region() << std::endl;
   std::cout << "Start: \n" << Subj.get_image( Alps::TensorOrder1::ACTIVATION ).get_image_start() << std::endl;
@@ -53,7 +54,7 @@ TEST_F(LayerTensorsTest, ByDefaultLayerTensorsImage) {
   
   //
   //
-	 EXPECT_EQ( Subj[Alps::TensorOrder1::ACTIVATION][206], 253 );
+  EXPECT_NEAR( Subj[Alps::TensorOrder1::ACTIVATION][206], 0.992, 1.e-3 );
 }
 // operator() -- hadamard
 TEST_F(LayerTensorsTest, ByDefaultLayerTensorsHadamard) {

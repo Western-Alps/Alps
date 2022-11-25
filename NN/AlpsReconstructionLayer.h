@@ -195,7 +195,7 @@ namespace Alps
 	// We get features or inputs from previous layers attached to this layer. 
 	// if the prev layer is nullptr, it represents the input data.
 	//std::cout << "Layer: " << layer_name_ << std::endl;
-	std::vector< std::reference_wrapper< Alps::LayerTensors< double, D > > > attached_layers;
+	std::vector< std::shared_ptr< Alps::LayerTensors< double, D > > > attached_layers;
 	for ( auto layer : prev_layer_ )
 	  {
 	    std::string name = "__input_layer__";
@@ -213,10 +213,10 @@ namespace Alps
 	//
 	// Make sure the features have the same image dimensions.
 	std::size_t tot_features = attached_layers.size();
-	std::size_t layer_size   = (attached_layers[0].get()).get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
+	std::size_t layer_size   = ( *(attached_layers[0].get()) ).get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0];
 	//
 	for ( std::size_t feature = 1 ; feature < tot_features ; feature++ )
-	  if ( layer_size != (attached_layers[feature].get()).get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0] )
+	  if ( layer_size != ( *(attached_layers[feature].get()) ).get_image(TensorOrder1::ACTIVATION).get_tensor_size()[0] )
 	    throw MAC::MACException( __FILE__, __LINE__,
 				     "All attached layers must have the same dimensions for the output features.",
 				     ITK_LOCATION );
@@ -227,8 +227,10 @@ namespace Alps
 	/////////////////
 	//
 	// Check the weights were created
+	mtx_.lock();
 	if ( !weights_ )
 	  weights_ = std::make_shared< W >( *this );
+	mtx_.unlock();
 	//
 	// Get the activation tuple (<0> - activation; <1> - derivative; <2> - error; <3> - weighted error))
 	auto tuple = weights_->activate( attached_layers );
@@ -335,7 +337,7 @@ namespace Alps
 	for( double& cumul : cumulated_error_ ) 
 	  cumul /= static_cast< double >( number_images_ );
 	// Attached the averaged errors to the last subject
-	(image_tensors[0].get())[TensorOrder1::ERROR] = std::move( cumulated_error_ );
+	( *(image_tensors[0].get()) )[TensorOrder1::ERROR] = std::move( cumulated_error_ );
 	// Then reset the layer elements
 	cumulated_error_.clear();
 	number_images_ = 0;

@@ -27,9 +27,11 @@
 //
 //
 #include "MACException.h"
+#include "AlpsLayer.h"
 #include "AlpsSubjects.h"
 #include "AlpsValidation.h"
 #include "AlpsLoadDataSet.h"
+#include "AlpsThreadDispatching.h"
 //
 //
 //
@@ -137,6 +139,10 @@ namespace Alps
 	      // Forward process //
 	      /////////////////////
 	      //
+	      // Sart the pool of threads
+	      {
+		Alps::ThreadDispatching pool( 8 );
+	      //
 	      // The end of the forward process, each image generate a cost (error for each image)
 	      // The notify does the work for that.
 	      for ( int sub : fold_subjects )
@@ -147,8 +153,12 @@ namespace Alps
 		    << std::endl;
 		  // Get the observed Mountain from subjects
 		  // Then foward across the neural network. The last layer estimate the cost function
-		  std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->forward( (subjects_[0].get_subjects())[sub] );
+		  //std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->forward( (subjects_[0].get_subjects())[sub] );
+		  pool.enqueue( &Alps::Layer::forward,
+				std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() ),
+				(subjects_[0].get_subjects())[sub] );
 		}
+	      }
 
 	      
 	      //////////////////////

@@ -5,6 +5,8 @@
 //
 #include <iostream>
 #include <vector>
+#include <mutex>
+static std::mutex mtx_;
 //
 #include "MACException.h"
 #include "AlpsClimber.h"

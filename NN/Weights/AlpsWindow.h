@@ -24,6 +24,7 @@
 #include <bits/stdc++.h>
 #include <algorithm>    // std::transform
 #include <functional>   // std::plus
+#include <math.h>
 // Eigen
 #include <Eigen/Core>
 #include <Eigen/Eigen>
@@ -83,22 +84,25 @@ namespace Alps
       const std::vector< std::vector< Type > >&          get_derivated_weight_values() const
       { return derivated_weight_values_;};
       //! load image information
-      void                                                get_image_information( const typename ImageType< Dim >::RegionType );
+      void                                               get_image_information( const typename ImageType< Dim >::RegionType );
       //
       //
       //! Set array with the values of the weights
-      void                                                set_convolution_weight_values( const int Kernel,
-											 std::vector< Type > W )
+      void                                               set_convolution_weight_values( const int Kernel,
+											std::vector< Type > W )
       { std::transform( weight_values_[Kernel].begin(), weight_values_[Kernel].end(),
 			W.begin(), weight_values_[Kernel].begin(), std::plus< Type >());};
       //! Set if the window is used as transposed of not
-      void                                                set_transpose( const bool Transpose )
+      void                                               set_transpose( const bool Transpose )
       { transposed_ = Transpose;};
+      //! Set if the window is used as transposed of not
+      const bool                                         get_transpose() const
+      { return transposed_;};
 
 
       //
       // Functions
-      const bool                                           initialized() const
+      const bool                                         initialized() const
       { return (weights_matrix_.nonZeros() == 0 ? false : true );};
 
 
@@ -253,26 +257,81 @@ namespace Alps
 	  rows = 1,
 	  cols = 1 ;
 	for ( long int d = 0 ; d < D ; d++ )
-	  {
-	    // record the input dimensions
-	    n_in_[d] = size[d];
-	    // creates the output dimensions
-	    if ( static_cast<long int>(size[d]) > 2 * (w_[d] - p_[d]) )
-	      n_out_[d] = ( static_cast< std::size_t >(size[d]) - 2 * (w_[d] - p_[d]) ) / s_[d];
+	  if ( transposed_ )
+	    {
+	      // record the output dimensions
+	      n_out_[d] = size[d];
+	      // creates the input dimensions
+	      n_in_[d] = static_cast< std::size_t >( floor(size[d] * s_[d] + 2 * (w_[d] - p_[d])) );
+	      if ( static_cast<long int>(n_in_[d]) <= 2 * (w_[d] - p_[d]) )
+		{
+		  std::cout << "size[" << d <<"] = " << size[d] << std::endl;
+		  std::cout << "w_[d] = " << w_[d] << std::endl;
+		  std::cout << "p_[d] = " << p_[d] << std::endl;
+		  std::cout << "2 * (w_[d] - p_[d]) = " << 2 * (w_[d] - p_[d]) << std::endl;
+		  throw MAC::MACException( __FILE__, __LINE__,
+					   "The window dimensions exceed the input image size.",
+					   ITK_LOCATION );
+		}
+	      //
+	      rows *= n_out_[d];
+	      cols *= n_in_[d];
+	    }
+	  else
+	    {
+	      // record the input dimensions
+	      n_in_[d] = size[d];
+	      // creates the output dimensions
+	      if ( static_cast<long int>(size[d]) > 2 * (w_[d] - p_[d]) )
+		n_out_[d] = static_cast< std::size_t >( ceil((size[d] - 2 * (w_[d] - p_[d])) / s_[d]) );
+	      else
+		{
+		  std::cout << "size[" << d <<"] = " << size[d] << std::endl;
+		  std::cout << "w_[d] = " << w_[d] << std::endl;
+		  std::cout << "p_[d] = " << p_[d] << std::endl;
+		  std::cout << "2 * (w_[d] - p_[d]) = " << 2 * (w_[d] - p_[d]) << std::endl;
+		  throw MAC::MACException( __FILE__, __LINE__,
+					   "The window dimensions exceed the input image size.",
+					   ITK_LOCATION );
+		}
+	      //
+	      rows *= n_out_[d];
+	      cols *= n_in_[d];
+	    }
+	    
+	//
+	// Information on the convolution matrix
+	{
+	  //
+	  // Input and output images
+	  std::string
+	    size_in_str = "[ ",
+	    size_out_str = "[ ",
+	    Conv_matrix_str = " The dimension of the convolution matrix is [";
+	  //
+	  for ( long int d = 0 ; d < D ; d++ )
+	    if ( transposed_ )
+	      {
+		size_in_str  += std::to_string( n_out_[d]  ) + " ";
+		size_out_str += std::to_string( n_in_[d] ) + " ";
+	      }
 	    else
 	      {
-		std::cout << "size[" << d <<"] = " << size[d] << std::endl;
-		std::cout << "w_[d] = " << w_[d] << std::endl;
-		std::cout << "p_[d] = " << p_[d] << std::endl;
-		std::cout << "2 * (w_[d] - p_[d]) = " << 2 * (w_[d] - p_[d]) << std::endl;
-		throw MAC::MACException( __FILE__, __LINE__,
-					 "The window dimensions exceed the input image size.",
-					 ITK_LOCATION );
+		size_in_str  += std::to_string( n_in_[d]  ) + " ";
+		size_out_str += std::to_string( n_out_[d] ) + " ";
 	      }
-	    //
-	    rows *= n_out_[d];
-	    cols *= n_in_[d];
- 	  }
+	  //
+	  size_in_str  += "]";
+	  size_out_str += "]";
+	  //
+	  //
+	  std::string mess = "The dimension of the input image is: " + size_in_str + ".";
+	  //
+	  mess += " The dimention of the output image is: " + size_out_str + ".";
+	  mess += Conv_matrix_str + std::to_string(rows) + "x" + std::to_string(cols) + "].";
+	  //
+	  std::cout << mess << std::endl;
+	}
 	//
 	weights_matrix_.resize( rows, cols );
 
@@ -330,7 +389,7 @@ namespace Alps
 	  case 1:
 	    {
 	      int row = 0;
-	      for ( long int x0 = (w_[0] - p_[0]) ; x0 < static_cast< long int >(size[0]) - (w_[0] - p_[0]) ; x0 = x0 + s_[0] )
+	      for ( long int x0 = (w_[0] - p_[0]) ; x0 < static_cast< long int >(n_in_[0]) - (w_[0] - p_[0]) ; x0 = x0 + s_[0] )
 		{
 		  //
 		  // window
@@ -344,11 +403,13 @@ namespace Alps
 		      // we check the position are in the image
 		      pos_x0 = x0 + w0;
 		      if ( pos_x0 >= 0 &&
-			   pos_x0 < static_cast< long int >(size[0]) )
+			   pos_x0 < static_cast< long int >(n_in_[0]) )
 			{
 			  idx = (x0 + w0);
 			  weights_matrix_.insert( row, idx ) = widx++;
 			}
+		      else
+			widx++;
 		    }
 		  //
 		  row++;
@@ -359,8 +420,8 @@ namespace Alps
 	  case 2:
 	    {
 	      int row = 0;
-	      for ( long int x1 = (w_[1] - p_[1]) ; x1 < static_cast< long int >(size[1]) - (w_[1] - p_[1]) ; x1 = x1 + s_[1] )
-		for ( long int x0 = (w_[0] - p_[0]) ; x0 < static_cast< long int >(size[0]) - (w_[0] - p_[0]) ; x0 = x0 + s_[0] )
+	      for ( long int x1 = (w_[1] - p_[1]) ; x1 < static_cast< long int >(n_in_[1]) - (w_[1] - p_[1]) ; x1 = x1 + s_[1] )
+		for ( long int x0 = (w_[0] - p_[0]) ; x0 < static_cast< long int >(n_in_[0]) - (w_[0] - p_[0]) ; x0 = x0 + s_[0] )
 		  {
 		    //
 		    // window
@@ -376,12 +437,14 @@ namespace Alps
 			  pos_x0 = x0 + w0;
 			  pos_x1 = x1 + w1;
 			  if ( pos_x0 >= 0 && pos_x1 >= 0 &&
-			       pos_x0 < static_cast< long int >(size[0]) &&
-			       pos_x1 < static_cast< long int >(size[1]) )
+			       pos_x0 < static_cast< long int >(n_in_[0]) &&
+			       pos_x1 < static_cast< long int >(n_in_[1]) )
 			    {
-			      idx = (x0 + w0) + static_cast< long int >(size[0]) * (x1 + w1);
+			      idx = (x0 + w0) + static_cast< long int >(n_in_[0]) * (x1 + w1);
 			      weights_matrix_.insert( row, idx ) = widx++;
 			    }
+			  else
+			    widx++;
 			}
 		    //
 		    row++;
@@ -392,9 +455,9 @@ namespace Alps
 	  case 3:
 	    {
 	      int row = 0;
-	      for ( long int x2 = (w_[2] - p_[2]) ; x2 < static_cast< long int >(size[2]) - (w_[2] - p_[2]) ; x2 = x2 + s_[2] )
-		for ( long int x1 = (w_[1] - p_[1]) ; x1 < static_cast< long int >(size[1]) - (w_[1] - p_[1]) ; x1 = x1 + s_[1] )
-		  for ( long int x0 = (w_[0] - p_[0]) ; x0 < static_cast< long int >(size[0]) - (w_[0] - p_[0]) ; x0 = x0 + s_[0] )
+	      for ( long int x2 = (w_[2] - p_[2]) ; x2 < static_cast< long int >(n_in_[2]) - (w_[2] - p_[2]) ; x2 = x2 + s_[2] )
+		for ( long int x1 = (w_[1] - p_[1]) ; x1 < static_cast< long int >(n_in_[1]) - (w_[1] - p_[1]) ; x1 = x1 + s_[1] )
+		  for ( long int x0 = (w_[0] - p_[0]) ; x0 < static_cast< long int >(n_in_[0]) - (w_[0] - p_[0]) ; x0 = x0 + s_[0] )
 		    {
 		      //
 		      // window
@@ -412,13 +475,15 @@ namespace Alps
 			      pos_x1 = x1 + w1;
 			      pos_x2 = x2 + w2;
 			      if ( pos_x0 >= 0 && pos_x1 >= 0 && pos_x2 >= 0 &&
-				   pos_x0 < static_cast< long int >(size[0]) &&
-				   pos_x1 < static_cast< long int >(size[1]) &&
-				   pos_x2 < static_cast< long int >(size[2]) )
+				   pos_x0 < static_cast< long int >(n_in_[0]) &&
+				   pos_x1 < static_cast< long int >(n_in_[1]) &&
+				   pos_x2 < static_cast< long int >(n_in_[2]) )
 				{
-				  idx = (x0 + w0) + static_cast< long int >(size[0]) * (x1 + w1) + static_cast< long int >(size[0]) * static_cast< long int >(size[1]) * (x2 + w2);
+				  idx = (x0 + w0) + static_cast< long int >(n_in_[0]) * (x1 + w1) + static_cast< long int >(n_in_[0]) * static_cast< long int >(n_in_[1]) * (x2 + w2);
 				  weights_matrix_.insert( row, idx ) = widx++;
 				}
+			      else
+				widx++;
 			    }
 		      //
 		      row++;
@@ -429,10 +494,10 @@ namespace Alps
 	  case 4:
 	    {
 	      int row = 0;
-	      for ( long int x3 = (w_[3] - p_[3]) ; x3 < static_cast< long int >(size[3]) - (w_[3] - p_[3]) ; x3 = x3 + s_[3] )
-		for ( long int x2 = (w_[2] - p_[2]) ; x2 < static_cast< long int >(size[2]) - (w_[2] - p_[2]) ; x2 = x2 + s_[2] )
-		  for ( long int x1 = (w_[1] - p_[1]) ; x1 < static_cast< long int >(size[1]) - (w_[1] - p_[1]) ; x1 = x1 + s_[1] )
-		    for ( long int x0 = (w_[0] - p_[0]) ; x0 < static_cast< long int >(size[0]) - (w_[0] - p_[0]) ; x0 = x0 + s_[0] )
+	      for ( long int x3 = (w_[3] - p_[3]) ; x3 < static_cast< long int >(n_in_[3]) - (w_[3] - p_[3]) ; x3 = x3 + s_[3] )
+		for ( long int x2 = (w_[2] - p_[2]) ; x2 < static_cast< long int >(n_in_[2]) - (w_[2] - p_[2]) ; x2 = x2 + s_[2] )
+		  for ( long int x1 = (w_[1] - p_[1]) ; x1 < static_cast< long int >(n_in_[1]) - (w_[1] - p_[1]) ; x1 = x1 + s_[1] )
+		    for ( long int x0 = (w_[0] - p_[0]) ; x0 < static_cast< long int >(n_in_[0]) - (w_[0] - p_[0]) ; x0 = x0 + s_[0] )
 		      {
 			//
 			// window
@@ -453,15 +518,17 @@ namespace Alps
 				  pos_x3 = x3 + w3;
 				  if ( pos_x0 >= 0 && pos_x1 >= 0 && pos_x2 >= 0 &&
 				       pos_x3 >= 0 &&
-				       pos_x0 < static_cast< long int >(size[0]) &&
-				       pos_x1 < static_cast< long int >(size[1]) &&
-				       pos_x2 < static_cast< long int >(size[2]) &&
-				       pos_x3 < static_cast< long int >(size[3]) )
+				       pos_x0 < static_cast< long int >(n_in_[0]) &&
+				       pos_x1 < static_cast< long int >(n_in_[1]) &&
+				       pos_x2 < static_cast< long int >(n_in_[2]) &&
+				       pos_x3 < static_cast< long int >(n_in_[3]) )
 				    {
-				      idx  = (x0 + w0) + static_cast< long int >(size[0]) * (x1 + w1) + static_cast< long int >(size[0]) * static_cast< long int >(size[1]) * (x2 + w2);
-				      idx +=  static_cast< long int >(size[0]) * static_cast< long int >(size[1]) * static_cast< long int >(size[2]) * (x3 + w3);
+				      idx  = (x0 + w0) + static_cast< long int >(n_in_[0]) * (x1 + w1) + static_cast< long int >(n_in_[0]) * static_cast< long int >(n_in_[1]) * (x2 + w2);
+				      idx +=  static_cast< long int >(n_in_[0]) * static_cast< long int >(n_in_[1]) * static_cast< long int >(n_in_[2]) * (x3 + w3);
 				      weights_matrix_.insert( row, idx ) = widx++;
 				    }
+				  else
+				    widx++;
 				}
 			//
 			row++;
@@ -472,11 +539,11 @@ namespace Alps
 	  case 5:
 	    {
 	      int row = 0;
-	      for ( long int x4 = (w_[4] - p_[4]) ; x4 < static_cast< long int >(size[4]) - (w_[4] - p_[4]) ; x4 = x4 + s_[4] )
-		for ( long int x3 = (w_[3] - p_[3]) ; x3 < static_cast< long int >(size[3]) - (w_[3] - p_[3]) ; x3 = x3 + s_[3] )
-		  for ( long int x2 = (w_[2] - p_[2]) ; x2 < static_cast< long int >(size[2]) - (w_[2] - p_[2]) ; x2 = x2 + s_[2] )
-		    for ( long int x1 = (w_[1] - p_[1]) ; x1 < static_cast< long int >(size[1]) - (w_[1] - p_[1]) ; x1 = x1 + s_[1] )
-		      for ( long int x0 = (w_[0] - p_[0]) ; x0 < static_cast< long int >(size[0]) - (w_[0] - p_[0]) ; x0 = x0 + s_[0] )
+	      for ( long int x4 = (w_[4] - p_[4]) ; x4 < static_cast< long int >(n_in_[4]) - (w_[4] - p_[4]) ; x4 = x4 + s_[4] )
+		for ( long int x3 = (w_[3] - p_[3]) ; x3 < static_cast< long int >(n_in_[3]) - (w_[3] - p_[3]) ; x3 = x3 + s_[3] )
+		  for ( long int x2 = (w_[2] - p_[2]) ; x2 < static_cast< long int >(n_in_[2]) - (w_[2] - p_[2]) ; x2 = x2 + s_[2] )
+		    for ( long int x1 = (w_[1] - p_[1]) ; x1 < static_cast< long int >(n_in_[1]) - (w_[1] - p_[1]) ; x1 = x1 + s_[1] )
+		      for ( long int x0 = (w_[0] - p_[0]) ; x0 < static_cast< long int >(n_in_[0]) - (w_[0] - p_[0]) ; x0 = x0 + s_[0] )
 			{
 			  //
 			  // window
@@ -499,17 +566,19 @@ namespace Alps
 				      pos_x4 = x4 + w4;
 				      if ( pos_x0 >= 0 && pos_x1 >= 0 && pos_x2 >= 0 &&
 					   pos_x3 >= 0 && pos_x4 >= 0 &&
-					   pos_x0 < static_cast< long int >(size[0]) &&
-					   pos_x1 < static_cast< long int >(size[1]) &&
-					   pos_x2 < static_cast< long int >(size[2]) &&
-					   pos_x3 < static_cast< long int >(size[3]) &&
-					   pos_x4 < static_cast< long int >(size[4]) )
+					   pos_x0 < static_cast< long int >(n_in_[0]) &&
+					   pos_x1 < static_cast< long int >(n_in_[1]) &&
+					   pos_x2 < static_cast< long int >(n_in_[2]) &&
+					   pos_x3 < static_cast< long int >(n_in_[3]) &&
+					   pos_x4 < static_cast< long int >(n_in_[4]) )
 					{
-					  idx  = (x0 + w0) + static_cast< long int >(size[0]) * (x1 + w1) + static_cast< long int >(size[0]) * static_cast< long int >(size[1]) * (x2 + w2);
-					  idx +=  static_cast< long int >(size[0]) * static_cast< long int >(size[1]) * static_cast< long int >(size[2]) * (x3 + w3);
-					  idx +=  static_cast< long int >(size[0]) * static_cast< long int >(size[1]) * static_cast< long int >(size[2]) * static_cast< long int >(size[3]) * (x4 + w4);
+					  idx  = (x0 + w0) + static_cast< long int >(n_in_[0]) * (x1 + w1) + static_cast< long int >(n_in_[0]) * static_cast< long int >(n_in_[1]) * (x2 + w2);
+					  idx +=  static_cast< long int >(n_in_[0]) * static_cast< long int >(n_in_[1]) * static_cast< long int >(n_in_[2]) * (x3 + w3);
+					  idx +=  static_cast< long int >(n_in_[0]) * static_cast< long int >(n_in_[1]) * static_cast< long int >(n_in_[2]) * static_cast< long int >(n_in_[3]) * (x4 + w4);
 					  weights_matrix_.insert( row, idx ) = widx++;
 					}
+				      else
+					widx++;
 				    }
 			//
 			row++;
@@ -520,12 +589,12 @@ namespace Alps
 	  case 6:
 	    {
 	      int row = 0;
-	      for ( long int x5 = (w_[5] - p_[5]) ; x5 < static_cast< long int >(size[5]) - (w_[5] - p_[5]) ; x5 = x5 + s_[5] )
-		for ( long int x4 = (w_[4] - p_[4]) ; x4 < static_cast< long int >(size[4]) - (w_[4] - p_[4]) ; x4 = x4 + s_[4] )
-		  for ( long int x3 = (w_[3] - p_[3]) ; x3 < static_cast< long int >(size[3]) - (w_[3] - p_[3]) ; x3 = x3 + s_[3] )
-		    for ( long int x2 = (w_[2] - p_[2]) ; x2 < static_cast< long int >(size[2]) - (w_[2] - p_[2]) ; x2 = x2 + s_[2] )
-		      for ( long int x1 = (w_[1] - p_[1]) ; x1 < static_cast< long int >(size[1]) - (w_[1] - p_[1]) ; x1 = x1 + s_[1] )
-			for ( long int x0 = (w_[0] - p_[0]) ; x0 < static_cast< long int >(size[0]) - (w_[0] - p_[0]) ; x0 = x0 + s_[0] )
+	      for ( long int x5 = (w_[5] - p_[5]) ; x5 < static_cast< long int >(n_in_[5]) - (w_[5] - p_[5]) ; x5 = x5 + s_[5] )
+		for ( long int x4 = (w_[4] - p_[4]) ; x4 < static_cast< long int >(n_in_[4]) - (w_[4] - p_[4]) ; x4 = x4 + s_[4] )
+		  for ( long int x3 = (w_[3] - p_[3]) ; x3 < static_cast< long int >(n_in_[3]) - (w_[3] - p_[3]) ; x3 = x3 + s_[3] )
+		    for ( long int x2 = (w_[2] - p_[2]) ; x2 < static_cast< long int >(n_in_[2]) - (w_[2] - p_[2]) ; x2 = x2 + s_[2] )
+		      for ( long int x1 = (w_[1] - p_[1]) ; x1 < static_cast< long int >(n_in_[1]) - (w_[1] - p_[1]) ; x1 = x1 + s_[1] )
+			for ( long int x0 = (w_[0] - p_[0]) ; x0 < static_cast< long int >(n_in_[0]) - (w_[0] - p_[0]) ; x0 = x0 + s_[0] )
 			  {
 			    //
 			    // window
@@ -550,20 +619,22 @@ namespace Alps
 					  pos_x5 = x5 + w5;
 					  if ( pos_x0 >= 0 && pos_x1 >= 0 && pos_x2 >= 0 &&
 					       pos_x3 >= 0 && pos_x4 >= 0 && pos_x5 >= 0 &&
-					       pos_x0 < static_cast< long int >(size[0]) &&
-					       pos_x1 < static_cast< long int >(size[1]) &&
-					       pos_x2 < static_cast< long int >(size[2]) &&
-					       pos_x3 < static_cast< long int >(size[3]) &&
-					       pos_x4 < static_cast< long int >(size[4]) &&
-					       pos_x5 < static_cast< long int >(size[5]) )
+					       pos_x0 < static_cast< long int >(n_in_[0]) &&
+					       pos_x1 < static_cast< long int >(n_in_[1]) &&
+					       pos_x2 < static_cast< long int >(n_in_[2]) &&
+					       pos_x3 < static_cast< long int >(n_in_[3]) &&
+					       pos_x4 < static_cast< long int >(n_in_[4]) &&
+					       pos_x5 < static_cast< long int >(n_in_[5]) )
 					    {
-					      idx  = (x0 + w0) + static_cast< long int >(size[0]) * (x1 + w1) + static_cast< long int >(size[0]) * static_cast< long int >(size[1]) * (x2 + w2);
-					      idx +=  static_cast< long int >(size[0]) * static_cast< long int >(size[1]) * static_cast< long int >(size[2]) * (x3 + w3);
-					      idx +=  static_cast< long int >(size[0]) * static_cast< long int >(size[1]) * static_cast< long int >(size[2]) * static_cast< long int >(size[3]) * (x4 + w4);
-					      idx +=  static_cast< long int >(size[0]) * static_cast< long int >(size[1]) * static_cast< long int >(size[2]) * static_cast< long int >(size[3]) *
-						static_cast< long int >(size[4]) * (x5 + w5);
+					      idx  = (x0 + w0) + static_cast< long int >(n_in_[0]) * (x1 + w1) + static_cast< long int >(n_in_[0]) * static_cast< long int >(n_in_[1]) * (x2 + w2);
+					      idx +=  static_cast< long int >(n_in_[0]) * static_cast< long int >(n_in_[1]) * static_cast< long int >(n_in_[2]) * (x3 + w3);
+					      idx +=  static_cast< long int >(n_in_[0]) * static_cast< long int >(n_in_[1]) * static_cast< long int >(n_in_[2]) * static_cast< long int >(n_in_[3]) * (x4 + w4);
+					      idx +=  static_cast< long int >(n_in_[0]) * static_cast< long int >(n_in_[1]) * static_cast< long int >(n_in_[2]) * static_cast< long int >(n_in_[3]) *
+						static_cast< long int >(n_in_[4]) * (x5 + w5);
 					      weights_matrix_.insert( row, idx ) = widx++;
 					    }
+					  else
+					    widx++;
 					}
 			    //
 			    row++;

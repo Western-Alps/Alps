@@ -19,12 +19,12 @@ namespace MAC
     itkTypeMacro(ImageFileReaderException, ExceptionObject);
     /** Constructor. */
   MACException( const char *file, unsigned int line,
-		const char *message = "Error in Bmle",
+		const char *message = "Error in Alps",
 		const char *loc = "Unknown" ):
     ExceptionObject( file, line, message, loc ){}
     /** Constructor. */
   MACException( const std::string & file, unsigned int line,
-		const char *message = "Error in Bmle",
+		const char *message = "Error in Alps",
 		const char *loc = "Unknown" ):
     ExceptionObject( file, line, message, loc ){}
     /** Has to have empty throw(). */

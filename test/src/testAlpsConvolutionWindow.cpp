@@ -107,134 +107,137 @@ TEST_F(ConvolutionWindowTest, ByDefaultConvolution) {
   
   //
   //
-  EXPECT_EQ( image_out(0,0), 121. );
+  EXPECT_NEAR( image_out(0,0), 13.4286, 1.e-03 );
 }
 //
 //
 //
-TEST_F(ConvolutionWindowTest, ByDefaultDeconvolution) {
+TEST_F(ConvolutionWindowTest, ByDefaultConvolutionPadding) {
   //
   // Load the image
   Alps::LayerTensors< double, 2 > Subj("SimpleConvolution.nii.gz");
   // Create the kenel
   Alps::Window< double, 2 > window_1( /* number of kernels */{3}, 
 				      /* half window size */ {1,1},
-				      /* padding */          {0,0},
+				      /* padding */          {1,1},
 				      /* striding */         {1,1});
   //
   window_1.get_image_information( Subj.get_image( Alps::TensorOrder1::ACTIVATION ).get_image_region() );
   //
   Eigen::SparseMatrix< int, Eigen::RowMajor > matrix = window_1.get_weights_matrix();
   std::cout << matrix << std::endl;
-  // std::cout << matrix.innerSize() << std::endl;
-  // The image load
-  Eigen::Matrix< double,  4, 1 > image_out     = Eigen::MatrixXd::Zero(  4, 1 );
-  Eigen::Matrix< double, 16, 1 > deconvolution = Eigen::MatrixXd::Zero( 16, 1 );
-  Eigen::Matrix< double, 16, 1 > image_in      = Eigen::MatrixXd::Zero( 16, 1 );
-  for ( int i = 0 ; i < 16 ; i++ )
-    {
-      std::cout << "in(" << i << ") = " << Subj[Alps::TensorOrder1::ACTIVATION][i] << std::endl;
-      image_in( i, 0 ) = Subj[Alps::TensorOrder1::ACTIVATION][i];
-    }
-  // create artificial weights
-  std::shared_ptr< double > weight_val  = std::shared_ptr< double >( new  double[10],
-								     std::default_delete< double[] >() );
-  weight_val.get()[0] = -1.; // bias whatever value
-  weight_val.get()[1] = 1.;
-  weight_val.get()[2] = 4.;
-  weight_val.get()[3] = 1.;
-  weight_val.get()[4] = 1.;
-  weight_val.get()[5] = 4.;
-  weight_val.get()[6] = 3.;
-  weight_val.get()[7] = 3.;
-  weight_val.get()[8] = 3.;
-  weight_val.get()[9] = 1.;
-  //
-  // Sparse matrix: It does not evaluate the "0". This is the reason why we can store the bias at the position
-  // [0] of the weights
-  std::cout <<" matrix.outerSize() = " << matrix.outerSize() << std::endl;
-  for (int k = 0 ; k < matrix.outerSize() ; ++k )
-    {
-      for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix, k); it; ++it)
-	{
-	  image_out( k, 0 ) += weight_val.get()[ static_cast< int >(it.value()) ] * image_in( it.index() );
-	  std::cout
-	    << "value (" << it.value() << ") in ["
-	    << it.row() << "," << it.col() << "] index: "
-	    << it.index() << " and k: " << k << std::endl; // inner index, here it is equal to it.row()
-	}
-      // add the bias
-      image_out( k, 0 ) += weight_val.get()[0];
-    }
-  //
-  std::cout << "output image: \n" << image_out << std::endl;
-
-  //
-  // Deconvolution or transpose convolution
-  Eigen::SparseMatrix< int, Eigen::RowMajor > transposed = matrix.transpose();
-  std::cout << transposed << std::endl;
-  std::cout << transposed.outerSize() << std::endl;
-  //
-  for (int k = 0 ; k < transposed.outerSize() ; ++k )
-    {
-      for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( transposed, k ); it; ++it)
-	{
-	  deconvolution( k, 0 ) += weight_val.get()[ static_cast< int >(it.value()) ] * image_out( it.index(), 0 );
-	  std::cout
-	    << "value (" << it.value() << ") in ["
-	    << it.row() << "," << it.col() << "] inedx: "
-	    << it.index() << std::endl; // inner index, here it is equal to it.row()
-	}
-      // And add teh bias
-      deconvolution( k, 0 ) += weight_val.get()[0];
-    }
-  //
-  std::cout << "Deconvolution (transposed conv) image: \n" << deconvolution << std::endl;
-
- 
+//  // std::cout << matrix.innerSize() << std::endl;
+//  // The image load
+//  Eigen::Matrix< double,  4, 1 > image_out     = Eigen::MatrixXd::Zero(  4, 1 );
+//  Eigen::Matrix< double, 16, 1 > deconvolution = Eigen::MatrixXd::Zero( 16, 1 );
+//  Eigen::Matrix< double, 16, 1 > image_in      = Eigen::MatrixXd::Zero( 16, 1 );
+//  for ( int i = 0 ; i < 16 ; i++ )
+//    {
+//      std::cout << "in(" << i << ") = " << Subj[Alps::TensorOrder1::ACTIVATION][i] << std::endl;
+//      image_in( i, 0 ) = Subj[Alps::TensorOrder1::ACTIVATION][i];
+//    }
+//  // create artificial weights
+//  std::shared_ptr< double > weight_val  = std::shared_ptr< double >( new  double[10],
+//								     std::default_delete< double[] >() );
+//  weight_val.get()[0] = -1.; // bias whatever value
+//  weight_val.get()[1] = 1.;
+//  weight_val.get()[2] = 4.;
+//  weight_val.get()[3] = 1.;
+//  weight_val.get()[4] = 1.;
+//  weight_val.get()[5] = 4.;
+//  weight_val.get()[6] = 3.;
+//  weight_val.get()[7] = 3.;
+//  weight_val.get()[8] = 3.;
+//  weight_val.get()[9] = 1.;
 //  //
-//  // Deconvolution or transpose convolution on a random input
-//  Eigen::Matrix< double,  4, 1 > image_rnd = Eigen::MatrixXd::Zero(  4, 1 );
-//  image_rnd(0,0) = 2.;
-//  image_rnd(1,0) = 1.;
-//  image_rnd(2,0) = 4.;
-//  image_rnd(3,0) = 4.;
+//  // Sparse matrix: It does not evaluate the "0". This is the reason why we can store the bias at the position
+//  // [0] of the weights
+//  std::cout <<" matrix.outerSize() = " << matrix.outerSize() << std::endl;
+//  for (int k = 0 ; k < matrix.outerSize() ; ++k )
+//    {
+//      for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix, k); it; ++it)
+//	{
+//	  image_out( k, 0 ) += weight_val.get()[ static_cast< int >(it.value()) ] * image_in( it.index() );
+//	  std::cout
+//	    << "value (" << it.value() << ") in ["
+//	    << it.row() << "," << it.col() << "] index: "
+//	    << it.index() << " and k: " << k << std::endl; // inner index, here it is equal to it.row()
+//	}
+//      // add the bias
+//      image_out( k, 0 ) += weight_val.get()[0];
+//    }
 //  //
-//  deconvolution = Eigen::MatrixXd::Zero( 16, 1 );
-//  for (int k = 0 ; k < transposed.outerSize() ; ++k )
-//    for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( transposed, k ); it; ++it)
-//      {
-//	deconvolution( k, 0 ) += weight_val.get()[ static_cast< int >(it.value()) ] * image_rnd( it.index() );
-//	std::cout
-//	  << "value (" << it.value() << ") in ["
-//	  << it.row() << "," << it.col() << "] inedx: "
-//	  << it.index()
-//	  << " KxImg = " << weight_val.get()[ static_cast< int >(it.value()) ]
-//	  << " x " << image_rnd( it.index() )
-//	  << std::endl; // inner index, here it is equal to it.row()
-//      }
-//  //
-//  std::cout << "Deconvolution (transposed conv) image: \n" << deconvolution << std::endl;
- 
-
-  //
-  //
-  //std::cout << "Output image size: \n" << window_1.get_output_image_dimensions()[0] << std::endl;
-  
-  //
-  //
-  EXPECT_EQ( deconvolution(1,0), 630. );
-}
-
-//TEST_F(ConvolutionWindowTest, ByDefaultBazFalseIsFalse) {
-//    LoadDataSet foo(m_bar);
-//    EXPECT_EQ(foo.baz(false), false);
-//}
+//  std::cout << "output image: \n" << image_out << std::endl;
 //
-//TEST_F(ConvolutionWindowTest, SometimesBazFalseIsTrue) {
-//    LoadDataSet foo(m_bar);
-//    // Have norf return true for once
-//    EXPECT_CALL(m_bar,norf()).WillOnce(Return(true));
-//    EXPECT_EQ(foo.baz(false), true);
-//}
-
+//  
+//  //
+//  //
+//  EXPECT_NEAR( image_out(0,0), 13.4286, 1.e-03 );
+  EXPECT_EQ( window_1.get_output_image_dimensions()[0], 4 );
+}
+//
+//
+//
+TEST_F(ConvolutionWindowTest, ByDefaultConvolutionPaddingStriding) {
+  //
+  // Load the image
+  Alps::LayerTensors< double, 2 > Subj("SimpleConvolution.nii.gz");
+  // Create the kenel
+  Alps::Window< double, 2 > window_1( /* number of kernels */{3}, 
+				      /* half window size */ {1,1},
+				      /* padding */          {1,1},
+				      /* striding */         {2,2});
+  //
+  window_1.get_image_information( Subj.get_image( Alps::TensorOrder1::ACTIVATION ).get_image_region() );
+  //
+  Eigen::SparseMatrix< int, Eigen::RowMajor > matrix = window_1.get_weights_matrix();
+  std::cout << matrix << std::endl;
+//  // std::cout << matrix.innerSize() << std::endl;
+//  // The image load
+//  Eigen::Matrix< double,  4, 1 > image_out     = Eigen::MatrixXd::Zero(  4, 1 );
+//  Eigen::Matrix< double, 16, 1 > deconvolution = Eigen::MatrixXd::Zero( 16, 1 );
+//  Eigen::Matrix< double, 16, 1 > image_in      = Eigen::MatrixXd::Zero( 16, 1 );
+//  for ( int i = 0 ; i < 16 ; i++ )
+//    {
+//      std::cout << "in(" << i << ") = " << Subj[Alps::TensorOrder1::ACTIVATION][i] << std::endl;
+//      image_in( i, 0 ) = Subj[Alps::TensorOrder1::ACTIVATION][i];
+//    }
+//  // create artificial weights
+//  std::shared_ptr< double > weight_val  = std::shared_ptr< double >( new  double[10],
+//								     std::default_delete< double[] >() );
+//  weight_val.get()[0] = -1.; // bias whatever value
+//  weight_val.get()[1] = 1.;
+//  weight_val.get()[2] = 4.;
+//  weight_val.get()[3] = 1.;
+//  weight_val.get()[4] = 1.;
+//  weight_val.get()[5] = 4.;
+//  weight_val.get()[6] = 3.;
+//  weight_val.get()[7] = 3.;
+//  weight_val.get()[8] = 3.;
+//  weight_val.get()[9] = 1.;
+//  //
+//  // Sparse matrix: It does not evaluate the "0". This is the reason why we can store the bias at the position
+//  // [0] of the weights
+//  std::cout <<" matrix.outerSize() = " << matrix.outerSize() << std::endl;
+//  for (int k = 0 ; k < matrix.outerSize() ; ++k )
+//    {
+//      for ( typename Eigen::SparseMatrix< int, Eigen::RowMajor >::InnerIterator it( matrix, k); it; ++it)
+//	{
+//	  image_out( k, 0 ) += weight_val.get()[ static_cast< int >(it.value()) ] * image_in( it.index() );
+//	  std::cout
+//	    << "value (" << it.value() << ") in ["
+//	    << it.row() << "," << it.col() << "] index: "
+//	    << it.index() << " and k: " << k << std::endl; // inner index, here it is equal to it.row()
+//	}
+//      // add the bias
+//      image_out( k, 0 ) += weight_val.get()[0];
+//    }
+//  //
+//  std::cout << "output image: \n" << image_out << std::endl;
+//
+//  
+//  //
+//  //
+//  EXPECT_NEAR( image_out(0,0), 13.4286, 1.e-03 );
+  EXPECT_EQ( window_1.get_output_image_dimensions()[0], 2 );
+}

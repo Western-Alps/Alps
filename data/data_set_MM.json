@@ -30,5 +30,6 @@
             "Comment":"During the training phase, every 10 epoques we want images to be dump.",
             "dump_results":1
         }
-    },                                                                                                                                                                                                                                                                               "GPU":{}
+    },
+    "GPU":{}
 }

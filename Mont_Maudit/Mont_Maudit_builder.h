@@ -93,6 +93,12 @@ namespace Alps
       { attached_climber_ = C;};
       // Notify the observers for updates
       virtual void                           notify()                                           override;
+//      //
+//      //
+//      void operator()( std::shared_ptr< Alps::Climber > Sub )
+//      {
+//	forward( Sub );
+//      }
 
       
 
