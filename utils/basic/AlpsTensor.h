@@ -60,17 +60,17 @@ namespace Alps
       /*!
 	\return a vector with the size of each dimensions
       */
-       virtual const std::vector< std::size_t > get_tensor_size() const noexcept              = 0;
+       virtual const std::vector< std::size_t > get_tensor_size() const noexcept     = 0;
       //! Get the tensor
       /*!
 	\return a vector tensor
       */
-      virtual const std::vector< Type >&       get_tensor() const noexcept                   = 0;
+      virtual const std::vector< Type >&        get_tensor() const noexcept          = 0;
       //! Update the tensor
       /*!
 	\return the updated vector tensor
       */
-      virtual std::vector< Type >&             update_tensor()                               = 0;
+      virtual std::vector< Type >&              update_tensor()                      = 0;
 
 
       
@@ -78,12 +78,12 @@ namespace Alps
       // Functions
       //
       //! Save the tensor values (e.g. weights)
-      virtual void                             save_tensor() const                           = 0;
+      virtual void                              save_tensor( std::ofstream& ) const  = 0;
       //! Load the tensor values (e.g. weights)
       /*!
 	\param name of the saved tensor
       */
-      virtual void                             load_tensor( const std::string )              = 0;
+      virtual void                              load_tensor( const std::ofstream& )  = 0;
     };
 }
 #endif

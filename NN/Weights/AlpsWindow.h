@@ -104,6 +104,8 @@ namespace Alps
       // Functions
       const bool                                         initialized() const
       { return (weights_matrix_.nonZeros() == 0 ? false : true );};
+      // Save the weights at the end of the epoque
+      void                                               save_weights( std::ofstream& ) const;
 
 
     private:
@@ -656,6 +658,30 @@ namespace Alps
 	    }
 	  }
 	
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+	exit(-1);
+      }
+  };
+  //
+  //
+  //
+  template< class T, int D > void
+  Window< T, D >::save_weights( std::ofstream& Weights_file  ) const
+  {
+    try
+      {
+	//
+	// Save the information
+	Weights_file.write( (char*) (&k_), sizeof(int) );
+	Weights_file.write( (char*) (&number_weights_), sizeof(int) );
+	// Save the weights
+	for ( int k = 0 ; k < k_ ; k++ )
+	  Weights_file.write( (char*)&weight_values_[k][0], number_weights_ * sizeof(T) );
+	// Save the position
+	// ...
       }
     catch( itk::ExceptionObject & err )
       {

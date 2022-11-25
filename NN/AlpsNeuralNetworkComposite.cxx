@@ -65,6 +65,23 @@ Alps::NeuralNetworkComposite::weight_update( std::shared_ptr< Alps::Climber > Su
 //
 //
 void
+Alps::NeuralNetworkComposite::save_weights( std::ofstream& Weights_file ) const
+{
+  try
+    {
+      for ( auto nn_elem : nn_composite_ )
+	nn_elem->save_weights( Weights_file );
+    }
+  catch( itk::ExceptionObject & err )
+    {
+      std::cerr << err << std::endl;
+      exit(EXIT_FAILURE);
+    }
+}
+//
+//
+//
+void
 Alps::NeuralNetworkComposite::add( std::shared_ptr< Alps::Layer > NN )
 {
   try

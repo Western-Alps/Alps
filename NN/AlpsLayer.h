@@ -58,6 +58,8 @@ namespace Alps
       virtual void backward( std::shared_ptr< Alps::Climber > )      = 0;
       // Update the weights at the end of the epoque
       virtual void weight_update( std::shared_ptr< Alps::Climber > ) = 0;
+      // Save the weights at the end of the epoque
+      virtual void save_weights( std::ofstream& ) const              = 0;
     };
 }
 #endif

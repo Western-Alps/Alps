@@ -82,9 +82,9 @@ namespace Alps
     // Functions										      
     //												      
     //! Save the weights										      
-    virtual void                               save_tensor() const                            override{};
+    virtual void                               save_tensor( std::ofstream& ) const            override{};
     //! Load the weights										      
-    virtual void                               load_tensor( const std::string )               override{};
+    virtual void                               load_tensor( const std::ofstream& )            override{};
     //
     //
     //! Activate
@@ -169,9 +169,9 @@ namespace Alps
     // Functions										      
     //												      
     // Save the weights										      
-    virtual void                                  save_tensor() const                         override{};
+    virtual void                                  save_tensor( std::ofstream& ) const         override{};
     // Load the weights										      
-    virtual void                                  load_tensor( const std::string )            override{};
+    virtual void                                  load_tensor( const std::ofstream& )         override{};
     
      /** @brief Activation calculation from the previous layers' attached to the current layer at the last layer.
      *
@@ -461,9 +461,9 @@ namespace Alps
     // Functions										      
     //												      
     //! Save the weights										      
-    virtual void                                  save_tensor() const                         override{};
+    virtual void                                  save_tensor( std::ofstream& ) const         override{};
     //! Load the weights										      
-    virtual void                                  load_tensor( const std::string )            override{};
+    virtual void                                  load_tensor( const std::ofstream& )         override{};
     //
     //
     //! Activate

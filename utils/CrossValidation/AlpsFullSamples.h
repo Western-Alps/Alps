@@ -165,16 +165,13 @@ namespace Alps
 	      // Backward process //
 	      //////////////////////
 	      //
-//	      for ( int sub : fold_subjects )
-//		{
-		  std::cout
-		    << " Subject " << 0
-		    << " -- bwd: In subject " << ( subjects_[0].get_subjects() )[ 0 ]->get_subject_number()
-		    << std::endl;
-		  // Get the observed Mountain from subjects
-		  // Backward process
-		  std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->backward( (subjects_[0].get_subjects())[0] );
-//		}
+	      std::cout
+		<< " Subject " << 0
+		<< " -- bwd: In subject " << ( subjects_[0].get_subjects() )[ 0 ]->get_subject_number()
+		<< std::endl;
+	      // Get the observed Mountain from subjects
+	      // Backward process
+	      
 //
 //	      //
 //	      // The updates of the weights can be done at the end of a batch of images.
@@ -196,7 +193,14 @@ namespace Alps
 	      // By updating the epoque the calculation of the cost function 
 	      ++subjects_[0];
 	      if ( subjects_[0].get_epoque() % training_dump_ == 0 )
-		subjects_[0].visualization();
+		{
+		  //
+		  // Output quality control elements
+		  // Output the results
+		  subjects_[0].visualization();
+		  // Save the weights
+		  std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->save_weight_file( subjects_[0].get_epoque() );
+		}
 	    }
 	}
       catch( itk::ExceptionObject & err )

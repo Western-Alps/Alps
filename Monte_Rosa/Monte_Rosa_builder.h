@@ -93,6 +93,8 @@ namespace Alps
       { attached_climber_ = C;};
       // Notify the observers for updates
       virtual void                           notify()                                           override;
+      // Save the weights at the end of the epoque
+      virtual       void                     save_weight_file( const std::size_t ) const        override{};
 
       
 

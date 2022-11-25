@@ -48,10 +48,10 @@ namespace Alps
       // Accessors
       //
       // get the layer identification
-      virtual const std::size_t             get_layer_id() const                                override
+      virtual const std::size_t              get_layer_id() const                               override
       { return layer_id_;}								        
       // get the layer name								        
-      virtual const std::string             get_layer_name() const                              override
+      virtual const std::string              get_layer_name() const                             override
         { return std::string("Gran Paradiso network.");};				        
       // Get number of weigths								        
       virtual const int                      get_number_weights() const                         override
@@ -82,6 +82,8 @@ namespace Alps
       virtual void                           backward( std::shared_ptr< Alps::Climber > )       override;
       // Update the weights at the end of the epoque
       virtual void                           weight_update( std::shared_ptr< Alps::Climber > )  override;
+      // Save the weights at the end of the epoque
+      virtual void                           save_weights( std::ofstream& ) const               override{};
       //
       //
       // Add network layers
@@ -93,12 +95,8 @@ namespace Alps
       { attached_climber_ = C;};
       // Notify the observers for updates
       virtual void                           notify()                                           override;
-//      //
-//      //
-//      void operator()( std::shared_ptr< Alps::Climber > Sub )
-//      {
-//	forward( Sub );
-//      }
+      // Save the weights at the end of the epoque
+      virtual void                           save_weight_file( const std::size_t ) const        override;
 
       
 

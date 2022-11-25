@@ -83,7 +83,7 @@ TEST_F(SGCTest, ByDefaultSGDChild) {
  
   //
   //
-  EXPECT_EQ( test(2,2), -test2(2,2) );
+  EXPECT_NEAR( test(2,2), -test2(2,2) * 10000.0, 1.e-01 );
 }
 
 //TEST_F(ImageTest, ByDefaultBazFalseIsFalse) {

@@ -80,6 +80,8 @@ namespace Alps
     virtual       void             backward( std::shared_ptr< Alps::Climber > )      override;
     // Backward propagation
     virtual       void             weight_update( std::shared_ptr< Alps::Climber > ) override{};
+    // Save the weights at the end of the epoque
+    virtual       void             save_weights( std::ofstream& ) const              override{};
     // Add network layers
     virtual       void             add( std::shared_ptr< Alps::Layer > )             override{};
     //
@@ -87,6 +89,8 @@ namespace Alps
     virtual       void             attach( std::shared_ptr< Alps::Climber > C )      override{};
     // Notify the observers for updates
     virtual       void             notify()                                          override{};
+    // Save the weights at the end of the epoque
+    virtual       void             save_weight_file( const std::size_t ) const       override{};
 
 
   private:

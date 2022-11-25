@@ -94,12 +94,16 @@ namespace Alps
     virtual       void                     backward( std::shared_ptr< Alps::Climber > )          override;
     // Update the weights at the end of the epoque
     virtual       void                     weight_update( std::shared_ptr< Alps::Climber > )     override;
+    // Save the weights at the end of the epoque
+    virtual       void                     save_weights( std::ofstream& ) const                  override;
     //
     //
     // Attach observers that need to be updated
     virtual       void                     attach( std::shared_ptr< Alps::Climber > )            override {};
     // Notify the observers for updates
     virtual       void                     notify()                                              override {};
+    // Save the weights at the end of the epoque
+    virtual       void                     save_weight_file( const std::size_t ) const           override{};
 
     
   private:
@@ -130,7 +134,7 @@ namespace Alps
     //
     // Observers
     // Observers containers
-    std::vector< Weights >                               weights_;
+    std::vector< Weights >                              weights_;
   };
   //
   //
@@ -350,6 +354,26 @@ namespace Alps
 //	    std::string name = layer_weights.first;
 //	    weights_[name]->update();
 //	  }
+      }
+    catch( itk::ExceptionObject & err )
+      {
+	std::cerr << err << std::endl;
+	exit(-1);
+      }
+  };
+  //
+  //
+  //
+  template< typename AF, typename W, typename K, typename C, int D > void
+  ConvolutionLayer< AF, W, K, C, D >::save_weights( std::ofstream& Weights_file  ) const
+  {
+    try
+      {
+	//
+	// Name of the layer
+	Weights_file.write( layer_name_.c_str(), sizeof(char)*layer_name_.size() );
+	// Then the weights
+	convolution_window_->save_weights( Weights_file  );
       }
     catch( itk::ExceptionObject & err )
       {

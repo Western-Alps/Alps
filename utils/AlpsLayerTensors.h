@@ -108,9 +108,9 @@ namespace Alps
     // From Alps::Tensor< Type, 1 >
     //
     //! Save the tensor values (e.g. weights)
-    virtual void                                save_tensor() const                           override{};
+    virtual void                                save_tensor( std::ofstream& ) const           override{};
     //! Load the tensor values (e.g. weights)
-    virtual void                                load_tensor( const std::string )              override{};
+    virtual void                                load_tensor( const std::ofstream& )           override{};
     //
     // From LayerTensors< typename Type, int Dim >
     //

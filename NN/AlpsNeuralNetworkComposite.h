@@ -76,6 +76,8 @@ namespace Alps
       virtual       void                     backward( std::shared_ptr< Alps::Climber > )      override;
       // Update the weights at the end of the epoque
       virtual       void                     weight_update( std::shared_ptr< Alps::Climber > ) override;
+      // Save the weights at the end of the epoque
+      virtual       void                     save_weights( std::ofstream& ) const              override;
       //
       //
       // Add network layers

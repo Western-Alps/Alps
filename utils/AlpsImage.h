@@ -122,9 +122,9 @@ namespace Alps
     // From Alps::Tensor< Type, 1 >
     //
     //! Save the tensor values (e.g. weights)
-    virtual void save_tensor() const{};
+    virtual void save_tensor( std::ofstream& ) const{};
     //! Load the tensor values (e.g. weights)
-    virtual void load_tensor( const std::string ) {};
+    virtual void load_tensor( const std::ofstream& ) {};
     //
     // From Image< typename Type, int Dim >
     //
