@@ -52,65 +52,97 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   //////////////////////////
   // Convolutional layers //
   //////////////////////////
+//  //
+//  // layer down level 1 - d10
+//  // Window definition for the kernels
+//  std::vector< long int > h_window_d10 = {0,0}; // size of the 1/2 window, when the value is 0, the kernel is the size of a pixel
+//  std::vector< long int > padding_d10  = {0,0}; // padding
+//  std::vector< long int > striding_d10 = {1,1}; // striding
+//  //
+//  Kernel window_d10( 16, // number of kernels
+//		     h_window_d10, padding_d10, striding_d10 );
+//  //
+//  std::shared_ptr< Alps::Layer > nn_d10 =
+//    std::make_shared< Convolutional >( "layer_d10",
+//				       std::make_shared<Kernel>(window_d10) );
+//  nn_d10->add_layer( nullptr );   // connection with the previous layer. (nullptr) means input layer
   //
-  // layer 1
+  // layer down level 1 - d11
   // Window definition for the kernels
-  std::vector< long int > h_window_1 = {1,1}; // size of the 1/2 window
-  std::vector< long int > padding_1  = {1,1}; // padding
-  std::vector< long int > striding_1 = {1,1}; // striding
+  std::vector< long int > h_window_d11 = {1,1}; // size of the 1/2 window
+  std::vector< long int > padding_d11  = {1,1}; // padding
+  std::vector< long int > striding_d11 = {1,1}; // striding
   //
-  Kernel window_1( 32, // number of kernels
-		   h_window_1, padding_1, striding_1 );
+  Kernel window_d11( 32, // number of kernels
+		     h_window_d11, padding_d11, striding_d11 );
   //
-  std::shared_ptr< Alps::Layer > nn_1 =
-    std::make_shared< Convolutional >( "layer_1",
-				       std::make_shared<Kernel>(window_1) );
-  nn_1->add_layer( nullptr );   // connection with the previous layer. (nullptr) means input layer
+  std::shared_ptr< Alps::Layer > nn_d11 =
+    std::make_shared< Convolutional >( "layer_d11",
+				       std::make_shared<Kernel>(window_d11) );
+  nn_d11->add_layer( nullptr );   // connection with the previous layer. (nullptr) means input layer
   //
-  // layer 2
+  // layer down level 1 - d12
   // Window definition for the kernels. This window is centered on one voxel.
   // If the padding and stridding is the same as the window 1, the output image
   // will have exactly the same dimension.
-  std::vector< long int > h_window_2 = {3,3}; // size of the 1/2 window, when the value is 0, the kernel is the size of a pixel
-  std::vector< long int > padding_2  = {3,3}; // padding
-  std::vector< long int > striding_2 = {1,1}; // striding
+  std::vector< long int > h_window_d12 = {3,3}; // size of the 1/2 window
+  std::vector< long int > padding_d12  = {3,3}; // padding
+  std::vector< long int > striding_d12 = {1,1}; // striding
   //
-  Kernel window_2( 32, // number of kernels
-		   h_window_2, padding_2, striding_2 );
+  Kernel window_d12( 32, // number of kernels
+		     h_window_d12, padding_d12, striding_d12 );
   //
-  std::shared_ptr< Alps::Layer > nn_2 =
-    std::make_shared< Convolutional >( "layer_2",
-				       std::make_shared<Kernel>(window_2) );
-  nn_2->add_layer( nullptr ); // connection with the previous layer. (nullptr) means input layer
+  std::shared_ptr< Alps::Layer > nn_d12 =
+    std::make_shared< Convolutional >( "layer_d12",
+				       std::make_shared<Kernel>(window_d12) );
+  nn_d12->add_layer( nullptr ); // connection with the previous layer. (nullptr) means input layer
   //
-  // layer 3
+  // layer down level 2 - d20
   // Window definition for the kernels. This window is centered on one voxel.
-  std::vector< long int > h_window_3 = {2,2}; // size of the 1/2 window
-  std::vector< long int > padding_3  = {2,2}; // padding
-  std::vector< long int > striding_3 = {2,2}; // striding
+  std::vector< long int > h_window_d20 = {2,2}; // size of the 1/2 window
+  std::vector< long int > padding_d20  = {2,2}; // padding
+  std::vector< long int > striding_d20 = {2,2}; // striding
   //
-  Kernel window_3( 64, // number of kernels
-		   h_window_3, padding_3, striding_3 );
+  Kernel window_d20( 64, // number of kernels
+		     h_window_d20, padding_d20, striding_d20 );
   //
-  std::shared_ptr< Alps::Layer > nn_3 =
-    std::make_shared< Convolutional >( "layer_3",
-				       std::make_shared<Kernel>(window_3) );
-  nn_3->add_layer( nn_1 ); 
-  nn_3->add_layer( nn_2 );
+  std::shared_ptr< Alps::Layer > nn_d20 =
+    std::make_shared< Convolutional >( "layer_d20",
+				       std::make_shared<Kernel>(window_d20) );
+//  nn_d20->add_layer( nn_d10 ); 
+  nn_d20->add_layer( nn_d11 ); 
+  nn_d20->add_layer( nn_d12 );
   //
-  // layer 4
+  // layer down level 2 - d21
+  // Window definition for the kernels. This window is centered on one voxel.
+  std::vector< long int > h_window_d21 = {3,3}; // size of the 1/2 window
+  std::vector< long int > padding_d21  = {3,3}; // padding
+  std::vector< long int > striding_d21 = {2,2}; // striding
+  //
+  Kernel window_d21( 32, // number of kernels
+		     h_window_d21, padding_d21, striding_d21 );
+  //
+  std::shared_ptr< Alps::Layer > nn_d21 =
+    std::make_shared< Convolutional >( "layer_d21",
+				       std::make_shared<Kernel>(window_d21) );
+//  nn_d21->add_layer( nn_d10 ); 
+  nn_d21->add_layer( nn_d11 ); 
+  nn_d21->add_layer( nn_d12 );
+  //
+  // layer down level 3 - d30
   // Window definition for the kernels
-  std::vector< long int > h_window_4 = {2,2}; // size of the 1/2 window
-  std::vector< long int > padding_4  = {2,2}; // padding
-  std::vector< long int > striding_4 = {2,2}; // striding
+  std::vector< long int > h_window_d30 = {3,3}; // size of the 1/2 window
+  std::vector< long int > padding_d30  = {0,0}; // padding
+  std::vector< long int > striding_d30 = {2,2}; // striding
   //
-  Kernel window_4( 128, // number of kernels
-		   h_window_4, padding_4, striding_4 );
+  Kernel window_d30( 128, // number of kernels
+		     h_window_d30, padding_d30, striding_d30 );
   //
-  std::shared_ptr< Alps::Layer > nn_4 =
-    std::make_shared< Convolutional >( "layer_4",
-				       std::make_shared<Kernel>(window_4) );
-  nn_4->add_layer( nn_3 );   // inputs and nn_2 are inputs of nn_1, then nn_1 is input of nn_4
+  std::shared_ptr< Alps::Layer > nn_d30 =
+    std::make_shared< Convolutional >( "layer_d30",
+				       std::make_shared<Kernel>(window_d30) );
+  nn_d30->add_layer( nn_d20 );   // inputs and nn_2 are inputs of nn_1, then nn_1 is input of nn_4
+  nn_d30->add_layer( nn_d21 );   // inputs and nn_2 are inputs of nn_1, then nn_1 is input of nn_4
 
 
 
@@ -118,47 +150,70 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   // Deconvolutional layers //
   ////////////////////////////
   //
-  // layer 5
+  // layer up level 3 - u30
   //
-  Kernel window_44( 128, // number of kernels
-		    h_window_4, padding_4, striding_4 );
+  Kernel window_u30( 128, // number of kernels
+		     h_window_d30, padding_d30, striding_d30 );
   //
-  std::shared_ptr< Alps::Layer > nn_5 =
-    std::make_shared< Deconvolutional >( "layer_5",
-					 std::make_shared<Kernel>(window_44) );
-  nn_5->add_layer( nn_4 );
+  std::shared_ptr< Alps::Layer > nn_u30 =
+    std::make_shared< Deconvolutional >( "layer_u30",
+					 std::make_shared<Kernel>(window_u30) );
+  nn_u30->add_layer( nn_d30 );
   //
-  // layer 6
+  // layer up level 2 - u21
   //
-  Kernel window_33( 64, // number of kernels
-		    h_window_3, padding_3, striding_3 );
+  Kernel window_u21( 32, // number of kernels
+		     h_window_d21, padding_d21, striding_d21 );
   //
-  std::shared_ptr< Alps::Layer > nn_6 =
-    std::make_shared< Deconvolutional >( "layer_6",
-					 std::make_shared<Kernel>(window_33) );
-  nn_6->add_layer( nn_5 );   
+  std::shared_ptr< Alps::Layer > nn_u21 =
+    std::make_shared< Deconvolutional >( "layer_u21",
+					 std::make_shared<Kernel>(window_u21) );
+  nn_u21->add_layer( nn_u30 );   
   //
-  // layer 7
+  // layer up level 2 - u20
   //
-  Kernel window_22( 32, // number of kernels
-		    h_window_2, padding_2, striding_2 );
+  Kernel window_u20( 64, // number of kernels
+		     h_window_d20, padding_d20, striding_d20 );
   //
-  std::shared_ptr< Alps::Layer > nn_7 =
-    std::make_shared< Deconvolutional >( "layer_7",
-					 std::make_shared<Kernel>(window_22) );
-  nn_7->add_layer( nn_6 ); 
+  std::shared_ptr< Alps::Layer > nn_u20 =
+    std::make_shared< Deconvolutional >( "layer_u20",
+					 std::make_shared<Kernel>(window_u20) );
+  nn_u20->add_layer( nn_u30 );   
   //
-  // layer 8
+  // layer up level 1 - u12
   //
-  Kernel window_11( 32, // number of kernels
-		    h_window_1, padding_1, striding_1 );
+  Kernel window_u12( 32, // number of kernels
+		     h_window_d12, padding_d12, striding_d12 );
   //
-  std::shared_ptr< Alps::Layer > nn_8 =
-    std::make_shared< Deconvolutional >( "layer_8",
-					 std::make_shared<Kernel>(window_11) );
-  nn_8->add_layer( nn_6 );
+  std::shared_ptr< Alps::Layer > nn_u12 =
+    std::make_shared< Deconvolutional >( "layer_u12",
+					 std::make_shared<Kernel>(window_u12) );
+  nn_u12->add_layer( nn_u20 );   
+  nn_u12->add_layer( nn_u21 );
+  //
+  // layer up level 1 - u11
+  //
+  Kernel window_u11( 32, // number of kernels
+		     h_window_d11, padding_d11, striding_d11 );
+  //
+  std::shared_ptr< Alps::Layer > nn_u11 =
+    std::make_shared< Deconvolutional >( "layer_u11",
+					 std::make_shared<Kernel>(window_u11) );
+  nn_u11->add_layer( nn_u20 );   
+  nn_u11->add_layer( nn_u21 );
+//  //
+//  // layer up level 1 - u10
+//  //
+//  Kernel window_u10( 16, // number of kernels
+//		     h_window_d10, padding_d10, striding_d10 );
+//  //
+//  std::shared_ptr< Alps::Layer > nn_u10 =
+//    std::make_shared< Deconvolutional >( "layer_u10",
+//					 std::make_shared<Kernel>(window_u10) );
+//  nn_u10->add_layer( nn_u20 );   
+//  nn_u10->add_layer( nn_u21 );
 
-
+  
   ////////////////////
   // Reconstruction //
   ////////////////////
@@ -167,10 +222,11 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   // a non-linear function, e.g. sigmoid, with one bias:
   // nn_9 = sigmoid( nn_7 + nn_8 + b). Then nn_9 should be directly compared to
   // the target in the cost function.
-  std::shared_ptr< Alps::Layer > nn_9 =
+  std::shared_ptr< Alps::Layer > nn_reconstruction  =
     std::make_shared< Reconstruction >( "__output_layer__" );
-  nn_9->add_layer( nn_7 );   // nn_7 are inputs of nn_8
-  nn_9->add_layer( nn_8 );   // nn_8 are inputs of nn_8
+//  nn_reconstruction->add_layer( nn_u10 );   // nn_7 are inputs of nn_8
+  nn_reconstruction->add_layer( nn_u11 );   // nn_8 are inputs of nn_8
+  nn_reconstruction->add_layer( nn_u12 );   // nn_8 are inputs of nn_8
 
 
   
@@ -178,15 +234,19 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   /////////////
   // Anatomy //
   /////////////
-  mr_nn_.add( nn_1 );
-  mr_nn_.add( nn_2 );
-  mr_nn_.add( nn_3 );
-  mr_nn_.add( nn_4 );
-  mr_nn_.add( nn_5 );
-  mr_nn_.add( nn_6 );
-  mr_nn_.add( nn_7 );
-  mr_nn_.add( nn_8 );
-  mr_nn_.add( nn_9 );
+//  mr_nn_.add( nn_d10 );
+  mr_nn_.add( nn_d11 );
+  mr_nn_.add( nn_d12 );
+  mr_nn_.add( nn_d20 );
+  mr_nn_.add( nn_d21 );
+  mr_nn_.add( nn_d30 );
+  mr_nn_.add( nn_u30 );
+  mr_nn_.add( nn_u20 );
+  mr_nn_.add( nn_u21 );
+//  mr_nn_.add( nn_u10 );
+  mr_nn_.add( nn_u11 );
+  mr_nn_.add( nn_u12 );
+  mr_nn_.add( nn_reconstruction );
 };
 //
 //
@@ -224,11 +284,19 @@ Alps::Mont_Maudit_builder::save_weight_file( const std::size_t Epoque ) const
   //
   //
   std::string matrices_weights = "Mont_Maudit_" + std::to_string( Epoque ) + ".dat";
-  std::ofstream out( matrices_weights, std::ios::out | std::ios::binary | std::ios::trunc );
+  std::ofstream weights_file( matrices_weights, std::ios::out | std::ios::binary | std::ios::trunc );
   // Cover the layers
-  mr_nn_.save_weights( out );
+  if ( weights_file.is_open() )
+    mr_nn_.save_weights( weights_file );
+  else
+    {
+      std::string mess = "The weights file has no I/O access.\n";
+      throw MAC::MACException( __FILE__, __LINE__,
+			       mess.c_str(),
+			       ITK_LOCATION );
+    }
   // close the file
-  out.close();
+  weights_file.close();
 };
 //
 //

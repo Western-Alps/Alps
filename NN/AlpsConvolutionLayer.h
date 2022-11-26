@@ -217,6 +217,9 @@ namespace Alps
 	// Create the weights for the k features
 	int kernels = convolution_window_->get_number_kernel();
 	mtx_.lock();
+	// small delay 
+	//std::this_thread::sleep_for( std::chrono::milliseconds(1) );
+	//
 	if ( weights_.size() != static_cast< std::size_t >(kernels) )
 	  for ( int k = 0 ; k < kernels ; k++ )
 	    weights_.push_back( W(*this, convolution_window_, k) );
@@ -349,11 +352,6 @@ namespace Alps
 	for ( int k = 0 ; k < kernels ; k++ )
 	  for ( auto layer_weights : prev_layer_ )
 	    weights_[k].update();
-//	for ( auto layer_weights : weights_ )
-//	  {
-//	    std::string name = layer_weights.first;
-//	    weights_[name]->update();
-//	  }
       }
     catch( itk::ExceptionObject & err )
       {
@@ -370,10 +368,20 @@ namespace Alps
     try
       {
 	//
-	// Name of the layer
-	Weights_file.write( layer_name_.c_str(), sizeof(char)*layer_name_.size() );
-	// Then the weights
-	convolution_window_->save_weights( Weights_file  );
+	if ( Weights_file.is_open() )
+	  {
+	    // Name of the layer
+	    Weights_file.write( layer_name_.c_str(), sizeof(char)*layer_name_.size() );
+	    // Then the weights
+	    convolution_window_->save_weights( Weights_file  );
+	  }
+	else
+	  {
+	    std::string mess = "The weights file in convolutional layer has no I/O access.\n";
+	    throw MAC::MACException( __FILE__, __LINE__,
+				     mess.c_str(),
+				     ITK_LOCATION );
+	  }
       }
     catch( itk::ExceptionObject & err )
       {

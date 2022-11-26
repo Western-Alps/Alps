@@ -69,8 +69,16 @@ Alps::NeuralNetworkComposite::save_weights( std::ofstream& Weights_file ) const
 {
   try
     {
-      for ( auto nn_elem : nn_composite_ )
-	nn_elem->save_weights( Weights_file );
+      if ( Weights_file.is_open() )
+	for ( auto nn_elem : nn_composite_ )
+	  nn_elem->save_weights( Weights_file );
+      else
+	{
+	  std::string mess = "The weights file has no I/O access.\n";
+	  throw MAC::MACException( __FILE__, __LINE__,
+				   mess.c_str(),
+				   ITK_LOCATION );
+	}
     }
   catch( itk::ExceptionObject & err )
     {

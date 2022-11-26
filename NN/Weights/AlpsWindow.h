@@ -673,15 +673,44 @@ namespace Alps
   {
     try
       {
-	//
-	// Save the information
-	Weights_file.write( (char*) (&k_), sizeof(int) );
-	Weights_file.write( (char*) (&number_weights_), sizeof(int) );
-	// Save the weights
-	for ( int k = 0 ; k < k_ ; k++ )
-	  Weights_file.write( (char*)&weight_values_[k][0], number_weights_ * sizeof(T) );
-	// Save the position
-	// ...
+	if ( Weights_file.is_open() )
+	  {
+	    //
+	    // Save the information
+	    Weights_file.write( (char*) (&k_), sizeof(int) );
+	    Weights_file.write( (char*) (&number_weights_), sizeof(int) );
+	    // Save the weights
+	    for ( int k = 0 ; k < k_ ; k++ )
+	      Weights_file.write( (char*)&weight_values_[k][0], number_weights_ * sizeof(T) );
+	    //
+	    // Save the position
+	    typename Eigen::SparseMatrix< int, Eigen::RowMajor >::Index
+	      rows = weights_matrix_.rows(),
+	      cols = weights_matrix_.cols(),
+	      nnzs = weights_matrix_.nonZeros(),
+	      outS = weights_matrix_.outerSize(),
+	      innS = weights_matrix_.innerSize();
+	    //
+	    Weights_file.write( reinterpret_cast<char*>( &rows), sizeof(typename Eigen::SparseMatrix< int, Eigen::RowMajor >::Index) );
+	    Weights_file.write( reinterpret_cast<char*>( &cols), sizeof(typename Eigen::SparseMatrix< int, Eigen::RowMajor >::Index) );
+	    Weights_file.write( reinterpret_cast<char*>( &nnzs), sizeof(typename Eigen::SparseMatrix< int, Eigen::RowMajor >::Index) );
+	    Weights_file.write( reinterpret_cast<char*>( &outS), sizeof(typename Eigen::SparseMatrix< int, Eigen::RowMajor >::Index) );
+	    Weights_file.write( reinterpret_cast<char*>( &innS), sizeof(typename Eigen::SparseMatrix< int, Eigen::RowMajor >::Index) );
+	    //
+	    typename Eigen::SparseMatrix< int, Eigen::RowMajor >::Index sizeIndexS = static_cast<typename Eigen::SparseMatrix< int, Eigen::RowMajor >::Index>(sizeof(typename Eigen::SparseMatrix< int, Eigen::RowMajor >::StorageIndex));
+	    typename Eigen::SparseMatrix< int, Eigen::RowMajor >::Index sizeScalar = static_cast<typename Eigen::SparseMatrix< int, Eigen::RowMajor >::Index>(sizeof(typename Eigen::SparseMatrix< int, Eigen::RowMajor >::Scalar      ));
+	    Weights_file.write( reinterpret_cast<const char* >( weights_matrix_.valuePtr()),      sizeScalar * nnzs );
+	    Weights_file.write( reinterpret_cast<const char* >( weights_matrix_.outerIndexPtr()), sizeIndexS * outS );
+	    Weights_file.write( reinterpret_cast<const char* >( weights_matrix_.innerIndexPtr()), sizeIndexS * nnzs );
+	  }
+	else
+	    {
+	      std::string mess = "The matrix file has no I/O access.\n";
+	      throw MAC::MACException( __FILE__, __LINE__,
+				       mess.c_str(),
+				       ITK_LOCATION );
+	    }
+	  
       }
     catch( itk::ExceptionObject & err )
       {

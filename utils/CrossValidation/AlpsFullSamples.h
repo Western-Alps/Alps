@@ -171,6 +171,7 @@ namespace Alps
 		<< std::endl;
 	      // Get the observed Mountain from subjects
 	      // Backward process
+	      std::dynamic_pointer_cast<M>( subjects_[0].get_mountain() )->backward( (subjects_[0].get_subjects())[0] );
 	      
 //
 //	      //
