@@ -41,12 +41,12 @@ Alps::Mont_Maudit_builder::Mont_Maudit_builder()
   using Tanh             = Alps::Activation_tanh< double >;
   using ReLU             = Alps::Activation_ReLU< double >;
   using Kernel           = Alps::Window< double, Dim >;
-  using Weights          = Alps::WeightsConvolution< double, Kernel, Alps::Arch::CPU, Tanh, Alps::SGD, Dim >;
-  using Weights_T        = Alps::WeightsTransposedConvolution< double, Kernel, Alps::Arch::CPU, Tanh, Alps::SGD, Dim >;
+  using Weights          = Alps::WeightsConvolution< double, Kernel, Alps::Arch::CPU, ReLU, Alps::SGD, Dim >;
+  using Weights_T        = Alps::WeightsTransposedConvolution< double, Kernel, Alps::Arch::CPU, ReLU, Alps::SGD, Dim >;
   using ReconWeights     = Alps::WeightsReconstruction< double, Alps::Arch::CPU, Sigmoid, Alps::SGD, Dim >;
   using LossFunction     = Alps::LeastSquarreEstimate< double >;
-  using Convolutional    = Alps::ConvolutionLayer< Tanh, Weights, Kernel, LossFunction, Dim >;
-  using Deconvolutional  = Alps::ConvolutionLayer< Tanh, Weights_T, Kernel, LossFunction, Dim >;
+  using Convolutional    = Alps::ConvolutionLayer< ReLU, Weights, Kernel, LossFunction, Dim >;
+  using Deconvolutional  = Alps::ConvolutionLayer< ReLU, Weights_T, Kernel, LossFunction, Dim >;
   using Reconstruction   = Alps::ReconstructionLayer< Sigmoid, ReconWeights, LossFunction, Dim >;
 
   //////////////////////////
