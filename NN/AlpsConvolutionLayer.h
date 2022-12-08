@@ -266,9 +266,11 @@ namespace Alps
 	    //
 	    // If the layer does not exist, for the image, it creates the layer.
 	    // Otherwise, it replace the values from the last epoque and save the previouse epoque.
+	    mtx_.lock();
 	    subject->add_layer( layer_name_, k,
 				convolution_window_->get_output_image_dimensions(),
 				current_activation );
+	    mtx_.unlock();
 	  }
       }
     catch( itk::ExceptionObject & err )

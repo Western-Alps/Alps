@@ -278,6 +278,7 @@ namespace Alps
 								layer_size) );
 	    //
 	    // Cumulate the error through all images
+	    mtx_.lock();
 	    if ( cumulated_error_.empty() )
 	      cumulated_error_.resize( layer_size, 0. );
 	    // Account for this specific subject
@@ -285,6 +286,7 @@ namespace Alps
 			    current_activation[Act::ERROR].begin(), cumulated_error_.begin(),
 			    std::plus< double >() );
 	    number_images_++;
+	    mtx_.unlock();
 //	    for ( std::size_t i = 0 ; i < layer_size ; i++ )
 //	      std::cout
 //		<< "cumulated_error_["<<i<<"] = " << cumulated_error_[i] 
@@ -420,10 +422,20 @@ namespace Alps
     try
       {
 	//
-	// Name of the layer
-	Weights_file.write( layer_name_.c_str(), sizeof(char)*layer_name_.size() );
-	// Then the weights
-	weights_->save_tensor( Weights_file  );
+	if ( Weights_file.is_open() )
+	  {
+	    // Name of the layer
+	    Weights_file.write( layer_name_.c_str(), sizeof(char)*layer_name_.size() );
+	    // Then the weights
+	    weights_->save_tensor( Weights_file  );
+	  }
+	else
+	  {
+	    std::string mess = "The weights file in reconstruction layer has no I/O access.\n";
+	    throw MAC::MACException( __FILE__, __LINE__,
+				     mess.c_str(),
+				     ITK_LOCATION );
+	  }
       }
     catch( itk::ExceptionObject & err )
       {

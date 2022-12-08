@@ -21,8 +21,9 @@ namespace Alps
      // 
      SGD       = 1, // Stochatic Gradient Descent (SGD)
      MOMENTUM  = 2, // Momentum based Gradient Descent
-     ADAGRAD   = 3, // Adaptive Gradient Descent
-     Adam      = 4  // It is not an acronym. The algorithm is called Adam.
+     AdaGrad   = 3, // Adaptive Gradient Descent
+     AdaDelta  = 4, // AdaDelta
+     Adam      = 5  // It is not an acronym. The algorithm is called Adam.
     }; 
   /** \class Gradient_base
    *
@@ -109,7 +110,30 @@ namespace Alps
     //
     // Get the type of optimizer
     virtual const Alps::Grad get_optimizer() const
-    { return Alps::Grad::ADAGRAD;};
+    { return Alps::Grad::AdaGrad;};
+  };
+  /** \class ADADELTA
+   *
+   * \brief 
+   * This class is the Adaptive delta. This is a simplified class
+   * to create a strategy.
+   *
+   */
+  class AdaDelta : public Gradient_base
+  {
+  public:
+    /** Constructor */
+    explicit AdaDelta() = default;
+    /** Destructor */
+    virtual ~AdaDelta() = default;
+
+      
+    //
+    // Functions
+    //
+    // Get the type of optimizer
+    virtual const Alps::Grad get_optimizer() const
+    { return Alps::Grad::AdaDelta;};
   };
   /** \class Adam
    *

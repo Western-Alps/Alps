@@ -140,15 +140,15 @@ namespace Alps
     std::vector< double >                                        energy_;
     // Vector of modalities 
     std::vector< Alps::LayerTensors< double, Dim > >             modalities_;
-    // Vector of modalities 
-    std::map< std::string,
-	      std::vector< Alps::LayerTensors< double, Dim > > > layer_modalities_;
+//    // Vector of modalities 
+//    std::map< std::string,
+//	      std::vector< Alps::LayerTensors< double, Dim > > > layer_modalities_;
     // Vector of modalities 
     std::map< std::string,
 	      std::vector< std::shared_ptr< Alps::LayerTensors< double, Dim > > > > layer_modalities_ptr_;
-    // Vector of modalities references
-    std::map< std::string,
-	      std::vector< std::reference_wrapper< Alps::LayerTensors< double, Dim > > > > layer_modalities_ref_;
+//    // Vector of modalities references
+//    std::map< std::string,
+//	      std::vector< std::reference_wrapper< Alps::LayerTensors< double, Dim > > > > layer_modalities_ref_;
     // Vector of output names
     std::map< std::string,
 	      std::vector< std::string > >                       layer_IO_;
@@ -171,7 +171,7 @@ namespace Alps
 			       const std::size_t NumModalities ):
     subject_number_{SubNumber}, number_modalities_{NumModalities}
   {
-    layer_modalities_["__input_layer__"] = std::vector< Alps::LayerTensors< double, D > >();
+//    layer_modalities_["__input_layer__"] = std::vector< Alps::LayerTensors< double, D > >();
     layer_modalities_ptr_["__input_layer__"] = std::vector< std::shared_ptr< Alps::LayerTensors< double, D > > >();
     //
     output_directory_ = Alps::LoadDataSet::instance()->get_data()["mountain"]["IO"]["output_dir"];
@@ -207,8 +207,8 @@ namespace Alps
 	    std::string out_name = layer_IO_["__output__"][m] + "_" + std::to_string( epoque_ ) + ".nii.gz";
 	    //
 	    //
-	    layer_modalities_["__output_layer__"][m].get_image( Alps::TensorOrder1::ACTIVATION ).visualization( out_name,
-														img_ptr );
+//	    layer_modalities_["__output_layer__"][m].get_image( Alps::TensorOrder1::ACTIVATION ).visualization( out_name,
+//														img_ptr );
 	    layer_modalities_ptr_["__output_layer__"][m]->get_image( Alps::TensorOrder1::ACTIVATION ).visualization( out_name,
 														     img_ptr );
 	  }
@@ -230,7 +230,7 @@ namespace Alps
 	  {
 	    //
 	    // Load the modalities into the container
-	    layer_modalities_["__input_layer__"].push_back( Alps::LayerTensors< double, D >(Modality) );
+//	    layer_modalities_["__input_layer__"].push_back( Alps::LayerTensors< double, D >(Modality) );
 	    layer_modalities_ptr_["__input_layer__"].push_back( std::make_shared< Alps::LayerTensors< double, D > >(Modality) );
 	    modalities_.push_back( Alps::LayerTensors< double, D >(Modality) );
 	    //
@@ -265,11 +265,11 @@ namespace Alps
   {
     //
     // Check the layer exist
-    auto layer = layer_modalities_.find( Layer_name );
+    auto layer = layer_modalities_ptr_.find( Layer_name );
     //
     try
       {
-	if ( layer != layer_modalities_.end() )
+	if ( layer != layer_modalities_ptr_.end() )
 	  {
 	    if ( (layer->second).size() == 0 )
 	      {
@@ -308,11 +308,11 @@ namespace Alps
   {
     //
     // Check the layer exist
-    auto layer = layer_modalities_.find( Layer_name );
+    auto layer = layer_modalities_ptr_.find( Layer_name );
     //
     try
       {
-	if ( layer == layer_modalities_.end() )
+	if ( layer == layer_modalities_ptr_.end() )
 //	  {
 //	    if ( (layer->second).size() == 0 )
 //	      {
@@ -340,30 +340,30 @@ namespace Alps
 	std::cerr << err << std::endl;
       }
 
-    //
-    // If the map of vector references is empty,
-    // we are going through the map to create reference vectors
-    if ( layer_modalities_ref_.empty() )
-      {
-	//
-	auto iter = layer_modalities_.begin();
-	//
-	while ( iter != layer_modalities_.end() )
-	  {
-	    layer_modalities_ref_[ iter->first ] =
-	      std::vector< std::reference_wrapper< Alps::LayerTensors< double, D > > > ( iter->second.begin(),
-											 iter->second.end() );
-	    ++iter;
-	  }
-      }
-    // Check if it should have the key
-    if ( layer_modalities_.find( Layer_name ) != layer_modalities_.end() &&
-	 layer_modalities_ref_.find( Layer_name ) == layer_modalities_ref_.end() )
-      {
-	layer_modalities_ref_[ Layer_name ] =
-	      std::vector< std::reference_wrapper< Alps::LayerTensors< double, D > > > ( layer_modalities_[ Layer_name ].begin(),
-											 layer_modalities_[ Layer_name ].end() );
-      }
+//    //
+//    // If the map of vector references is empty,
+//    // we are going through the map to create reference vectors
+//    if ( layer_modalities_ref_.empty() )
+//      {
+//	//
+//	auto iter = layer_modalities_.begin();
+//	//
+//	while ( iter != layer_modalities_.end() )
+//	  {
+//	    layer_modalities_ref_[ iter->first ] =
+//	      std::vector< std::reference_wrapper< Alps::LayerTensors< double, D > > > ( iter->second.begin(),
+//											 iter->second.end() );
+//	    ++iter;
+//	  }
+//      }
+//    // Check if it should have the key
+//    if ( layer_modalities_.find( Layer_name ) != layer_modalities_.end() &&
+//	 layer_modalities_ref_.find( Layer_name ) == layer_modalities_ref_.end() )
+//      {
+//	layer_modalities_ref_[ Layer_name ] =
+//	      std::vector< std::reference_wrapper< Alps::LayerTensors< double, D > > > ( layer_modalities_[ Layer_name ].begin(),
+//											 layer_modalities_[ Layer_name ].end() );
+//      }
     
     //
     //
@@ -381,21 +381,21 @@ namespace Alps
       {
 	//
 	// Check the layer exist
-	auto layer = layer_modalities_.find( Layer_name );
+	auto layer = layer_modalities_ptr_.find( Layer_name );
 	//
-	if ( layer == layer_modalities_.end() )
+	if ( layer == layer_modalities_ptr_.end() )
 	  {
-	    layer_modalities_[ Layer_name ] = std::vector< Alps::LayerTensors< double, D > >();
-	    layer_modalities_[ Layer_name ].push_back( Alps::LayerTensors< double, D >(Layer_size,
-										       Tensors_activation) );
+//	    layer_modalities_[ Layer_name ] = std::vector< Alps::LayerTensors< double, D > >();
+//	    layer_modalities_[ Layer_name ].push_back( Alps::LayerTensors< double, D >(Layer_size,
+//										       Tensors_activation) );
 	    layer_modalities_ptr_[ Layer_name ] = std::vector< std::shared_ptr< Alps::LayerTensors< double, D > > >();
 	    layer_modalities_ptr_[ Layer_name ].push_back( std::make_shared< Alps::LayerTensors< double, D > >(Layer_size,
 													       Tensors_activation) );
 	  }
 	else
 	  {
-	    layer_modalities_[ Layer_name ][0].replace( Layer_size,
-							Tensors_activation );
+//	    layer_modalities_[ Layer_name ][0].replace( Layer_size,
+//							Tensors_activation );
 	    layer_modalities_ptr_[ Layer_name ][0]->replace( Layer_size,
 							     Tensors_activation );
 	  }
@@ -418,27 +418,27 @@ namespace Alps
       {
 	//
 	// Check the layer exist
-	auto layer = layer_modalities_.find( Layer_name );
+	auto layer = layer_modalities_ptr_.find( Layer_name );
 	//
-	if ( layer == layer_modalities_.end() )
+	if ( layer == layer_modalities_ptr_.end() )
 	  {
-	    layer_modalities_[ Layer_name ] = std::vector< Alps::LayerTensors< double, D > >();
-	    layer_modalities_[ Layer_name ].push_back( Alps::LayerTensors< double, D >(Layer_size,
-										       Tensors_activation) );
+//	    layer_modalities_[ Layer_name ] = std::vector< Alps::LayerTensors< double, D > >();
+//	    layer_modalities_[ Layer_name ].push_back( Alps::LayerTensors< double, D >(Layer_size,
+//										       Tensors_activation) );
 	    layer_modalities_ptr_[ Layer_name ] = std::vector< std::shared_ptr< Alps::LayerTensors< double, D > > >();
 	    layer_modalities_ptr_[ Layer_name ].push_back( std::make_shared< Alps::LayerTensors< double, D > >(Layer_size,
 													   Tensors_activation) );
 	  }
 	else
 	  {
-	    if ( layer_modalities_[ Layer_name ].size() < static_cast< std::size_t >(Kernel + 1) )
+	    if ( layer_modalities_ptr_[ Layer_name ].size() < static_cast< std::size_t >(Kernel + 1) )
 	      {
-		layer_modalities_[ Layer_name ].push_back( Alps::LayerTensors< double, D >(Layer_size,
-											   Tensors_activation) );
+//		layer_modalities_[ Layer_name ].push_back( Alps::LayerTensors< double, D >(Layer_size,
+//											   Tensors_activation) );
 		layer_modalities_ptr_[ Layer_name ].push_back( std::make_shared< Alps::LayerTensors< double, D > >(Layer_size,
 														   Tensors_activation) );
 		//
-		if ( layer_modalities_[ Layer_name ].size() != static_cast< std::size_t >(Kernel + 1) )
+		if ( layer_modalities_ptr_[ Layer_name ].size() != static_cast< std::size_t >(Kernel + 1) )
 		  {
 		    std::string mess = "Synchronization issue between the number of features recorded and the current feature.";
 		    throw MAC::MACException( __FILE__, __LINE__,
@@ -448,8 +448,8 @@ namespace Alps
 	      }
 	    else
 	      {
-		layer_modalities_[ Layer_name ][Kernel].replace( Layer_size,
-								 Tensors_activation );
+//		layer_modalities_[ Layer_name ][Kernel].replace( Layer_size,
+//								 Tensors_activation );
 		layer_modalities_ptr_[ Layer_name ][Kernel]->replace( Layer_size,
 								      Tensors_activation );
 	      }
@@ -544,7 +544,7 @@ namespace Alps
   {
     try
       {
-	if ( layer_modalities_.size() > 0 )
+	if ( layer_modalities_ptr_.size() > 0 )
 	  {
 	    //
 	    std::vector< std::size_t > layer_size;
@@ -589,8 +589,8 @@ namespace Alps
 	    // Record in the layer_modalities container
 	    std::string name = "__input_layer__";
 	    layer_size.push_back(size);
-	    layer_modalities_[name].push_back( Alps::LayerTensors< double, D >(layer_size,
-									       {z, dz, error, werr}) );
+//	    layer_modalities_[name].push_back( Alps::LayerTensors< double, D >(layer_size,
+//									       {z, dz, error, werr}) );
 	    layer_modalities_ptr_[name].push_back( std::make_shared< Alps::LayerTensors< double, D > >(layer_size,
 												       {z, dz, error, werr}) );
 	  }

@@ -23,6 +23,7 @@
 // Gradients
 #include "AlpsGradient.h"
 #include "AlpsSGD.h"
+#include "AlpsAdaGrad.h"
 // Weights
 #include "Weights.h"
 #include "Convolutional_window.h"

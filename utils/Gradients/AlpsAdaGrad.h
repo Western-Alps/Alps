@@ -1,5 +1,5 @@
-#ifndef ALPSSGD_H
-#define ALPSSGD_H
+#ifndef ALPSADAGRAD_H
+#define ALPSADAGRAD_H
 //
 //
 //
@@ -16,26 +16,26 @@
 //
 namespace Alps
 {
-  /** \class SGD
+  /** \class AdaGrad
    *
    * \brief 
-   * This class is the stochastic gradient descent (SGD) class.
+   * This class is the adaptive online gradient descent (AdaGrad) class.
    * 
    * - MiniBatch: the size of the mini-bach
-   *   * MiniBatch =  1 -- stochastic gradient descent
+   *   * MiniBatch =  1 -- adaptive online gradient descent
    *   * MiniBatch =  n -- batch of size n images, n < N the total 
    *                       number of images
    *   * MiniBatch = -1 -- the model uses all the images
    * 
    */
   template< typename Type, typename Tensor1_Type, typename Tensor2_Type, Alps::Arch Architecture >
-  class StochasticGradientDescent : public Alps::Gradient< Tensor1_Type, Tensor2_Type >
+  class AdaptiveGradientDescent : public Alps::Gradient< Tensor1_Type, Tensor2_Type >
   {
   public:
     /** Costructor */
-    explicit StochasticGradientDescent() = default;
+    explicit AdaptiveGradientDescent() = default;
     /** Destructor */
-    virtual ~StochasticGradientDescent() = default;
+    virtual ~AdaptiveGradientDescent() = default;
     
     
     //
@@ -52,34 +52,34 @@ namespace Alps
     //
     // Get the type of optimizer
     virtual const Alps::Grad get_optimizer() const
-    { return Alps::Grad::SGD;};
+    { return Alps::Grad::AdaGrad;};
     // Add tensor elements
     virtual void             add_tensors( const Tensor1_Type&, const Tensor1_Type& ) override {};
     // Backward propagation
     virtual Tensor2_Type     solve( const bool = false )                             override
     { return Tensor2_Type();};
   };
-  /** \class StochasticGradientDescent
+  /** \class AdaptiveGradientDescent
    *
    * \brief 
-   * This class is the stochastic gradient descent (SGD) class.
+   * This class is the adaptive online gradient descent (AdaGrad) class.
    * 
    * - MiniBatch: the size of the mini-bach
-   *   * MiniBatch =  1 -- stochastic gradient descent
+   *   * MiniBatch =  1 -- adaptive online gradient descent
    *   * MiniBatch =  n -- batch of size n images, n < N the total 
    *                       number of images
    *   * MiniBatch = -1 -- the model uses all the images
    * 
    */
   template< typename Type >
-  class StochasticGradientDescent< Type, std::vector< Type >, std::vector< Type >, Alps::Arch::CPU > :
+  class AdaptiveGradientDescent< Type, std::vector< Type >, std::vector< Type >, Alps::Arch::CPU > :
     public Alps::Gradient< std::vector< Type >, std::vector< Type > >
   {
   public:
     /** Costructor */
-    explicit StochasticGradientDescent();
+    explicit AdaptiveGradientDescent();
     /** Destructor */
-    virtual ~StochasticGradientDescent() = default;
+    virtual ~AdaptiveGradientDescent() = default;
     
       
     //
@@ -97,7 +97,7 @@ namespace Alps
     //
     // Get the type of optimizer
     virtual const Alps::Grad    get_optimizer() const
-    { return Alps::Grad::SGD;};
+    { return Alps::Grad::AdaGrad;};
     // Add tensor elements
     virtual void                add_tensors( const std::vector< Type >&,
 					     const std::vector< Type >& )  override;
@@ -117,18 +117,18 @@ namespace Alps
     // Update of the weights
     // number of weights
     std::size_t             delta_size_{0};
-    // number of previous weights
-    std::size_t             prev_size_{0};
     // delta_ = [W epsilon] * ...
     std::vector< Type >     delta_;
-    // activation from the previous layer
-    std::vector< Type >     previous_activation_;
+    // cumule of squared gradient
+    std::vector< Type >     cumul_squared_gradient_;
+    // prevent dividing with zero
+    double                  epsilon_{1.e-09};
   };
   //
   //
   //
   template< typename Type >
-  Alps::StochasticGradientDescent< Type, std::vector< Type >, std::vector< Type >, Alps::Arch::CPU >::StochasticGradientDescent()
+  Alps::AdaptiveGradientDescent< Type, std::vector< Type >, std::vector< Type >, Alps::Arch::CPU >::AdaptiveGradientDescent()
   {
     //mini_batch_    = static_cast< std::size_t >(Alps::LoadDataSet::instance()->get_data()["mountain"]["strategy"]["mini_batch"]);
     learning_rate_ = static_cast< double >(Alps::LoadDataSet::instance()->get_data()["mountain"]["strategy"]["learning_rate"]);
@@ -137,31 +137,30 @@ namespace Alps
   //
   //
   template< typename Type > void
-  Alps::StochasticGradientDescent< Type,
+  Alps::AdaptiveGradientDescent< Type,
 				   std::vector< Type >,
 				   std::vector< Type >,
 				   Alps::Arch::CPU >::set_parameters( const std::size_t Current_size,
 								      const std::size_t Prev_size )
   {
-    delta_size_          = Current_size;
-    prev_size_           = Prev_size;
-    delta_               = std::vector< Type >( Current_size, 0. );
-    previous_activation_ = std::vector< Type >( Prev_size, 0. );
+    delta_size_             = Current_size;
+    delta_                  = std::vector< Type >( Current_size, 0. );
+    cumul_squared_gradient_ = std::vector< Type >( Current_size, 0. );
   }
   //
   //
   //
   template< typename Type > void
-  Alps::StochasticGradientDescent< Type, std::vector< Type >, std::vector< Type >, Alps::Arch::CPU >::reset_parameters()
+  Alps::AdaptiveGradientDescent< Type, std::vector< Type >, std::vector< Type >, Alps::Arch::CPU >::reset_parameters()
   {
-    delta_               = std::vector< Type >( delta_size_, 0. );
-    previous_activation_ = std::vector< Type >( prev_size_, 0. );
+    delta_                  = std::vector< Type >( delta_size_, 0. );
+    //cumul_squared_gradient_ = std::vector< Type >( delta_size_, 0. );
   }
   //
   //
   //
   template< typename Type > void
-  Alps::StochasticGradientDescent< Type,
+  Alps::AdaptiveGradientDescent< Type,
 				   std::vector< Type >,
 				   std::vector< Type >,
 				   Alps::Arch::CPU >::add_tensors( const std::vector< Type >& Delta,
@@ -186,7 +185,7 @@ namespace Alps
   //
   //
   template< typename Type > std::vector< Type >
-  Alps::StochasticGradientDescent< Type,
+  Alps::AdaptiveGradientDescent< Type,
 				   std::vector< Type >,
 				   std::vector< Type >,
 				   Alps::Arch::CPU >::solve( const bool Forced )
@@ -194,28 +193,33 @@ namespace Alps
     //
     // multiply all the elements with the learning rate
     double learn = learning_rate_;
+    std::vector< Type > velocity = std::vector< Type >( delta_size_, 0. );
     //
-    std::transform( delta_.begin(), delta_.end(),
-		    delta_.begin(), [&learn](auto& c){ return - learn * c; } );
+    for ( int i = 0 ; i < delta_size_ ; ++i )
+      {
+	// Cumul the square of the gradient
+	cumul_squared_gradient_[i] += delta_[i] * delta_[i];
+	velocity[i] = - learning_rate_ * delta_[i] / sqrt( cumul_squared_gradient_[i] + epsilon_ );
+      }
 
     //
     //
-    return delta_;
+    return velocity;
   }
-  /** \class StochasticGradientDescent
+  /** \class AdaptiveGradientDescent
    *
    * \brief 
-   * This class is the stochastic gradient descent (SGD) class.
+   * This class is the adaptive online gradient descent (AdaGrad) class.
    * 
    * - MiniBatch: the size of the mini-bach
-   *   * MiniBatch =  1 -- stochastic gradient descent
+   *   * MiniBatch =  1 -- adaptive online gradient descent
    *   * MiniBatch =  n -- batch of size n images, n < N the total 
    *                       number of images
    *   * MiniBatch = -1 -- the model uses all the images
    * 
    */
   template< typename Type >
-  class StochasticGradientDescent< Type,
+  class AdaptiveGradientDescent< Type,
 				   Eigen::MatrixXd,
 				   Eigen::MatrixXd,
 				   Alps::Arch::CPU > : public Alps::Gradient< Eigen::MatrixXd,
@@ -223,9 +227,9 @@ namespace Alps
   {
   public:
     /** Costructor */
-    explicit StochasticGradientDescent();
+    explicit AdaptiveGradientDescent();
     /** Destructor */
-    virtual ~StochasticGradientDescent() = default;
+    virtual ~AdaptiveGradientDescent() = default;
 
       
     //
@@ -242,7 +246,7 @@ namespace Alps
     //
     // Get the type of optimizer
     virtual const Alps::Grad get_optimizer() const
-    { return Alps::Grad::SGD;};
+    { return Alps::Grad::AdaGrad;};
     // Add tensor elements
     virtual void            add_tensors( const Eigen::MatrixXd&, const Eigen::MatrixXd& ) override;
     // Backward propagation
@@ -272,10 +276,10 @@ namespace Alps
   //
   //
   template< typename Type >
-  Alps::StochasticGradientDescent< Type,
+  Alps::AdaptiveGradientDescent< Type,
 				   Eigen::MatrixXd,
 				   Eigen::MatrixXd,
-				   Alps::Arch::CPU >::StochasticGradientDescent()
+				   Alps::Arch::CPU >::AdaptiveGradientDescent()
   {
     //mini_batch_    = static_cast< std::size_t >(Alps::LoadDataSet::instance()->get_data()["mountain"]["strategy"]["mini_batch"]);
     learning_rate_ = static_cast< double >(Alps::LoadDataSet::instance()->get_data()["mountain"]["strategy"]["learning_rate"]);
@@ -284,7 +288,7 @@ namespace Alps
   //
   //
   template< typename Type > void
-  Alps::StochasticGradientDescent< Type,
+  Alps::AdaptiveGradientDescent< Type,
 				   Eigen::MatrixXd,
 				   Eigen::MatrixXd,
 				   Alps::Arch::CPU >::set_parameters( const std::size_t Current_size,
@@ -299,7 +303,7 @@ namespace Alps
   //
   //
   template< typename Type > void
-  Alps::StochasticGradientDescent< Type,
+  Alps::AdaptiveGradientDescent< Type,
 				   Eigen::MatrixXd,
 				   Eigen::MatrixXd,
 				   Alps::Arch::CPU >::reset_parameters()
@@ -311,7 +315,7 @@ namespace Alps
   //
   //
   template< typename Type > void
-  Alps::StochasticGradientDescent< Type, Eigen::MatrixXd,
+  Alps::AdaptiveGradientDescent< Type, Eigen::MatrixXd,
 				   Eigen::MatrixXd,
 				   Alps::Arch::CPU >::add_tensors( const Eigen::MatrixXd& Delta,
 								   const Eigen::MatrixXd& Z )
@@ -346,33 +350,33 @@ namespace Alps
   //
   //
   template< typename Type > Eigen::MatrixXd
-  Alps::StochasticGradientDescent< Type,
+  Alps::AdaptiveGradientDescent< Type,
 				   Eigen::MatrixXd,
 				   Eigen::MatrixXd,
 				   Alps::Arch::CPU >::solve( const bool Forced )
   {
 	return - learning_rate_ * delta_ * previous_activation_.transpose();
   }
-  /** \class StochasticGradientDescent
+  /** \class AdaptiveGradientDescent
    *
    * \brief 
-   * This class is the stochastic gradient descent (SGD) class.
+   * This class is the adaptive online gradient descent (AdaGrad) class.
    * 
    * - MiniBatch: the size of the mini-bach
-   *   * MiniBatch =  1 -- stochastic gradient descent
+   *   * MiniBatch =  1 -- adaptive online gradient descent
    *   * MiniBatch =  n -- batch of size n images, n < N the total 
    *                       number of images
    *   * MiniBatch = -1 -- the model uses all the images
    * 
    */
   template< typename Type, typename Tensor1_Type, typename Tensor2_Type >
-  class StochasticGradientDescent< Type, Tensor1_Type, Tensor2_Type, Alps::Arch::CUDA > : public Alps::Gradient< Tensor1_Type, Tensor2_Type >
+  class AdaptiveGradientDescent< Type, Tensor1_Type, Tensor2_Type, Alps::Arch::CUDA > : public Alps::Gradient< Tensor1_Type, Tensor2_Type >
   {
   public:
     /** Costructor */
-    explicit StochasticGradientDescent(){};
+    explicit AdaptiveGradientDescent(){};
     /** Destructor */
-    virtual ~StochasticGradientDescent() = default;
+    virtual ~AdaptiveGradientDescent() = default;
 
       
     //
@@ -389,7 +393,7 @@ namespace Alps
     //
     // Get the type of optimizer
     virtual const Alps::Grad get_optimizer() const
-    { return Alps::Grad::SGD;};
+    { return Alps::Grad::AdaGrad;};
     // Add tensor elements
     virtual void         add_tensors( const Tensor1_Type&, const Tensor1_Type& ) override {};
     // Backward propagation

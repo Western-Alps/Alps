@@ -14,7 +14,7 @@ include(FindCUDA)
 #
 set(CUDA_SEPARABLE_COMPILATION ON)
 #
-LIST(APPEND CUDA_NVCC_FLAGS --compiler-options -O3 -std=c++14 -lineinfo -use_fast_math -Xptxas -dlcm=cg -Wno-deprecated-gpu-targets )
+LIST(APPEND CUDA_NVCC_FLAGS --compiler-options -O2 -std=c++14 -lineinfo -use_fast_math -Xptxas -dlcm=cg -Wno-deprecated-gpu-targets )
 #LIST(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_30,code=sm_30)
 #LIST(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_35,code=sm_35)
 #LIST(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_37,code=sm_37)

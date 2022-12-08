@@ -27,6 +27,9 @@
 #include "AlpsWeights.h"
 #include "AlpsLayer.h"
 #include "AlpsSGD.h"
+#include "AlpsAdaGrad.h"
+#include "AlpsAdaDelta.h"
+#include "AlpsAdam.h"
 //
 //
 //
@@ -249,9 +252,34 @@ namespace Alps
 									   Alps::Arch::CPU > >();
 	    break;
 	  };
-	case Alps::Grad::MOMENTUM:
-	case Alps::Grad::ADAGRAD:
+	case Alps::Grad::AdaGrad:
+	  {
+	    gradient_ = std::make_shared< Alps::AdaptiveGradientDescent< double,
+									 std::vector< T >,
+									 std::vector< T >,
+									 Alps::Arch::CPU > >();
+	    //
+	    break;
+	  };
+	case Alps::Grad::AdaDelta:
+	  {
+	    gradient_ = std::make_shared< Alps::AdaDeltaGradient< double,
+								  std::vector< T >,
+								  std::vector< T >,
+								  Alps::Arch::CPU > >();
+	    //
+	    break;
+	  };
 	case Alps::Grad::Adam:
+	  {
+	    gradient_ = std::make_shared< Alps::AdamGradient< double,
+							      std::vector< T >,
+							      std::vector< T >,
+							      Alps::Arch::CPU > >();
+	    //
+	    break;
+	  };
+	case Alps::Grad::MOMENTUM:
 	case Alps::Grad::UNKNOWN:
 	default:
 	  {
